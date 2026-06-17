@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏡 Nest — Our New Home Shopping List</title>
+<style>
+  :root{
+    --bg:#fbf7f2;
+    --card:#ffffff;
+    --ink:#2c2a2e;
+    --muted:#8a8590;
+    --line:#ece6dd;
+    --brand:#e07a5f;
+    --brand2:#3d8a7e;
+    --gold:#f2b705;
+    --accent:#7c6ce0;
+    --good:#3d8a7e;
+    --shadow:0 6px 22px rgba(60,42,46,.08);
+    --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, #ffe9df 0%, transparent 60%),
+      radial-gradient(1000px 500px at 110% 0%, #def0eb 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+  a{color:var(--brand)}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px 80px}
+
+  /* Header */
+  header{
+    padding:26px 0 10px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo .mark{font-size:34px;filter:drop-shadow(0 3px 4px rgba(224,122,95,.4))}
+  .logo h1{font-size:26px;margin:0;letter-spacing:-.5px}
+  .logo p{margin:2px 0 0;color:var(--muted);font-size:13px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:9px 14px;border-radius:11px;font-size:13.5px;font-weight:600;
+    box-shadow:var(--shadow);transition:.15s;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn.primary{background:var(--brand);color:#fff;border-color:transparent}
+  .btn.ghost{background:transparent;box-shadow:none}
+
+  /* Tabs */
+  .tabs{display:flex;gap:6px;margin:18px 0 22px;background:#fff;padding:6px;border-radius:14px;
+    box-shadow:var(--shadow);width:max-content;max-width:100%;flex-wrap:wrap}
+  .tab{border:none;background:transparent;padding:10px 18px;border-radius:10px;font-weight:700;
+    font-size:14px;color:var(--muted)}
+  .tab.active{background:var(--brand);color:#fff;box-shadow:0 4px 12px rgba(224,122,95,.35)}
+
+  /* Dashboard */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:820px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);
+    position:relative;overflow:hidden}
+  .stat .ico{font-size:22px}
+  .stat .num{font-size:30px;font-weight:800;letter-spacing:-1px;margin:6px 0 2px}
+  .stat .lbl{color:var(--muted);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .stat .sub{color:var(--muted);font-size:12px;margin-top:4px}
+  .stat::after{content:"";position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;
+    background:var(--c,#ffe9df);opacity:.5}
+  .stat>*{position:relative;z-index:1}
+
+  .panel{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-top:16px}
+  .panel h3{margin:0 0 14px;font-size:16px}
+  .bar-row{display:flex;align-items:center;gap:12px;margin:10px 0}
+  .bar-row .name{width:140px;font-size:13px;font-weight:600;flex-shrink:0}
+  .bar-track{flex:1;background:#f1ece4;border-radius:8px;height:22px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:8px;display:flex;align-items:center;padding-left:8px;color:#fff;
+    font-size:11px;font-weight:700;white-space:nowrap}
+  .bar-row .val{width:90px;text-align:right;font-size:13px;font-weight:700;flex-shrink:0}
+
+  /* Rooms bar */
+  .roombar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+  .roomchip{border:1px solid var(--line);background:#fff;padding:8px 14px;border-radius:999px;
+    font-weight:700;font-size:13.5px;box-shadow:var(--shadow);display:flex;align-items:center;gap:7px}
+  .roomchip.active{background:var(--brand2);color:#fff;border-color:transparent}
+  .roomchip .cnt{background:rgba(0,0,0,.08);border-radius:999px;padding:1px 8px;font-size:11px}
+  .roomchip.active .cnt{background:rgba(255,255,255,.25)}
+
+  /* Group + items */
+  .group{margin-bottom:26px}
+  .group-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .group-head h2{font-size:18px;margin:0}
+  .group-head .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 10px;
+    font-size:11.5px;font-weight:700;color:var(--muted)}
+  .group-head .pill.win{background:#fff8e1;border-color:#f4dd9a;color:#9a7b00}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
+    border:2px solid transparent;display:flex;flex-direction:column;transition:.15s;position:relative}
+  .card:hover{transform:translateY(-2px)}
+  .card.top{border-color:var(--gold)}
+  .card .imgwrap{position:relative;aspect-ratio:16/11;background:#f3ede5;overflow:hidden}
+  .card .imgwrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .card .imgwrap .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    font-size:40px;color:#cdbfae}
+  .rankbadge{position:absolute;left:10px;top:10px;background:rgba(44,42,46,.85);color:#fff;
+    width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:13px;backdrop-filter:blur(4px)}
+  .topbadge{position:absolute;right:10px;top:10px;background:var(--gold);color:#5c4500;
+    padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;box-shadow:0 3px 8px rgba(242,183,5,.5)}
+  .catbadge{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.92);
+    padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
+  .card .body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card .title{font-weight:700;font-size:14.5px;line-height:1.25}
+  .card .price{font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .card .fin{background:#f6f8f7;border:1px solid #e6efec;border-radius:10px;padding:8px 10px;font-size:12px;
+    color:#4a5a55}
+  .card .fin b{color:var(--brand2)}
+  .card .notes{font-size:12px;color:var(--muted);font-style:italic}
+  .card .links{display:flex;gap:6px;margin-top:auto;flex-wrap:wrap}
+  .mini{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 9px;font-size:12px;
+    font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:4px}
+  .mini:hover{background:#faf6f0}
+  .mini.gold{background:#fff8e1;border-color:#f4dd9a;color:#9a7b00}
+
+  /* Idea board */
+  .ideas{columns:4 240px;column-gap:14px}
+  .idea{break-inside:avoid;margin-bottom:14px;background:#fff;border-radius:14px;overflow:hidden;
+    box-shadow:var(--shadow);position:relative}
+  .idea img{width:100%;display:block}
+  .idea .ic{padding:11px 13px}
+  .idea .ic .t{font-weight:700;font-size:13.5px}
+  .idea .ic .n{font-size:12px;color:var(--muted);margin-top:3px}
+  .idea .del{position:absolute;right:8px;top:8px;background:rgba(0,0,0,.55);color:#fff;border:none;
+    width:28px;height:28px;border-radius:50%;font-size:14px;opacity:0;transition:.15s}
+  .idea:hover .del{opacity:1}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty .big{font-size:48px;margin-bottom:10px}
+
+  /* Modal */
+  .overlay{position:fixed;inset:0;background:rgba(40,30,32,.45);backdrop-filter:blur(3px);
+    display:none;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:50;overflow:auto}
+  .overlay.show{display:flex}
+  .modal{background:var(--card);border-radius:20px;width:100%;max-width:560px;box-shadow:0 30px 80px rgba(0,0,0,.3);
+    overflow:hidden;animation:pop .2s ease}
+  @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+  .modal .mhead{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .modal .mhead h3{margin:0;font-size:18px}
+  .modal .mbody{padding:20px 22px;display:flex;flex-direction:column;gap:14px;max-height:70vh;overflow:auto}
+  .modal .mfoot{padding:14px 22px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end}
+  .field label{display:block;font-size:12.5px;font-weight:700;margin-bottom:5px;color:#574f57}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:10px 12px;font-size:14px;font-family:inherit;background:#fdfbf8}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:2px solid var(--brand);border-color:transparent}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:4px}
+  .preview{border:1px dashed var(--line);border-radius:12px;padding:10px;display:flex;gap:12px;align-items:center;background:#fdfbf8}
+  .preview img{width:84px;height:64px;object-fit:cover;border-radius:8px;background:#eee}
+  .preview .ph{width:84px;height:64px;border-radius:8px;background:#f0ebe3;display:flex;align-items:center;justify-content:center;font-size:24px;color:#c9bba9}
+  .switch{display:flex;align-items:center;gap:9px;background:#f6f8f7;border:1px solid #e6efec;border-radius:10px;padding:10px 12px}
+  .switch input{width:auto}
+  .x{border:none;background:#f1ece4;width:32px;height:32px;border-radius:9px;font-size:16px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);
+    background:#2c2a2e;color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:600;
+    box-shadow:0 10px 30px rgba(0,0,0,.3);transition:.3s;z-index:80}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #ccc;border-top-color:var(--brand);
+    border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="mark">🏡</div>
+      <div>
+        <h1>Nest</h1>
+        <p>Our new home shopping list & idea board</p>
+      </div>
+    </div>
+    <div class="toolbar">
+      <span id="syncPill" class="btn ghost" style="cursor:default" title="Cloud sync status">
+        <span id="syncDot" style="width:9px;height:9px;border-radius:50%;background:#bbb;display:inline-block"></span>
+        <span id="syncText">Local</span>
+      </span>
+      <button class="btn primary" onclick="shareBoard()">🔗 Share / Sync</button>
+      <button class="btn ghost" onclick="exportData()">⬇️ Backup</button>
+      <button class="btn ghost" onclick="document.getElementById('importFile').click()">⬆️ Restore</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-view="dash" onclick="setView('dash')">📊 Dashboard</button>
+    <button class="tab" data-view="list" onclick="setView('list')">🛒 Shopping List</button>
+    <button class="tab" data-view="ideas" onclick="setView('ideas')">💡 Idea Board</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <section id="view-dash"></section>
+
+  <!-- SHOPPING LIST -->
+  <section id="view-list" style="display:none">
+    <div class="roombar" id="roombar"></div>
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+      <button class="btn primary" onclick="openItem()">＋ Add Item</button>
+      <button class="btn" onclick="addRoom()">＋ Add Room</button>
+      <button class="btn ghost" id="renameRoomBtn" onclick="renameRoom()">✏️ Rename Room</button>
+      <button class="btn ghost" id="delRoomBtn" onclick="deleteRoom()">🗑️ Delete Room</button>
+    </div>
+    <div id="listBody"></div>
+  </section>
+
+  <!-- IDEA BOARD -->
+  <section id="view-ideas" style="display:none">
+    <div class="panel" style="margin-bottom:16px">
+      <h3>🔎 Find inspiration <span style="font-weight:400;color:var(--muted);font-size:13px">— free, opens in a new tab</span></h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="inspoQ" placeholder="e.g. cozy reading nook, sage green kitchen…"
+          style="flex:1;min-width:200px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:#fdfbf8"
+          onkeydown="if(event.key==='Enter')inspo('pinterest')">
+        <button class="btn" onclick="inspo('pinterest')">📌 Pinterest</button>
+        <button class="btn" onclick="inspo('google')">🖼️ Google Images</button>
+        <button class="btn" onclick="inspo('unsplash')">📷 Unsplash</button>
+        <button class="btn" onclick="inspo('houzz')">🏠 Houzz</button>
+      </div>
+      <div class="hint" style="margin-top:8px">Love one you find? Copy its link → <b>Add Inspiration</b> → <b>📷 Get photo</b> to pull it onto your board.</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:18px">
+      <button class="btn primary" onclick="openIdea()">＋ Add Inspiration</button>
+    </div>
+    <div id="ideaBody"></div>
+  </section>
+</div>
+
+<!-- ITEM MODAL -->
+<div class="overlay" id="itemOverlay">
+  <div class="modal">
+    <div class="mhead"><h3 id="itemModalTitle">Add Item</h3><button class="x" onclick="closeModal('itemOverlay')">✕</button></div>
+    <div class="mbody">
+      <div class="field">
+        <label>Link (paste a product URL — we'll grab a photo) 🔗</label>
+        <div style="display:flex;gap:8px">
+          <input id="f_url" placeholder="https://..." oninput="">
+          <button class="btn" style="white-space:nowrap" onclick="fetchPreview()">📷 Get photo</button>
+        </div>
+      </div>
+      <div class="preview">
+        <img id="f_prevImg" style="display:none">
+        <div class="ph" id="f_prevPh">🖼️</div>
+        <div style="flex:1">
+          <div class="field" style="margin:0">
+            <label>Photo URL <span id="f_prevStatus" style="font-weight:400;color:var(--muted)"></span></label>
+            <input id="f_image" placeholder="Auto-filled — or paste your own image URL" oninput="syncPreview()">
+            <div class="hint">Got a better picture? Paste any image URL or <a href="#" onclick="document.getElementById('f_upload').click();return false">upload one</a>.</div>
+            <input type="file" id="f_upload" accept="image/*" style="display:none" onchange="uploadImg(event)">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>What is it?</label>
+        <input id="f_name" placeholder="e.g. Cloud Modular Sofa — Crate & Barrel">
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label>Choice group</label>
+          <input id="f_group" placeholder="e.g. Sofa" list="groupList">
+          <datalist id="groupList"></datalist>
+          <div class="hint">Same group = options to compare & rank.</div>
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="f_cat"></select>
+        </div>
+        <div class="field">
+          <label>Price ($)</label>
+          <input id="f_price" type="number" min="0" step="any" placeholder="0">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Dimensions <span style="font-weight:400;color:var(--muted)">(optional — W × D × H)</span></label>
+        <div style="display:flex;gap:8px">
+          <input id="f_dims" placeholder='e.g. 84&quot;W × 38&quot;D × 30&quot;H'>
+          <button class="btn" style="white-space:nowrap" onclick="autoDims()" title="Pull measurements out of the notes/description">✨ Auto</button>
+        </div>
+        <div class="hint">Auto-fills from the link description when measurements are found — or just type them.</div>
+      </div>
+
+      <div class="switch">
+        <input type="checkbox" id="f_fin" onchange="toggleFin()">
+        <label for="f_fin" style="margin:0">💳 This has a financing option</label>
+      </div>
+      <div id="finFields" style="display:none">
+        <div class="row3">
+          <div class="field"><label>Interest APR (%)</label><input id="f_apr" type="number" min="0" step="any" placeholder="0" oninput="calcMonthly()"></div>
+          <div class="field"><label>Term (months)</label><input id="f_term" type="number" min="1" step="1" placeholder="12" oninput="calcMonthly()"></div>
+          <div class="field"><label>Monthly payment ($)</label><input id="f_monthly" type="number" min="0" step="any" placeholder="auto"></div>
+        </div>
+        <div class="hint">Monthly payment auto-calculates from price, APR & term — but you can type the exact number from the offer.</div>
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="f_notes" rows="2" placeholder="Color, size, who liked it, delivery time..."></textarea>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn ghost" id="itemDelBtn" onclick="deleteItem()" style="margin-right:auto;display:none">🗑️ Delete</button>
+      <button class="btn" onclick="closeModal('itemOverlay')">Cancel</button>
+      <button class="btn primary" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IDEA MODAL -->
+<div class="overlay" id="ideaOverlay">
+  <div class="modal">
+    <div class="mhead"><h3>Add Inspiration</h3><button class="x" onclick="closeModal('ideaOverlay')">✕</button></div>
+    <div class="mbody">
+      <div class="field">
+        <label>Link 🔗</label>
+        <div style="display:flex;gap:8px">
+          <input id="i_url" placeholder="https://...">
+          <button class="btn" style="white-space:nowrap" onclick="fetchIdeaPreview()">📷 Get photo</button>
+        </div>
+      </div>
+      <div class="preview">
+        <img id="i_prevImg" style="display:none">
+        <div class="ph" id="i_prevPh">🖼️</div>
+        <div style="flex:1">
+          <div class="field" style="margin:0">
+            <label>Photo URL <span id="i_prevStatus" style="font-weight:400;color:var(--muted)"></span></label>
+            <input id="i_image" placeholder="Auto-filled — or paste/upload your own" oninput="syncIdeaPreview()">
+            <input type="file" id="i_upload" accept="image/*" style="display:none" onchange="uploadIdeaImg(event)">
+            <div class="hint"><a href="#" onclick="document.getElementById('i_upload').click();return false">Upload an image instead</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>Title</label><input id="i_title" placeholder="e.g. Warm minimalist living room"></div>
+      <div class="field"><label>Notes</label><textarea id="i_notes" rows="2" placeholder="What we love about it..."></textarea></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="closeModal('ideaOverlay')">Cancel</button>
+      <button class="btn primary" onclick="saveIdea()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERIC DIALOG (replaces prompt/confirm so it works in every browser & the preview panel) -->
+<div class="overlay" id="askOverlay">
+  <div class="modal" style="max-width:430px">
+    <div class="mhead"><h3 id="askTitle">…</h3><button class="x" onclick="askResolve(false)">✕</button></div>
+    <div class="mbody">
+      <div class="field" id="askField"><input id="askInput" onkeydown="if(event.key==='Enter')askResolve(true)"></div>
+      <div id="askMsg" style="font-size:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" onclick="askResolve(false)">Cancel</button>
+      <button class="btn primary" id="askOk" onclick="askResolve(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ---------------- Data ---------------- */
+const CATS = [
+  {k:'Furniture',e:'🛋️'},{k:'Painting',e:'🎨'},{k:'Fixture',e:'🚿'},
+  {k:'Lighting',e:'💡'},{k:'Appliance',e:'🔌'},{k:'Decor',e:'🖼️'},
+  {k:'Flooring',e:'🪵'},{k:'Outdoor',e:'🌿'},{k:'Other',e:'📦'}
+];
+const ROOM_EMOJIS=['🛋️','🛏️','🍳','🛁','🚪','🪴','🧺','🖥️','🍽️','🌳','🚗','🎮'];
+const COLORS=['#e07a5f','#3d8a7e','#7c6ce0','#f2b705','#5b8def','#e0699a','#5cab7d','#d98c3f'];
+
+/* ---------------- Cloud config ---------------- */
+const SB_URL='https://flvxrrwgzualfzfczlim.supabase.co';
+const SB_KEY='sb_publishable_-6YQ5GIyWfpI583bJg-yLw_XUpsMvOE';
+let sb=null, myRev=null, pushTimer=null, channel=null;
+const boardKey=getBoardKey();
+
+function getBoardKey(){
+  const h=new URLSearchParams(location.hash.slice(1));
+  let k=h.get('b') || localStorage.getItem('nestBoardKey');
+  if(!k) k=uid()+uid();              // brand-new private board id
+  localStorage.setItem('nestBoardKey',k);
+  if(h.get('b')!==k) location.hash='b='+k;   // keep the URL shareable
+  return k;
+}
+function seed(){
+  return { rooms:[
+    {id:uid(),name:'Living Room',emoji:'🛋️'},
+    {id:uid(),name:'Bedroom',emoji:'🛏️'},
+    {id:uid(),name:'Kitchen',emoji:'🍳'}
+  ], items:[], ideas:[] };
+}
+function loadLocal(){
+  try{ const d=JSON.parse(localStorage.getItem('nest:'+boardKey)); if(d&&d.rooms) return d; }catch(e){}
+  try{ const old=JSON.parse(localStorage.getItem('nestData')); if(old&&old.rooms) return old; }catch(e){} // migrate old single list
+  return seed();
+}
+let state = loadLocal();
+let activeRoom = state.rooms[0] ? state.rooms[0].id : null;
+let editingId = null;
+
+function persistLocal(){ try{ localStorage.setItem('nest:'+boardKey, JSON.stringify(state)); }catch(e){} }
+function save(){ persistLocal(); schedulePush(); }
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function money(n){ return '$'+(Math.round(n)||0).toLocaleString(); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ---------------- Financing math ---------------- */
+function monthlyPayment(principal, apr, term){
+  principal=+principal||0; apr=+apr||0; term=+term||0;
+  if(term<=0) return 0;
+  const r = apr/100/12;
+  if(r===0) return principal/term;
+  return principal * (r*Math.pow(1+r,term)) / (Math.pow(1+r,term)-1);
+}
+function itemMonthly(it){
+  if(!it.fin) return 0;
+  if(it.monthly!=null && it.monthly!=='' ) return +it.monthly||0;
+  return monthlyPayment(it.price, it.apr, it.term);
+}
+
+/* ---------------- Views ---------------- */
+function setView(v){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===v));
+  ['dash','list','ideas'].forEach(x=>document.getElementById('view-'+x).style.display = x===v?'':'none');
+  if(v==='dash') renderDash();
+  if(v==='list') renderList();
+  if(v==='ideas') renderIdeas();
+}
+
+/* group helper: top pick per group within room (groups with same name).
+   Ungrouped items each count as their own pick. */
+function topPicksAll(){
+  const picks=[];
+  const byGroup={};
+  state.items.forEach(it=>{
+    const g=(it.group||'').trim();
+    if(!g){ picks.push(it); return; }
+    const key=it.roomId+'||'+g.toLowerCase();
+    (byGroup[key]=byGroup[key]||[]).push(it);
+  });
+  Object.values(byGroup).forEach(arr=>{
+    arr.sort((a,b)=>(a.rank||0)-(b.rank||0));
+    let top=arr.find(x=>x.top) || arr[0];
+    picks.push(top);
+  });
+  return picks;
+}
+
+/* ---------------- Dashboard ---------------- */
+function renderDash(){
+  const el=document.getElementById('view-dash');
+  const items=state.items;
+  const picks=topPicksAll();
+  const totalItems=items.length;
+  const topCost=picks.reduce((s,it)=>s+(+it.price||0),0);
+  const monthlyTotal=picks.reduce((s,it)=>s+itemMonthly(it),0);
+  const financedCount=picks.filter(it=>it.fin).length;
+  const allPicksMonthlyAnnual=monthlyTotal*12;
+
+  // room breakdown by top-pick cost
+  const roomTotals=state.rooms.map(r=>{
+    const c=picks.filter(p=>p.roomId===r.id).reduce((s,it)=>s+(+it.price||0),0);
+    return {name:r.emoji+' '+r.name, val:c};
+  }).filter(r=>r.val>0).sort((a,b)=>b.val-a.val);
+  const maxRoom=Math.max(1,...roomTotals.map(r=>r.val));
+
+  // category breakdown
+  const catMap={};
+  picks.forEach(p=>{ const c=p.cat||'Other'; catMap[c]=(catMap[c]||0)+(+p.price||0); });
+  const catTotals=Object.entries(catMap).map(([k,v])=>({name:(CATS.find(c=>c.k===k)||{e:'📦'}).e+' '+k,val:v}))
+    .sort((a,b)=>b.val-a.val);
+  const maxCat=Math.max(1,...catTotals.map(c=>c.val));
+
+  el.innerHTML=`
+    <div class="stat-grid">
+      <div class="stat" style="--c:#ffe1d6">
+        <div class="ico">🛒</div>
+        <div class="num">${totalItems}</div>
+        <div class="lbl">Items tracked</div>
+        <div class="sub">${picks.length} top picks chosen</div>
+      </div>
+      <div class="stat" style="--c:#d7efe9">
+        <div class="ico">⭐</div>
+        <div class="num">${money(topCost)}</div>
+        <div class="lbl">Total of top picks</div>
+        <div class="sub">If we buy our #1 choices</div>
+      </div>
+      <div class="stat" style="--c:#e7e2fb">
+        <div class="ico">💳</div>
+        <div class="num">${money(monthlyTotal)}</div>
+        <div class="lbl">Monthly payments</div>
+        <div class="sub">${financedCount} financed item${financedCount===1?'':'s'} / mo</div>
+      </div>
+      <div class="stat" style="--c:#fdeecb">
+        <div class="ico">📅</div>
+        <div class="num">${money(allPicksMonthlyAnnual)}</div>
+        <div class="lbl">Financing per year</div>
+        <div class="sub">12 × monthly payments</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px" id="dashGrid">
+      <div class="panel">
+        <h3>🏠 Spend by room <span style="font-weight:400;color:var(--muted);font-size:13px">(top picks)</span></h3>
+        ${roomTotals.length?roomTotals.map((r,i)=>barRow(r.name,r.val,maxRoom,COLORS[i%COLORS.length])).join(''):empt()}
+      </div>
+      <div class="panel">
+        <h3>🎨 Spend by category <span style="font-weight:400;color:var(--muted);font-size:13px">(top picks)</span></h3>
+        ${catTotals.length?catTotals.map((c,i)=>barRow(c.name,c.val,maxCat,COLORS[(i+3)%COLORS.length])).join(''):empt()}
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>💳 Financing breakdown</h3>
+      ${financeTable(picks)}
+    </div>
+  `;
+  // responsive
+  if(window.innerWidth<820){ document.getElementById('dashGrid').style.gridTemplateColumns='1fr'; }
+}
+function empt(){ return `<div style="color:var(--muted);font-size:13px;padding:10px 0">Nothing yet — add items in the Shopping List.</div>`; }
+function barRow(name,val,max,color){
+  const pct=Math.max(4,Math.round(val/max*100));
+  return `<div class="bar-row"><div class="name">${esc(name)}</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}">${pct>18?money(val):''}</div></div>
+    <div class="val">${money(val)}</div></div>`;
+}
+function financeTable(picks){
+  const fin=picks.filter(p=>p.fin);
+  if(!fin.length) return `<div style="color:var(--muted);font-size:13px">No financing added yet. Tick "This has a financing option" on an item to see monthly costs here.</div>`;
+  const rows=fin.map(it=>{
+    const m=itemMonthly(it);
+    return `<tr>
+      <td style="padding:9px 6px;font-weight:600">${esc(it.name||'Untitled')}</td>
+      <td style="text-align:right;padding:9px 6px">${money(it.price)}</td>
+      <td style="text-align:right;padding:9px 6px">${(+it.apr||0)}%</td>
+      <td style="text-align:right;padding:9px 6px">${(+it.term||0)} mo</td>
+      <td style="text-align:right;padding:9px 6px;font-weight:800;color:var(--brand2)">${money(m)}/mo</td>
+    </tr>`;
+  }).join('');
+  const totM=fin.reduce((s,it)=>s+itemMonthly(it),0);
+  return `<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="color:var(--muted);font-size:11.5px;text-transform:uppercase;text-align:right">
+      <th style="text-align:left;padding:6px">Item</th><th style="padding:6px">Price</th><th style="padding:6px">APR</th><th style="padding:6px">Term</th><th style="padding:6px">Monthly</th>
+    </tr></thead><tbody>${rows}</tbody>
+    <tfoot><tr style="border-top:2px solid var(--line)">
+      <td colspan="4" style="text-align:right;padding:10px 6px;font-weight:700">Total monthly</td>
+      <td style="text-align:right;padding:10px 6px;font-weight:800;font-size:15px;color:var(--brand)">${money(totM)}/mo</td>
+    </tr></tfoot></table></div>`;
+}
+
+/* ---------------- Shopping List ---------------- */
+function renderList(){
+  // room bar
+  const rb=document.getElementById('roombar');
+  if(!activeRoom && state.rooms[0]) activeRoom=state.rooms[0].id;
+  rb.innerHTML=state.rooms.map(r=>{
+    const cnt=state.items.filter(i=>i.roomId===r.id).length;
+    return `<button class="roomchip ${r.id===activeRoom?'active':''}" onclick="activeRoom='${r.id}';renderList()">
+      <span>${r.emoji}</span> ${esc(r.name)} <span class="cnt">${cnt}</span></button>`;
+  }).join('') || `<span style="color:var(--muted)">No rooms yet — add one!</span>`;
+
+  document.getElementById('renameRoomBtn').style.display=activeRoom?'':'none';
+  document.getElementById('delRoomBtn').style.display=activeRoom?'':'none';
+
+  const body=document.getElementById('listBody');
+  const items=state.items.filter(i=>i.roomId===activeRoom);
+  if(!activeRoom){ body.innerHTML=''; return; }
+  if(!items.length){
+    body.innerHTML=`<div class="empty"><div class="big">🛒</div>
+      <div style="font-weight:700;font-size:17px">This room is empty</div>
+      <div>Add furniture, paint, fixtures and more — then compare and rank your options.</div>
+      <div style="margin-top:16px"><button class="btn primary" onclick="openItem()">＋ Add your first item</button></div></div>`;
+    return;
+  }
+  // group
+  const groups={}; const ungrouped=[];
+  items.forEach(it=>{ const g=(it.group||'').trim();
+    if(g){ (groups[g]=groups[g]||[]).push(it); } else ungrouped.push(it); });
+
+  let html='';
+  Object.keys(groups).sort().forEach(g=>{
+    const arr=groups[g].sort((a,b)=>(a.rank||0)-(b.rank||0));
+    const top=arr.find(x=>x.top)||arr[0];
+    const totalIfAll=arr.reduce((s,x)=>s+(+x.price||0),0);
+    html+=`<div class="group">
+      <div class="group-head">
+        <h2>${esc(g)}</h2>
+        <span class="pill win">⭐ Top: ${money(top.price)}</span>
+        ${arr.length>1?`<span class="pill">${arr.length} options · compare ${money(Math.min(...arr.map(x=>+x.price||0)))}–${money(Math.max(...arr.map(x=>+x.price||0)))}</span>`:''}
+      </div>
+      <div class="cards">${arr.map((it,i)=>cardHtml(it,i+1,arr.length,top.id)).join('')}</div>
+    </div>`;
+  });
+  if(ungrouped.length){
+    html+=`<div class="group">
+      <div class="group-head"><h2>Single items</h2></div>
+      <div class="cards">${ungrouped.map(it=>cardHtml(it,0,1,it.id)).join('')}</div>
+    </div>`;
+  }
+  body.innerHTML=html;
+}
+
+function cardHtml(it,rank,groupSize,topId){
+  const cat=CATS.find(c=>c.k===it.cat)||{e:'📦',k:'Other'};
+  const isTop=groupSize>1 && it.id===topId;
+  const m=itemMonthly(it);
+  const img=it.image
+    ? `<img src="${esc(it.image)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="ph" style="display:none">${cat.e}</div>`
+    : `<div class="ph">${cat.e}</div>`;
+  return `<div class="card ${isTop?'top':''}">
+    <div class="imgwrap">
+      ${img}
+      ${groupSize>1?`<div class="rankbadge">${rank}</div>`:''}
+      ${isTop?`<div class="topbadge">⭐ TOP PICK</div>`:''}
+      <div class="catbadge">${cat.e} ${cat.k}</div>
+    </div>
+    <div class="body">
+      <div class="title">${esc(it.name||'Untitled')}</div>
+      <div class="price">${money(it.price)} ${it.fin?`<span style="font-size:12px;color:var(--brand2);font-weight:700">· ${money(m)}/mo</span>`:''}</div>
+      ${it.fin?`<div class="fin">💳 <b>${money(m)}/mo</b> · ${(+it.apr||0)}% APR · ${(+it.term||0)} months</div>`:''}
+      ${it.dims?`<div style="font-size:12px;color:var(--muted)">📐 ${esc(it.dims)}</div>`:''}
+      ${it.notes?`<div class="notes">“${esc(it.notes)}”</div>`:''}
+      <div class="links">
+        ${groupSize>1 && !isTop?`<button class="mini gold" onclick="makeTop('${it.id}')">⭐ Make top</button>`:''}
+        ${groupSize>1?`<button class="mini" onclick="move('${it.id}',-1)" title="Rank up">⬆️</button>
+          <button class="mini" onclick="move('${it.id}',1)" title="Rank down">⬇️</button>`:''}
+        ${it.url?`<a class="mini" href="${esc(it.url)}" target="_blank" rel="noopener">🔗 Link</a>`:''}
+        ${it.name?`<a class="mini" href="https://www.google.com/search?tbm=shop&q=${encodeURIComponent(it.name)}" target="_blank" rel="noopener" title="Find similar products & prices">🔍 Alternatives</a>`:''}
+        ${it.image&&/^https?:/.test(it.image)?`<a class="mini" href="https://lens.google.com/uploadbyurl?url=${encodeURIComponent(it.image)}" target="_blank" rel="noopener" title="Reverse image search — find this item or cheaper look-alikes">📸 Find similar</a>`:''}
+        <button class="mini" onclick="openItem('${it.id}')">✏️ Edit</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function makeTop(id){
+  const it=state.items.find(x=>x.id===id); if(!it) return;
+  state.items.forEach(x=>{ if(x.roomId===it.roomId && (x.group||'').trim().toLowerCase()===(it.group||'').trim().toLowerCase()) x.top=false; });
+  it.top=true; save(); renderList(); toast('⭐ Set as top pick');
+}
+function move(id,dir){
+  const it=state.items.find(x=>x.id===id); if(!it) return;
+  const peers=state.items.filter(x=>x.roomId===it.roomId && (x.group||'').trim().toLowerCase()===(it.group||'').trim().toLowerCase())
+    .sort((a,b)=>(a.rank||0)-(b.rank||0));
+  const i=peers.indexOf(it); const j=i+dir;
+  if(j<0||j>=peers.length) return;
+  [peers[i],peers[j]]=[peers[j],peers[i]];
+  peers.forEach((p,k)=>p.rank=k);
+  save(); renderList();
+}
+
+/* ---------------- Rooms ---------------- */
+async function addRoom(){
+  const name=await askText('Name this room','');
+  if(!name) return;
+  const emoji=ROOM_EMOJIS[state.rooms.length%ROOM_EMOJIS.length];
+  const r={id:uid(),name:name,emoji};
+  state.rooms.push(r); activeRoom=r.id; save(); renderList(); toast('🏠 Room added');
+}
+async function renameRoom(){
+  const r=state.rooms.find(x=>x.id===activeRoom); if(!r) return;
+  const name=await askText('Rename room',r.name); if(!name) return;
+  r.name=name; save(); renderList();
+}
+async function deleteRoom(){
+  const r=state.rooms.find(x=>x.id===activeRoom); if(!r) return;
+  const n=state.items.filter(i=>i.roomId===r.id).length;
+  if(!await askConfirm('Delete this room?',`"${r.name}"${n?` and its ${n} item(s)`:''} will be removed.`)) return;
+  state.items=state.items.filter(i=>i.roomId!==r.id);
+  state.rooms=state.rooms.filter(x=>x.id!==r.id);
+  activeRoom=state.rooms[0]?state.rooms[0].id:null;
+  save(); renderList(); toast('Room deleted');
+}
+
+/* ---------------- Item modal ---------------- */
+function openItem(id){
+  editingId=id||null;
+  if(!activeRoom && !id){ toast('Add a room first'); return; }
+  // category options
+  const sel=document.getElementById('f_cat');
+  sel.innerHTML=CATS.map(c=>`<option value="${c.k}">${c.e} ${c.k}</option>`).join('');
+  // group datalist
+  const groups=[...new Set(state.items.map(i=>(i.group||'').trim()).filter(Boolean))];
+  document.getElementById('groupList').innerHTML=groups.map(g=>`<option value="${esc(g)}">`).join('');
+
+  const it = id ? state.items.find(x=>x.id===id) : null;
+  document.getElementById('itemModalTitle').textContent = it?'Edit Item':'Add Item';
+  document.getElementById('itemDelBtn').style.display = it?'':'none';
+  document.getElementById('f_url').value = it?.url||'';
+  document.getElementById('f_image').value = it?.image||'';
+  document.getElementById('f_name').value = it?.name||'';
+  document.getElementById('f_group').value = it?.group||'';
+  document.getElementById('f_cat').value = it?.cat||'Furniture';
+  document.getElementById('f_price').value = it?.price??'';
+  document.getElementById('f_dims').value = it?.dims||'';
+  document.getElementById('f_fin').checked = !!it?.fin;
+  document.getElementById('f_apr').value = it?.apr??'';
+  document.getElementById('f_term').value = it?.term??'';
+  document.getElementById('f_monthly').value = it?.monthly??'';
+  document.getElementById('f_notes').value = it?.notes||'';
+  document.getElementById('f_prevStatus').textContent='';
+  toggleFin(); syncPreview();
+  document.getElementById('itemOverlay').classList.add('show');
+}
+function toggleFin(){ document.getElementById('finFields').style.display=document.getElementById('f_fin').checked?'':'none'; }
+function calcMonthly(){
+  const p=+document.getElementById('f_price').value||0;
+  const apr=+document.getElementById('f_apr').value||0;
+  const term=+document.getElementById('f_term').value||0;
+  const f=document.getElementById('f_monthly');
+  if(term>0){ f.placeholder=money(monthlyPayment(p,apr,term))+' (auto)'; }
+}
+function syncPreview(){
+  const v=document.getElementById('f_image').value.trim();
+  const img=document.getElementById('f_prevImg'), ph=document.getElementById('f_prevPh');
+  if(v){ img.src=v; img.style.display=''; ph.style.display='none';
+    img.onerror=()=>{img.style.display='none';ph.style.display='flex';}; }
+  else{ img.style.display='none'; ph.style.display='flex'; }
+}
+function uploadImg(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader(); r.onload=()=>{ document.getElementById('f_image').value=r.result; syncPreview(); toast('📷 Photo added'); };
+  r.readAsDataURL(file);
+}
+async function fetchPreview(){
+  const url=document.getElementById('f_url').value.trim();
+  if(!url){ toast('Paste a link first'); return; }
+  const st=document.getElementById('f_prevStatus'); st.innerHTML='<span class="spin"></span> reading the page…';
+  const data=await getPreview(url);
+  const filled=[];
+  if(data.image){ document.getElementById('f_image').value=data.image; syncPreview(); filled.push('photo'); }
+  const nameF=document.getElementById('f_name');
+  if(data.title && !nameF.value){ nameF.value=data.title; filled.push('name'); }
+  // Description usually holds specs / dimensions — drop it into notes.
+  const notesF=document.getElementById('f_notes');
+  if(data.description && !notesF.value){ notesF.value=data.description; filled.push('specs/notes'); }
+  // Best-effort price + category guess.
+  const priceF=document.getElementById('f_price');
+  if(!priceF.value){ const p=guessPrice(data.title+' '+data.description); if(p){ priceF.value=p; filled.push('price'); } }
+  const cat=guessCat(data.title+' '+data.description);
+  if(cat){ document.getElementById('f_cat').value=cat; }
+  const dimsF=document.getElementById('f_dims');
+  if(!dimsF.value){ const d=parseDims(data.description+' '+data.title); if(d){ dimsF.value=d; filled.push('dimensions'); } }
+  st.textContent = filled.length ? ('✓ filled: '+filled.join(', ')+' — tweak anything below') : 'couldn’t auto-grab — paste an image URL';
+}
+function saveItem(){
+  const price=+document.getElementById('f_price').value||0;
+  const fin=document.getElementById('f_fin').checked;
+  const monthlyRaw=document.getElementById('f_monthly').value;
+  const obj={
+    url:document.getElementById('f_url').value.trim(),
+    image:document.getElementById('f_image').value.trim(),
+    name:document.getElementById('f_name').value.trim(),
+    group:document.getElementById('f_group').value.trim(),
+    cat:document.getElementById('f_cat').value,
+    dims:document.getElementById('f_dims').value.trim(),
+    price, fin,
+    apr:+document.getElementById('f_apr').value||0,
+    term:+document.getElementById('f_term').value||0,
+    monthly: monthlyRaw===''?null:(+monthlyRaw||0),
+    notes:document.getElementById('f_notes').value.trim()
+  };
+  if(!obj.name && !obj.image){ toast('Give it a name at least 🙂'); return; }
+  if(editingId){
+    const it=state.items.find(x=>x.id===editingId);
+    Object.assign(it,obj);
+  }else{
+    const peers=state.items.filter(x=>x.roomId===activeRoom && (x.group||'').trim().toLowerCase()===obj.group.toLowerCase() && obj.group);
+    obj.id=uid(); obj.roomId=activeRoom; obj.rank=peers.length; obj.top=peers.length===0 && !!obj.group?true:false;
+    state.items.push(obj);
+  }
+  save(); closeModal('itemOverlay'); renderList(); toast('✅ Saved');
+}
+async function deleteItem(){
+  if(!editingId) return;
+  if(!await askConfirm('Delete this item?','This can’t be undone.')) return;
+  state.items=state.items.filter(x=>x.id!==editingId);
+  save(); closeModal('itemOverlay'); renderList(); toast('Deleted');
+}
+
+/* ---------------- Idea board ---------------- */
+function renderIdeas(){
+  const body=document.getElementById('ideaBody');
+  if(!state.ideas.length){
+    body.innerHTML=`<div class="empty"><div class="big">💡</div>
+      <div style="font-weight:700;font-size:17px">Your idea board is empty</div>
+      <div>Save inspiration photos, color palettes and styles you love.</div>
+      <div style="margin-top:16px"><button class="btn primary" onclick="openIdea()">＋ Add inspiration</button></div></div>`;
+    return;
+  }
+  body.innerHTML=`<div class="ideas">${state.ideas.map(id=>`
+    <div class="idea">
+      <button class="del" onclick="delIdea('${id.id}')">✕</button>
+      ${id.image?`<img src="${esc(id.image)}" onerror="this.style.display='none'">`:''}
+      <div class="ic">
+        ${id.title?`<div class="t">${esc(id.title)}</div>`:''}
+        ${id.notes?`<div class="n">${esc(id.notes)}</div>`:''}
+        ${id.url?`<div class="n"><a href="${esc(id.url)}" target="_blank" rel="noopener">🔗 source</a></div>`:''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+function inspo(site){
+  const q=(document.getElementById('inspoQ').value.trim()||'home decor inspiration');
+  const base={
+    pinterest:'https://www.pinterest.com/search/pins/?q=',
+    google:'https://www.google.com/search?tbm=isch&q=',
+    unsplash:'https://unsplash.com/s/photos/',
+    houzz:'https://www.houzz.com/photos/query/'
+  }[site];
+  window.open(base+encodeURIComponent(q),'_blank','noopener');
+}
+function openIdea(){
+  document.getElementById('i_url').value='';
+  document.getElementById('i_image').value='';
+  document.getElementById('i_title').value='';
+  document.getElementById('i_notes').value='';
+  document.getElementById('i_prevStatus').textContent='';
+  syncIdeaPreview();
+  document.getElementById('ideaOverlay').classList.add('show');
+}
+function syncIdeaPreview(){
+  const v=document.getElementById('i_image').value.trim();
+  const img=document.getElementById('i_prevImg'), ph=document.getElementById('i_prevPh');
+  if(v){ img.src=v; img.style.display=''; ph.style.display='none'; img.onerror=()=>{img.style.display='none';ph.style.display='flex';}; }
+  else{ img.style.display='none'; ph.style.display='flex'; }
+}
+function uploadIdeaImg(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader(); r.onload=()=>{ document.getElementById('i_image').value=r.result; syncIdeaPreview(); };
+  r.readAsDataURL(file);
+}
+async function fetchIdeaPreview(){
+  const url=document.getElementById('i_url').value.trim(); if(!url){toast('Paste a link first');return;}
+  const st=document.getElementById('i_prevStatus'); st.innerHTML='<span class="spin"></span> reading the page…';
+  const data=await getPreview(url);
+  if(data.image){ document.getElementById('i_image').value=data.image; syncIdeaPreview(); }
+  if(data.title && !document.getElementById('i_title').value) document.getElementById('i_title').value=data.title;
+  const inotes=document.getElementById('i_notes');
+  if(data.description && !inotes.value) inotes.value=data.description;
+  st.textContent=data.image?'✓ photo found':'couldn’t auto-grab — paste/upload an image';
+}
+function saveIdea(){
+  const obj={
+    id:uid(),
+    url:document.getElementById('i_url').value.trim(),
+    image:document.getElementById('i_image').value.trim(),
+    title:document.getElementById('i_title').value.trim(),
+    notes:document.getElementById('i_notes').value.trim()
+  };
+  if(!obj.image && !obj.title){ toast('Add a photo or a title 🙂'); return; }
+  state.ideas.unshift(obj); save(); closeModal('ideaOverlay'); renderIdeas(); toast('💡 Saved to board');
+}
+async function delIdea(id){ if(!await askConfirm('Remove this inspiration?'))return; state.ideas=state.ideas.filter(x=>x.id!==id); save(); renderIdeas(); }
+
+/* ---------------- Link preview (Open Graph via microlink) ---------------- */
+async function getPreview(url){
+  try{
+    const res=await fetch('https://api.microlink.io/?url='+encodeURIComponent(url)+'&audio=false&video=false');
+    const j=await res.json();
+    if(j.status==='success'){
+      const d=j.data;
+      return {
+        image:d.image?.url || d.logo?.url || '',
+        title:d.title||'',
+        description:d.description||'',
+        publisher:d.publisher||''
+      };
+    }
+  }catch(e){}
+  return {image:'',title:'',description:'',publisher:''};
+}
+// Pull a "W x D x H" style measurement out of free text. Returns '' if none found.
+function parseDims(text){
+  if(!text) return '';
+  let t=String(text).replace(/[″”]/g,'"').replace(/[×]/g,'x');
+  const U='(?:"|in\\.?|inch(?:es)?|cm|mm|ft)';
+  const re=new RegExp('(\\d+(?:\\.\\d+)?)\\s*'+U+'?\\s*([wdhWDH])?\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*'+U+'?\\s*([wdhWDH])?(?:\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*'+U+'?\\s*([wdhWDH])?)?','i');
+  const m=t.match(re);
+  return m ? m[0].replace(/\s+/g,' ').trim() : '';
+}
+function autoDims(){
+  const d=parseDims(document.getElementById('f_notes').value+' '+document.getElementById('f_name').value);
+  if(d){ document.getElementById('f_dims').value=d; toast('📐 Found '+d); }
+  else toast('No measurements found in the notes');
+}
+function guessPrice(text){
+  const m=String(text||'').match(/\$\s?([\d]{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)/);
+  return m ? +m[1].replace(/,/g,'') : null;
+}
+// Guess a category from the page text so the dropdown gets a head start.
+function guessCat(text){
+  const t=String(text||'').toLowerCase();
+  const map=[
+    ['Lighting',/lamp|sconce|chandelier|pendant light|light fixture/],
+    ['Painting',/\bpaint\b|primer|gallon|sheen|eggshell|satin finish/],
+    ['Fixture',/faucet|sink|toilet|shower|vanity|bath|tub|hardware/],
+    ['Appliance',/refrigerator|fridge|washer|dryer|dishwasher|oven|range|microwave/],
+    ['Flooring',/flooring|hardwood|laminate|tile|rug|carpet|vinyl plank/],
+    ['Decor',/mirror|vase|art|frame|throw pillow|curtain|decor/],
+    ['Outdoor',/patio|outdoor|grill|deck|garden/],
+    ['Furniture',/sofa|couch|chair|table|bed|dresser|desk|shelf|nightstand|ottoman|bench|cabinet/]
+  ];
+  for(const [k,re] of map) if(re.test(t)) return k;
+  return null;
+}
+
+/* ---------------- Backup / restore ---------------- */
+function exportData(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='nest-home-list.json'; a.click(); toast('⬇️ Backup downloaded');
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const d=JSON.parse(r.result);
+    if(d.rooms&&d.items){ state=d; activeRoom=state.rooms[0]?.id||null; save();
+      setView('dash'); toast('⬆️ Restored'); } else toast('That file doesn’t look right');
+  }catch(err){ toast('Couldn’t read that file'); } };
+  r.readAsText(file);
+}
+
+/* ---------------- Dialog (in-app prompt/confirm) ---------------- */
+let _askResolve=null;
+function dialog(opts){
+  return new Promise(resolve=>{
+    const input=!!opts.input;
+    document.getElementById('askTitle').textContent=opts.title||'';
+    document.getElementById('askField').style.display=input?'':'none';
+    const msg=document.getElementById('askMsg');
+    msg.style.display=opts.message?'':'none'; msg.textContent=opts.message||'';
+    document.getElementById('askOk').textContent=opts.ok||'OK';
+    const inp=document.getElementById('askInput');
+    inp.value=opts.def||'';
+    document.getElementById('askOverlay').classList.add('show');
+    if(input) setTimeout(()=>{inp.focus();inp.select();},40);
+    _askResolve=(ok)=>{
+      document.getElementById('askOverlay').classList.remove('show');
+      _askResolve=null;
+      resolve(ok ? (input?inp.value.trim():true) : (input?null:false));
+    };
+  });
+}
+function askResolve(v){ if(_askResolve) _askResolve(v); }
+const askText=(title,def='')=>dialog({title,input:true,def});
+const askConfirm=(title,message='')=>dialog({title,message,ok:'Yes, do it'});
+
+/* ---------------- Utils ---------------- */
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{
+  if(e.target!==o) return;
+  if(o.id==='askOverlay'){ askResolve(false); } else o.classList.remove('show');
+}));
+document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+  if(document.getElementById('askOverlay').classList.contains('show')){ askResolve(false); return; }
+  document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'));
+});
+
+/* ---------------- Cloud sync ---------------- */
+function setSync(kind){
+  const dot=document.getElementById('syncDot'), txt=document.getElementById('syncText');
+  const map={synced:['#3d8a7e','Synced'],connecting:['#f2b705','Syncing…'],offline:['#c0563f','Offline'],local:['#bbb','Local']};
+  const [c,t]=map[kind]||map.local; if(dot)dot.style.background=c; if(txt)txt.textContent=t;
+}
+function schedulePush(){
+  if(!sb) return;                 // not connected → stays local-only, still saved on this device
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(pushNow,600);   // debounce rapid edits
+}
+async function pushNow(){
+  if(!sb) return;
+  myRev=uid()+uid();
+  try{
+    setSync('connecting');
+    const {error}=await sb.from('nest_boards').upsert({ id:boardKey, data:{v:1,rev:myRev,state}, updated_at:new Date().toISOString() });
+    setSync(error?'offline':'synced');
+  }catch(e){ setSync('offline'); }
+}
+function applyRemote(data){
+  if(!data || !data.state || !data.state.rooms) return;
+  if(data.rev && data.rev===myRev) return;          // ignore the echo of our own write
+  state=data.state;
+  if(!state.rooms.find(r=>r.id===activeRoom)) activeRoom=state.rooms[0]?state.rooms[0].id:null;
+  persistLocal();
+  const v=(document.querySelector('.tab.active')||{}).dataset?.view||'dash';
+  ({dash:renderDash,list:renderList,ideas:renderIdeas}[v]||renderDash)();
+}
+async function initCloud(){
+  if(typeof supabase==='undefined' || !supabase.createClient){ setSync('offline'); return; }
+  try{
+    sb=supabase.createClient(SB_URL,SB_KEY);
+    setSync('connecting');
+    const {data,error}=await sb.from('nest_boards').select('data').eq('id',boardKey).maybeSingle();
+    if(error) throw error;
+    if(data && data.data && data.data.state && data.data.state.rooms){
+      applyRemote(data.data);          // this board exists in the cloud → adopt it
+    }else{
+      await pushNow();                 // first time → seed the cloud from what's on this device
+    }
+    channel=sb.channel('nest-'+boardKey)
+      .on('postgres_changes',{event:'*',schema:'public',table:'nest_boards',filter:'id=eq.'+boardKey},
+        p=>{ applyRemote(p.new&&p.new.data); })
+      .subscribe(st=>{ if(st==='SUBSCRIBED') setSync('synced'); });
+    setSync('synced');
+  }catch(e){ console.warn('Cloud sync unavailable:',e); setSync('offline'); }
+}
+function shareBoard(){
+  const url=location.href.split('#')[0]+'#b='+boardKey;
+  try{ navigator.clipboard.writeText(url); }catch(e){}
+  const msg = sb
+    ? '✓ Copied to clipboard!\n\nOpen this exact link on your iPad, or send it to your partner. Everyone who opens it shares ONE live, synced list.'
+    : 'Cloud sync isn’t connected right now (you may be offline, or opening the file directly). Once this is hosted on the web, this link gives you a live synced list across all your devices.';
+  dialog({title:'🔗 Your shared board link', input:true, def:url, message:msg, ok:'Done'});
+}
+
+/* ---------------- Boot ---------------- */
+renderDash();
+setSync('local');
+initCloud();
+</script>
+</body>
+</html>

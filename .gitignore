@@ -1,0 +1,9 @@
+# Local tooling / not part of the app
+.claude/
+memory/
+*.json
+!package.json
+
+# OS junk
+Thumbs.db
+.DS_Store
