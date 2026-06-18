@@ -92,6 +92,12 @@
   .roomchip.active .cnt{background:rgba(255,255,255,.25)}
 
   /* Group + items */
+  .roomstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+  .rs{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:13px 16px}
+  .rs .rsl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+  .rs .rsv{font-size:23px;font-weight:800;letter-spacing:-.5px;margin-top:3px}
+  .rs .rssub{font-size:12px;color:var(--muted);margin-top:5px;font-weight:600}
+  .qtytag{background:var(--brand);color:#fff;font-size:11px;font-weight:800;border-radius:999px;padding:1px 7px;vertical-align:middle}
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
   .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
     border:2px solid transparent;display:flex;flex-direction:column;transition:.15s;position:relative}
@@ -268,9 +274,16 @@
         <datalist id="nameList"></datalist>
         <div class="hint">Tip: give two items the <b>same name</b> (e.g. two “Sofa”s) to compare and rank them.</div>
       </div>
-      <div class="field">
-        <label>Price (£)</label>
-        <input id="f_price" type="number" min="0" step="any" placeholder="0">
+      <div class="row2">
+        <div class="field">
+          <label>Price each (£)</label>
+          <input id="f_price" type="number" min="0" step="any" placeholder="0" oninput="calcMonthly();updateTotalHint()">
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input id="f_qty" type="number" min="1" step="1" value="1" oninput="calcMonthly();updateTotalHint()">
+          <div class="hint" id="totalHint"></div>
+        </div>
       </div>
 
       <div class="row2">
@@ -403,6 +416,8 @@ function persistLocal(){ try{ localStorage.setItem('nest:'+boardKey, JSON.string
 function save(){ persistLocal(); schedulePush(); }
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function money(n){ return '£'+(Math.round(n)||0).toLocaleString('en-GB'); }
+function qtyOf(it){ return Math.max(1, Math.round(+it.qty||1)); }
+function lineTotal(it){ return (+it.price||0)*qtyOf(it); }   // unit price × quantity
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
 
@@ -417,7 +432,7 @@ function monthlyPayment(principal, apr, term){
 function itemMonthly(it){
   if(!it.fin) return 0;
   if(it.monthly!=null && it.monthly!=='' ) return +it.monthly||0;
-  return monthlyPayment(it.price, it.apr, it.term);
+  return monthlyPayment(lineTotal(it), it.apr, it.term);   // finance the full line (price × qty)
 }
 
 /* ---------------- Views ---------------- */
@@ -451,7 +466,7 @@ function renderDash(){
   const items=state.items;
   const picks=topPicksAll();
   const totalItems=items.length;
-  const topCost=picks.reduce((s,it)=>s+(+it.price||0),0);
+  const topCost=picks.reduce((s,it)=>s+lineTotal(it),0);
   const monthlyTotal=picks.reduce((s,it)=>s+itemMonthly(it),0);
   const financedCount=picks.filter(it=>it.fin).length;
   const allPicksMonthlyAnnual=monthlyTotal*12;
@@ -459,15 +474,15 @@ function renderDash(){
   // purchased vs still to buy (over top picks)
   const sum=(arr,f)=>arr.reduce((s,it)=>s+f(it),0);
   const bought=picks.filter(p=>p.purchased), todo=picks.filter(p=>!p.purchased);
-  const spent=sum(bought,it=>+it.price||0), remaining=sum(todo,it=>+it.price||0);
+  const spent=sum(bought,lineTotal), remaining=sum(todo,lineTotal);
   // work vs personal
   const work=picks.filter(p=>p.owner==='Work'), personal=picks.filter(p=>p.owner!=='Work');
-  const workCost=sum(work,it=>+it.price||0), personalCost=sum(personal,it=>+it.price||0);
+  const workCost=sum(work,lineTotal), personalCost=sum(personal,lineTotal);
   const workMonthly=sum(work,itemMonthly), personalMonthly=sum(personal,itemMonthly);
 
   // room breakdown by top-pick cost
   const roomTotals=state.rooms.map(r=>{
-    const c=picks.filter(p=>p.roomId===r.id).reduce((s,it)=>s+(+it.price||0),0);
+    const c=picks.filter(p=>p.roomId===r.id).reduce((s,it)=>s+lineTotal(it),0);
     return {name:r.emoji+' '+r.name, val:c};
   }).filter(r=>r.val>0).sort((a,b)=>b.val-a.val);
   const maxRoom=Math.max(1,...roomTotals.map(r=>r.val));
@@ -550,8 +565,8 @@ function financeTable(picks){
   const rows=fin.map(it=>{
     const m=itemMonthly(it);
     return `<tr>
-      <td style="padding:9px 6px;font-weight:600">${esc(it.name||'Untitled')}</td>
-      <td style="text-align:right;padding:9px 6px">${money(it.price)}</td>
+      <td style="padding:9px 6px;font-weight:600">${esc(it.name||'Untitled')}${qtyOf(it)>1?` ×${qtyOf(it)}`:''}</td>
+      <td style="text-align:right;padding:9px 6px">${money(lineTotal(it))}</td>
       <td style="text-align:right;padding:9px 6px">${(+it.apr||0)}%</td>
       <td style="text-align:right;padding:9px 6px">${(+it.term||0)} mo</td>
       <td style="text-align:right;padding:9px 6px;font-weight:800;color:var(--brand2)">${money(m)}/mo</td>
@@ -601,7 +616,7 @@ function renderList(){
     const na=(a.name||'').toLowerCase(), nb=(b.name||'').toLowerCase();
     if(na<nb) return -1; if(na>nb) return 1; return (a.rank||0)-(b.rank||0);
   });
-  body.innerHTML=`<div class="cards">${sorted.map(it=>{
+  body.innerHTML=roomStatsHtml(activeRoom)+`<div class="cards">${sorted.map(it=>{
     const grp=byName[groupKey(it)]; const size=grp.length;
     const top=grp.find(x=>x.top)||grp[0];
     const rank=size>1?(grp.indexOf(it)+1):0;
@@ -609,11 +624,29 @@ function renderList(){
   }).join('')}</div>`;
 }
 
+// Top-of-room summary (over this room's top picks)
+function roomStatsHtml(roomId){
+  const picks=topPicksAll().filter(p=>p.roomId===roomId);
+  const total=picks.reduce((s,it)=>s+lineTotal(it),0);
+  const bought=picks.filter(p=>p.purchased);
+  const purchased=bought.reduce((s,it)=>s+lineTotal(it),0);
+  const outstanding=total-purchased;
+  const work=bought.filter(p=>p.owner==='Work').reduce((s,it)=>s+lineTotal(it),0);
+  const personal=purchased-work;
+  return `<div class="roomstats">
+    <div class="rs"><div class="rsl">🏠 Total spend</div><div class="rsv">${money(total)}</div></div>
+    <div class="rs"><div class="rsl">🧾 Outstanding</div><div class="rsv" style="color:var(--brand)">${money(outstanding)}</div></div>
+    <div class="rs"><div class="rsl">✅ Purchased</div><div class="rsv" style="color:var(--brand2)">${money(purchased)}</div>
+      <div class="rssub">💼 Work ${money(work)} &nbsp;·&nbsp; 🏠 Personal ${money(personal)}</div></div>
+  </div>`;
+}
+
 function cardHtml(it,rank,groupSize,topId){
   const isTop=groupSize>1 && it.id===topId;
   const bought=!!it.purchased;
   const isWork=it.owner==='Work';
   const m=itemMonthly(it);
+  const q=qtyOf(it), unit=+it.price||0, tot=unit*q;
   const imgInner=it.image
     ? `<img src="${esc(it.image)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="ph" style="display:none">🖼️</div>`
     : `<div class="ph">🖼️</div>`;
@@ -626,11 +659,12 @@ function cardHtml(it,rank,groupSize,topId){
       ${bought?`<div class="boughtbadge">✅ Purchased</div>`:''}
     </div>
     <div class="body">
-      <div class="title">${esc(it.name||'Untitled')}</div>
+      <div class="title">${esc(it.name||'Untitled')} ${q>1?`<span class="qtytag">×${q}</span>`:''}</div>
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <div class="price">${money(it.price)} ${it.fin?`<span style="font-size:12px;color:var(--brand2);font-weight:700">· ${money(m)}/mo</span>`:''}</div>
+        <div class="price">${money(tot)} ${it.fin?`<span style="font-size:12px;color:var(--brand2);font-weight:700">· ${money(m)}/mo</span>`:''}</div>
         <span class="ownerpill ${isWork?'work':''}">${isWork?'💼 Work':'🏠 Personal'}</span>
       </div>
+      ${q>1?`<div style="font-size:12px;color:var(--muted)">${money(unit)} each × ${q}</div>`:''}
       ${it.fin?`<div class="fin">💳 <b>${money(m)}/mo</b> · ${(+it.apr||0)}% APR · ${(+it.term||0)} months</div>`:''}
       <div class="links">
         ${it.url?`<a class="mini" href="${esc(it.url)}" target="_blank" rel="noopener">🔗 Open link</a>`:''}
@@ -703,6 +737,7 @@ function openItem(id){
   document.getElementById('f_image').value = it?.image||'';
   document.getElementById('f_name').value = it?.name||'';
   document.getElementById('f_price').value = it?.price??'';
+  document.getElementById('f_qty').value = it?.qty || 1;
   document.getElementById('f_status').value = it?.purchased ? 'purchased' : 'todo';
   document.getElementById('f_owner').value = it?.owner || 'Personal';
   document.getElementById('f_fin').checked = !!it?.fin;
@@ -710,16 +745,22 @@ function openItem(id){
   document.getElementById('f_term').value = it?.term??'';
   document.getElementById('f_monthly').value = it?.monthly??'';
   document.getElementById('f_prevStatus').textContent='';
-  toggleFin(); syncPreview();
+  toggleFin(); syncPreview(); updateTotalHint();
   document.getElementById('itemOverlay').classList.add('show');
 }
 function toggleFin(){ document.getElementById('finFields').style.display=document.getElementById('f_fin').checked?'':'none'; }
+function qtyVal(){ return Math.max(1, Math.round(+document.getElementById('f_qty').value||1)); }
 function calcMonthly(){
-  const p=+document.getElementById('f_price').value||0;
+  const p=(+document.getElementById('f_price').value||0)*qtyVal();
   const apr=+document.getElementById('f_apr').value||0;
   const term=+document.getElementById('f_term').value||0;
   const f=document.getElementById('f_monthly');
   if(term>0){ f.placeholder=money(monthlyPayment(p,apr,term))+' (auto)'; }
+}
+function updateTotalHint(){
+  const unit=+document.getElementById('f_price').value||0, q=qtyVal();
+  const el=document.getElementById('totalHint');
+  el.innerHTML = q>1 ? `Total: <b>${money(unit*q)}</b> (${money(unit)} × ${q})` : '';
 }
 function syncPreview(){
   const v=document.getElementById('f_image').value.trim();
@@ -752,6 +793,7 @@ function saveItem(){
     url:document.getElementById('f_url').value.trim(),
     image:document.getElementById('f_image').value.trim(),
     name:document.getElementById('f_name').value.trim(),
+    qty:qtyVal(),
     purchased:document.getElementById('f_status').value==='purchased',
     owner:document.getElementById('f_owner').value,
     price, fin,
