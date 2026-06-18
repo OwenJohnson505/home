@@ -92,20 +92,14 @@
   .roomchip.active .cnt{background:rgba(255,255,255,.25)}
 
   /* Group + items */
-  .group{margin-bottom:26px}
-  .group-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-  .group-head h2{font-size:18px;margin:0}
-  .group-head .pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 10px;
-    font-size:11.5px;font-weight:700;color:var(--muted)}
-  .group-head .pill.win{background:#fff8e1;border-color:#f4dd9a;color:#9a7b00}
-
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
   .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;
     border:2px solid transparent;display:flex;flex-direction:column;transition:.15s;position:relative}
   .card:hover{transform:translateY(-2px)}
   .card.top{border-color:var(--gold)}
-  .card .imgwrap{position:relative;aspect-ratio:16/11;background:#f3ede5;overflow:hidden}
+  .card .imgwrap{position:relative;aspect-ratio:4/3;background:#f3ede5;overflow:hidden}
   .card .imgwrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .card .imgwrap a.imglink{position:absolute;inset:0;display:block;cursor:pointer}
   .card .imgwrap .ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
     font-size:40px;color:#cdbfae}
   .rankbadge{position:absolute;left:10px;top:10px;background:rgba(44,42,46,.85);color:#fff;
@@ -113,8 +107,6 @@
     font-weight:800;font-size:13px;backdrop-filter:blur(4px)}
   .topbadge{position:absolute;right:10px;top:10px;background:var(--gold);color:#5c4500;
     padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;box-shadow:0 3px 8px rgba(242,183,5,.5)}
-  .catbadge{position:absolute;left:10px;bottom:10px;background:rgba(255,255,255,.92);
-    padding:3px 9px;border-radius:999px;font-size:11px;font-weight:700}
   .boughtbadge{position:absolute;right:10px;bottom:10px;background:var(--brand2);color:#fff;
     padding:4px 9px;border-radius:999px;font-size:11px;font-weight:800;box-shadow:0 3px 8px rgba(61,138,126,.5)}
   .card.bought .imgwrap img{filter:saturate(.85)}
@@ -127,7 +119,6 @@
   .card .fin{background:#f6f8f7;border:1px solid #e6efec;border-radius:10px;padding:8px 10px;font-size:12px;
     color:#4a5a55}
   .card .fin b{color:var(--brand2)}
-  .card .notes{font-size:12px;color:var(--muted);font-style:italic}
   .card .links{display:flex;gap:6px;margin-top:auto;flex-wrap:wrap}
   .mini{border:1px solid var(--line);background:#fff;border-radius:9px;padding:6px 9px;font-size:12px;
     font-weight:600;color:var(--ink);display:inline-flex;align-items:center;gap:4px}
@@ -272,33 +263,14 @@
         </div>
       </div>
       <div class="field">
-        <label>What is it?</label>
-        <input id="f_name" placeholder="e.g. Cloud Modular Sofa — Crate & Barrel">
+        <label>Name</label>
+        <input id="f_name" placeholder="e.g. Bed, Sofa, Dining table" list="nameList" autocomplete="off">
+        <datalist id="nameList"></datalist>
+        <div class="hint">Tip: give two items the <b>same name</b> (e.g. two “Sofa”s) to compare and rank them.</div>
       </div>
-      <div class="row3">
-        <div class="field">
-          <label>Choice group</label>
-          <input id="f_group" placeholder="e.g. Sofa" list="groupList">
-          <datalist id="groupList"></datalist>
-          <div class="hint">Same group = options to compare & rank.</div>
-        </div>
-        <div class="field">
-          <label>Category</label>
-          <select id="f_cat"></select>
-        </div>
-        <div class="field">
-          <label>Price ($)</label>
-          <input id="f_price" type="number" min="0" step="any" placeholder="0">
-        </div>
-      </div>
-
       <div class="field">
-        <label>Dimensions <span style="font-weight:400;color:var(--muted)">(optional — W × D × H)</span></label>
-        <div style="display:flex;gap:8px">
-          <input id="f_dims" placeholder='e.g. 84&quot;W × 38&quot;D × 30&quot;H'>
-          <button class="btn" style="white-space:nowrap" onclick="autoDims()" title="Pull measurements out of the notes/description">✨ Auto</button>
-        </div>
-        <div class="hint">Auto-fills from the link description when measurements are found — or just type them.</div>
+        <label>Price (£)</label>
+        <input id="f_price" type="number" min="0" step="any" placeholder="0">
       </div>
 
       <div class="row2">
@@ -326,14 +298,9 @@
         <div class="row3">
           <div class="field"><label>Interest APR (%)</label><input id="f_apr" type="number" min="0" step="any" placeholder="0" oninput="calcMonthly()"></div>
           <div class="field"><label>Term (months)</label><input id="f_term" type="number" min="1" step="1" placeholder="12" oninput="calcMonthly()"></div>
-          <div class="field"><label>Monthly payment ($)</label><input id="f_monthly" type="number" min="0" step="any" placeholder="auto"></div>
+          <div class="field"><label>Monthly payment (£)</label><input id="f_monthly" type="number" min="0" step="any" placeholder="auto"></div>
         </div>
         <div class="hint">Monthly payment auto-calculates from price, APR & term — but you can type the exact number from the offer.</div>
-      </div>
-
-      <div class="field">
-        <label>Notes</label>
-        <textarea id="f_notes" rows="2" placeholder="Color, size, who liked it, delivery time..."></textarea>
       </div>
     </div>
     <div class="mfoot">
@@ -398,11 +365,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ---------------- Data ---------------- */
-const CATS = [
-  {k:'Furniture',e:'🛋️'},{k:'Painting',e:'🎨'},{k:'Fixture',e:'🚿'},
-  {k:'Lighting',e:'💡'},{k:'Appliance',e:'🔌'},{k:'Decor',e:'🖼️'},
-  {k:'Flooring',e:'🪵'},{k:'Outdoor',e:'🌿'},{k:'Other',e:'📦'}
-];
 const ROOM_EMOJIS=['🛋️','🛏️','🍳','🛁','🚪','🪴','🧺','🖥️','🍽️','🌳','🚗','🎮'];
 const COLORS=['#e07a5f','#3d8a7e','#7c6ce0','#f2b705','#5b8def','#e0699a','#5cab7d','#d98c3f'];
 
@@ -439,7 +401,7 @@ let editingId = null;
 function persistLocal(){ try{ localStorage.setItem('nest:'+boardKey, JSON.stringify(state)); }catch(e){} }
 function save(){ persistLocal(); schedulePush(); }
 function uid(){ return Math.random().toString(36).slice(2,10); }
-function money(n){ return '$'+(Math.round(n)||0).toLocaleString(); }
+function money(n){ return '£'+(Math.round(n)||0).toLocaleString('en-GB'); }
 function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show');
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200); }
 
@@ -466,21 +428,18 @@ function setView(v){
   if(v==='ideas') renderIdeas();
 }
 
-/* group helper: top pick per group within room (groups with same name).
-   Ungrouped items each count as their own pick. */
+/* group helper: items that share a name (in the same room) are options to compare;
+   each name-group contributes one "top pick". */
+function groupKey(it){
+  const n=(it.name||'').trim().toLowerCase();
+  return n ? it.roomId+'||'+n : '__'+it.id;   // blank name = its own group
+}
 function topPicksAll(){
-  const picks=[];
-  const byGroup={};
-  state.items.forEach(it=>{
-    const g=(it.group||'').trim();
-    if(!g){ picks.push(it); return; }
-    const key=it.roomId+'||'+g.toLowerCase();
-    (byGroup[key]=byGroup[key]||[]).push(it);
-  });
+  const picks=[]; const byGroup={};
+  state.items.forEach(it=>{ const k=groupKey(it); (byGroup[k]=byGroup[k]||[]).push(it); });
   Object.values(byGroup).forEach(arr=>{
     arr.sort((a,b)=>(a.rank||0)-(b.rank||0));
-    let top=arr.find(x=>x.top) || arr[0];
-    picks.push(top);
+    picks.push(arr.find(x=>x.top)||arr[0]);
   });
   return picks;
 }
@@ -511,13 +470,6 @@ function renderDash(){
     return {name:r.emoji+' '+r.name, val:c};
   }).filter(r=>r.val>0).sort((a,b)=>b.val-a.val);
   const maxRoom=Math.max(1,...roomTotals.map(r=>r.val));
-
-  // category breakdown
-  const catMap={};
-  picks.forEach(p=>{ const c=p.cat||'Other'; catMap[c]=(catMap[c]||0)+(+p.price||0); });
-  const catTotals=Object.entries(catMap).map(([k,v])=>({name:(CATS.find(c=>c.k===k)||{e:'📦'}).e+' '+k,val:v}))
-    .sort((a,b)=>b.val-a.val);
-  const maxCat=Math.max(1,...catTotals.map(c=>c.val));
 
   const maxStatus=Math.max(1,spent,remaining);
   const maxOwner=Math.max(1,workCost,personalCost);
@@ -575,10 +527,6 @@ function renderDash(){
       <div class="panel">
         <h3>🏠 Spend by room <span style="font-weight:400;color:var(--muted);font-size:13px">(top picks)</span></h3>
         ${roomTotals.length?roomTotals.map((r,i)=>barRow(r.name,r.val,maxRoom,COLORS[i%COLORS.length])).join(''):empt()}
-      </div>
-      <div class="panel">
-        <h3>🎨 Spend by category <span style="font-weight:400;color:var(--muted);font-size:13px">(top picks)</span></h3>
-        ${catTotals.length?catTotals.map((c,i)=>barRow(c.name,c.val,maxCat,COLORS[(i+3)%COLORS.length])).join(''):empt()}
       </div>
     </div>
 
@@ -639,53 +587,41 @@ function renderList(){
   if(!items.length){
     body.innerHTML=`<div class="empty"><div class="big">🛒</div>
       <div style="font-weight:700;font-size:17px">This room is empty</div>
-      <div>Add furniture, paint, fixtures and more — then compare and rank your options.</div>
+      <div>Add things you want to buy — paste a link to grab the photo, then compare options by giving them the same name.</div>
       <div style="margin-top:16px"><button class="btn primary" onclick="openItem()">＋ Add your first item</button></div></div>`;
     return;
   }
-  // group
-  const groups={}; const ungrouped=[];
-  items.forEach(it=>{ const g=(it.group||'').trim();
-    if(g){ (groups[g]=groups[g]||[]).push(it); } else ungrouped.push(it); });
-
-  let html='';
-  Object.keys(groups).sort().forEach(g=>{
-    const arr=groups[g].sort((a,b)=>(a.rank||0)-(b.rank||0));
-    const top=arr.find(x=>x.top)||arr[0];
-    const totalIfAll=arr.reduce((s,x)=>s+(+x.price||0),0);
-    html+=`<div class="group">
-      <div class="group-head">
-        <h2>${esc(g)}</h2>
-        <span class="pill win">⭐ Top: ${money(top.price)}</span>
-        ${arr.length>1?`<span class="pill">${arr.length} options · compare ${money(Math.min(...arr.map(x=>+x.price||0)))}–${money(Math.max(...arr.map(x=>+x.price||0)))}</span>`:''}
-      </div>
-      <div class="cards">${arr.map((it,i)=>cardHtml(it,i+1,arr.length,top.id)).join('')}</div>
-    </div>`;
+  // group items that share a name (within the room) so they rank together
+  const byName={};
+  items.forEach(it=>{ const k=groupKey(it); (byName[k]=byName[k]||[]).push(it); });
+  Object.values(byName).forEach(a=>a.sort((x,y)=>(x.rank||0)-(y.rank||0)));
+  // display all in one grid, sorted by name then rank
+  const sorted=[...items].sort((a,b)=>{
+    const na=(a.name||'').toLowerCase(), nb=(b.name||'').toLowerCase();
+    if(na<nb) return -1; if(na>nb) return 1; return (a.rank||0)-(b.rank||0);
   });
-  if(ungrouped.length){
-    html+=`<div class="group">
-      <div class="group-head"><h2>Single items</h2></div>
-      <div class="cards">${ungrouped.map(it=>cardHtml(it,0,1,it.id)).join('')}</div>
-    </div>`;
-  }
-  body.innerHTML=html;
+  body.innerHTML=`<div class="cards">${sorted.map(it=>{
+    const grp=byName[groupKey(it)]; const size=grp.length;
+    const top=grp.find(x=>x.top)||grp[0];
+    const rank=size>1?(grp.indexOf(it)+1):0;
+    return cardHtml(it,rank,size,top.id);
+  }).join('')}</div>`;
 }
 
 function cardHtml(it,rank,groupSize,topId){
-  const cat=CATS.find(c=>c.k===it.cat)||{e:'📦',k:'Other'};
   const isTop=groupSize>1 && it.id===topId;
   const bought=!!it.purchased;
   const isWork=it.owner==='Work';
   const m=itemMonthly(it);
-  const img=it.image
-    ? `<img src="${esc(it.image)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="ph" style="display:none">${cat.e}</div>`
-    : `<div class="ph">${cat.e}</div>`;
+  const imgInner=it.image
+    ? `<img src="${esc(it.image)}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="ph" style="display:none">🖼️</div>`
+    : `<div class="ph">🖼️</div>`;
   return `<div class="card ${isTop?'top':''} ${bought?'bought':''}">
     <div class="imgwrap">
-      ${img}
+      ${imgInner}
+      ${it.url?`<a class="imglink" href="${esc(it.url)}" target="_blank" rel="noopener" title="Open link ↗"></a>`:''}
       ${groupSize>1?`<div class="rankbadge">${rank}</div>`:''}
       ${isTop?`<div class="topbadge">⭐ TOP PICK</div>`:''}
-      <div class="catbadge">${cat.e} ${cat.k}</div>
       ${bought?`<div class="boughtbadge">✅ Purchased</div>`:''}
     </div>
     <div class="body">
@@ -695,16 +631,11 @@ function cardHtml(it,rank,groupSize,topId){
         <span class="ownerpill ${isWork?'work':''}">${isWork?'💼 Work':'🏠 Personal'}</span>
       </div>
       ${it.fin?`<div class="fin">💳 <b>${money(m)}/mo</b> · ${(+it.apr||0)}% APR · ${(+it.term||0)} months</div>`:''}
-      ${it.dims?`<div style="font-size:12px;color:var(--muted)">📐 ${esc(it.dims)}</div>`:''}
-      ${it.notes?`<div class="notes">“${esc(it.notes)}”</div>`:''}
       <div class="links">
+        ${it.url?`<a class="mini" href="${esc(it.url)}" target="_blank" rel="noopener">🔗 Open link</a>`:''}
         <button class="mini ${bought?'':'gold'}" onclick="togglePurchased('${it.id}')">${bought?'↩️ To buy':'✅ Mark bought'}</button>
         ${groupSize>1 && !isTop?`<button class="mini gold" onclick="makeTop('${it.id}')">⭐ Make top</button>`:''}
-        ${groupSize>1?`<button class="mini" onclick="move('${it.id}',-1)" title="Rank up">⬆️</button>
-          <button class="mini" onclick="move('${it.id}',1)" title="Rank down">⬇️</button>`:''}
-        ${it.url?`<a class="mini" href="${esc(it.url)}" target="_blank" rel="noopener">🔗 Link</a>`:''}
-        ${it.name?`<a class="mini" href="https://www.google.com/search?tbm=shop&q=${encodeURIComponent(it.name)}" target="_blank" rel="noopener" title="Find similar products & prices">🔍 Alternatives</a>`:''}
-        ${it.image&&/^https?:/.test(it.image)?`<a class="mini" href="https://lens.google.com/uploadbyurl?url=${encodeURIComponent(it.image)}" target="_blank" rel="noopener" title="Reverse image search — find this item or cheaper look-alikes">📸 Find similar</a>`:''}
+        ${groupSize>1?`<button class="mini" onclick="move('${it.id}',-1)" title="Rank up">⬆️</button><button class="mini" onclick="move('${it.id}',1)" title="Rank down">⬇️</button>`:''}
         <button class="mini" onclick="openItem('${it.id}')">✏️ Edit</button>
       </div>
     </div>
@@ -718,13 +649,14 @@ function togglePurchased(id){
 }
 function makeTop(id){
   const it=state.items.find(x=>x.id===id); if(!it) return;
-  state.items.forEach(x=>{ if(x.roomId===it.roomId && (x.group||'').trim().toLowerCase()===(it.group||'').trim().toLowerCase()) x.top=false; });
+  const k=groupKey(it);
+  state.items.forEach(x=>{ if(groupKey(x)===k) x.top=false; });
   it.top=true; save(); renderList(); toast('⭐ Set as top pick');
 }
 function move(id,dir){
   const it=state.items.find(x=>x.id===id); if(!it) return;
-  const peers=state.items.filter(x=>x.roomId===it.roomId && (x.group||'').trim().toLowerCase()===(it.group||'').trim().toLowerCase())
-    .sort((a,b)=>(a.rank||0)-(b.rank||0));
+  const k=groupKey(it);
+  const peers=state.items.filter(x=>groupKey(x)===k).sort((a,b)=>(a.rank||0)-(b.rank||0));
   const i=peers.indexOf(it); const j=i+dir;
   if(j<0||j>=peers.length) return;
   [peers[i],peers[j]]=[peers[j],peers[i]];
@@ -759,12 +691,9 @@ async function deleteRoom(){
 function openItem(id){
   editingId=id||null;
   if(!activeRoom && !id){ toast('Add a room first'); return; }
-  // category options
-  const sel=document.getElementById('f_cat');
-  sel.innerHTML=CATS.map(c=>`<option value="${c.k}">${c.e} ${c.k}</option>`).join('');
-  // group datalist
-  const groups=[...new Set(state.items.map(i=>(i.group||'').trim()).filter(Boolean))];
-  document.getElementById('groupList').innerHTML=groups.map(g=>`<option value="${esc(g)}">`).join('');
+  // suggest existing names so the same item can be reused for ranking
+  const names=[...new Set(state.items.map(i=>(i.name||'').trim()).filter(Boolean))].sort();
+  document.getElementById('nameList').innerHTML=names.map(n=>`<option value="${esc(n)}">`).join('');
 
   const it = id ? state.items.find(x=>x.id===id) : null;
   document.getElementById('itemModalTitle').textContent = it?'Edit Item':'Add Item';
@@ -772,17 +701,13 @@ function openItem(id){
   document.getElementById('f_url').value = it?.url||'';
   document.getElementById('f_image').value = it?.image||'';
   document.getElementById('f_name').value = it?.name||'';
-  document.getElementById('f_group').value = it?.group||'';
-  document.getElementById('f_cat').value = it?.cat||'Furniture';
   document.getElementById('f_price').value = it?.price??'';
-  document.getElementById('f_dims').value = it?.dims||'';
   document.getElementById('f_status').value = it?.purchased ? 'purchased' : 'todo';
   document.getElementById('f_owner').value = it?.owner || 'Personal';
   document.getElementById('f_fin').checked = !!it?.fin;
   document.getElementById('f_apr').value = it?.apr??'';
   document.getElementById('f_term').value = it?.term??'';
   document.getElementById('f_monthly').value = it?.monthly??'';
-  document.getElementById('f_notes').value = it?.notes||'';
   document.getElementById('f_prevStatus').textContent='';
   toggleFin(); syncPreview();
   document.getElementById('itemOverlay').classList.add('show');
@@ -814,19 +739,9 @@ async function fetchPreview(){
   const data=await getPreview(url);
   const filled=[];
   if(data.image){ document.getElementById('f_image').value=data.image; syncPreview(); filled.push('photo'); }
-  const nameF=document.getElementById('f_name');
-  if(data.title && !nameF.value){ nameF.value=data.title; filled.push('name'); }
-  // Description usually holds specs / dimensions — drop it into notes.
-  const notesF=document.getElementById('f_notes');
-  if(data.description && !notesF.value){ notesF.value=data.description; filled.push('specs/notes'); }
-  // Best-effort price + category guess.
   const priceF=document.getElementById('f_price');
   if(!priceF.value){ const p=guessPrice(data.title+' '+data.description); if(p){ priceF.value=p; filled.push('price'); } }
-  const cat=guessCat(data.title+' '+data.description);
-  if(cat){ document.getElementById('f_cat').value=cat; }
-  const dimsF=document.getElementById('f_dims');
-  if(!dimsF.value){ const d=parseDims(data.description+' '+data.title); if(d){ dimsF.value=d; filled.push('dimensions'); } }
-  st.textContent = filled.length ? ('✓ filled: '+filled.join(', ')+' — tweak anything below') : 'couldn’t auto-grab — paste an image URL';
+  st.textContent = filled.length ? ('✓ got the '+filled.join(' & ')+' — now give it a short name like “Bed”') : 'couldn’t auto-grab — paste an image URL or upload one';
 }
 function saveItem(){
   const price=+document.getElementById('f_price').value||0;
@@ -836,24 +751,21 @@ function saveItem(){
     url:document.getElementById('f_url').value.trim(),
     image:document.getElementById('f_image').value.trim(),
     name:document.getElementById('f_name').value.trim(),
-    group:document.getElementById('f_group').value.trim(),
-    cat:document.getElementById('f_cat').value,
-    dims:document.getElementById('f_dims').value.trim(),
     purchased:document.getElementById('f_status').value==='purchased',
     owner:document.getElementById('f_owner').value,
     price, fin,
     apr:+document.getElementById('f_apr').value||0,
     term:+document.getElementById('f_term').value||0,
-    monthly: monthlyRaw===''?null:(+monthlyRaw||0),
-    notes:document.getElementById('f_notes').value.trim()
+    monthly: monthlyRaw===''?null:(+monthlyRaw||0)
   };
-  if(!obj.name && !obj.image){ toast('Give it a name at least 🙂'); return; }
+  if(!obj.name){ toast('Give it a name (e.g. Bed) 🙂'); return; }
   if(editingId){
     const it=state.items.find(x=>x.id===editingId);
     Object.assign(it,obj);
   }else{
-    const peers=state.items.filter(x=>x.roomId===activeRoom && (x.group||'').trim().toLowerCase()===obj.group.toLowerCase() && obj.group);
-    obj.id=uid(); obj.roomId=activeRoom; obj.rank=peers.length; obj.top=peers.length===0 && !!obj.group?true:false;
+    const key=obj.name.toLowerCase();
+    const peers=state.items.filter(x=>x.roomId===activeRoom && (x.name||'').trim().toLowerCase()===key);
+    obj.id=uid(); obj.roomId=activeRoom; obj.rank=peers.length; obj.top=peers.length===0;
     state.items.push(obj);
   }
   save(); closeModal('itemOverlay'); renderList(); toast('✅ Saved');
@@ -956,39 +868,9 @@ async function getPreview(url){
   }catch(e){}
   return {image:'',title:'',description:'',publisher:''};
 }
-// Pull a "W x D x H" style measurement out of free text. Returns '' if none found.
-function parseDims(text){
-  if(!text) return '';
-  let t=String(text).replace(/[″”]/g,'"').replace(/[×]/g,'x');
-  const U='(?:"|in\\.?|inch(?:es)?|cm|mm|ft)';
-  const re=new RegExp('(\\d+(?:\\.\\d+)?)\\s*'+U+'?\\s*([wdhWDH])?\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*'+U+'?\\s*([wdhWDH])?(?:\\s*x\\s*(\\d+(?:\\.\\d+)?)\\s*'+U+'?\\s*([wdhWDH])?)?','i');
-  const m=t.match(re);
-  return m ? m[0].replace(/\s+/g,' ').trim() : '';
-}
-function autoDims(){
-  const d=parseDims(document.getElementById('f_notes').value+' '+document.getElementById('f_name').value);
-  if(d){ document.getElementById('f_dims').value=d; toast('📐 Found '+d); }
-  else toast('No measurements found in the notes');
-}
 function guessPrice(text){
-  const m=String(text||'').match(/\$\s?([\d]{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)/);
+  const m=String(text||'').match(/[£$]\s?([\d]{1,3}(?:,\d{3})*(?:\.\d{2})?|\d+(?:\.\d{2})?)/);
   return m ? +m[1].replace(/,/g,'') : null;
-}
-// Guess a category from the page text so the dropdown gets a head start.
-function guessCat(text){
-  const t=String(text||'').toLowerCase();
-  const map=[
-    ['Lighting',/lamp|sconce|chandelier|pendant light|light fixture/],
-    ['Painting',/\bpaint\b|primer|gallon|sheen|eggshell|satin finish/],
-    ['Fixture',/faucet|sink|toilet|shower|vanity|bath|tub|hardware/],
-    ['Appliance',/refrigerator|fridge|washer|dryer|dishwasher|oven|range|microwave/],
-    ['Flooring',/flooring|hardwood|laminate|tile|rug|carpet|vinyl plank/],
-    ['Decor',/mirror|vase|art|frame|throw pillow|curtain|decor/],
-    ['Outdoor',/patio|outdoor|grill|deck|garden/],
-    ['Furniture',/sofa|couch|chair|table|bed|dresser|desk|shelf|nightstand|ottoman|bench|cabinet/]
-  ];
-  for(const [k,re] of map) if(re.test(t)) return k;
-  return null;
 }
 
 /* ---------------- Backup / restore ---------------- */
