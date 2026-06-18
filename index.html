@@ -371,14 +371,15 @@ const COLORS=['#e07a5f','#3d8a7e','#7c6ce0','#f2b705','#5b8def','#e0699a','#5cab
 /* ---------------- Cloud config ---------------- */
 const SB_URL='https://flvxrrwgzualfzfczlim.supabase.co';
 const SB_KEY='sb_publishable_-6YQ5GIyWfpI583bJg-yLw_XUpsMvOE';
+const DEFAULT_BOARD='psgmuzwdgxs2waxl';   // the ONE shared board Owen + Lauren both use
 let sb=null, myRev=null, pushTimer=null, channel=null;
 const boardKey=getBoardKey();
 
 function getBoardKey(){
+  // Everyone who opens the site shares one board by default, so both devices
+  // always see the same list. A #b=... in the URL can still override it.
   const h=new URLSearchParams(location.hash.slice(1));
-  let k=h.get('b') || localStorage.getItem('nestBoardKey');
-  if(!k) k=uid()+uid();              // brand-new private board id
-  localStorage.setItem('nestBoardKey',k);
+  const k=h.get('b') || DEFAULT_BOARD;
   if(h.get('b')!==k) location.hash='b='+k;   // keep the URL shareable
   return k;
 }
