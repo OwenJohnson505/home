@@ -92,6 +92,15 @@
   .roomchip.active .cnt{background:rgba(255,255,255,.25)}
 
   /* Group + items */
+  .inspobanner{position:relative;border-radius:16px;overflow:hidden;margin-bottom:16px;box-shadow:var(--shadow);background:#f3ede5}
+  .inspobanner img{width:100%;max-height:320px;object-fit:cover;display:block}
+  .inspocap{position:absolute;left:12px;top:12px;background:rgba(44,42,46,.72);color:#fff;font-size:12px;
+    font-weight:700;padding:5px 11px;border-radius:999px;backdrop-filter:blur(4px)}
+  .inspoctrls{position:absolute;right:12px;top:12px;display:flex;gap:6px}
+  .inspoctrls .mini{background:rgba(255,255,255,.93)}
+  .inspoadd{width:100%;border:2px dashed var(--line);background:#fff;border-radius:14px;padding:16px;
+    margin-bottom:16px;font-weight:700;color:var(--muted);font-size:13.5px}
+  .inspoadd:hover{background:#faf6f0;color:var(--ink)}
   .roomstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
   .rs{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:13px 16px}
   .rs .rsl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
@@ -600,8 +609,9 @@ function renderList(){
   const body=document.getElementById('listBody');
   const items=state.items.filter(i=>i.roomId===activeRoom);
   if(!activeRoom){ body.innerHTML=''; return; }
+  const room=state.rooms.find(r=>r.id===activeRoom);
   if(!items.length){
-    body.innerHTML=`<div class="empty"><div class="big">🛒</div>
+    body.innerHTML=roomInspoHtml(room)+`<div class="empty"><div class="big">🛒</div>
       <div style="font-weight:700;font-size:17px">This room is empty</div>
       <div>Add things you want to buy — paste a link to grab the photo, then compare options by giving them the same name.</div>
       <div style="margin-top:16px"><button class="btn primary" onclick="openItem()">＋ Add your first item</button></div></div>`;
@@ -616,12 +626,64 @@ function renderList(){
     const na=(a.name||'').toLowerCase(), nb=(b.name||'').toLowerCase();
     if(na<nb) return -1; if(na>nb) return 1; return (a.rank||0)-(b.rank||0);
   });
-  body.innerHTML=roomStatsHtml(activeRoom)+`<div class="cards">${sorted.map(it=>{
+  body.innerHTML=roomInspoHtml(room)+roomStatsHtml(activeRoom)+`<div class="cards">${sorted.map(it=>{
     const grp=byName[groupKey(it)]; const size=grp.length;
     const top=grp.find(x=>x.top)||grp[0];
     const rank=size>1?(grp.indexOf(it)+1):0;
     return cardHtml(it,rank,size,top.id);
   }).join('')}</div>`;
+}
+
+// Inspiration photo banner ("what we're recreating") for a room
+function roomInspoHtml(room){
+  if(!room) return '';
+  if(room.inspo){
+    return `<div class="inspobanner">
+      <img src="${esc(room.inspo)}" alt="">
+      <div class="inspocap">✨ ${esc(room.name)} — the look we want</div>
+      <div class="inspoctrls">
+        <button class="mini" onclick="pickRoomInspo('${room.id}')">🔄 Change</button>
+        <button class="mini" onclick="removeRoomInspo('${room.id}')">🗑️ Remove</button>
+      </div>
+    </div>`;
+  }
+  return `<button class="inspoadd" onclick="pickRoomInspo('${room.id}')">📸 Add an inspiration photo for this room — what are we trying to recreate?</button>`;
+}
+function pickRoomInspo(roomId){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.onchange=()=>{ const f=inp.files[0]; if(!f) return;
+    toast('🖼️ Processing photo…');
+    resizeImage(f,1400,0.82,(dataUrl)=>{
+      const r=state.rooms.find(x=>x.id===roomId); if(!r) return;
+      r.inspo=dataUrl; save(); renderList(); toast('✨ Inspiration photo set');
+    });
+  };
+  inp.click();
+}
+async function removeRoomInspo(roomId){
+  const r=state.rooms.find(x=>x.id===roomId); if(!r||!r.inspo) return;
+  if(!await askConfirm('Remove the inspiration photo?')) return;
+  r.inspo=''; save(); renderList(); toast('Photo removed');
+}
+// Downscale uploaded images so they sync fast and fit in storage
+function resizeImage(file,maxW,quality,cb){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxW){ h=Math.round(h*maxW/w); w=maxW; }
+      try{
+        const c=document.createElement('canvas'); c.width=w; c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        cb(c.toDataURL('image/jpeg',quality));
+      }catch(e){ cb(reader.result); }
+    };
+    img.onerror=()=>cb(reader.result);
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // Top-of-room summary (over this room's top picks)
