@@ -1,0 +1,867 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cal Payroll</title>
+<style>
+  :root{
+    --bg:#0f1729; --panel:#16203a; --panel2:#1d2a4a; --line:#2a3a5e;
+    --txt:#e8edf7; --mut:#9fb0cf; --acc:#4f8cff; --acc2:#6ee7b7;
+    --good:#22c55e; --warn:#f59e0b; --bad:#ef4444; --chip:#22315a;
+    --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+  a{color:var(--acc)}
+  button{font:inherit;cursor:pointer}
+  .btn{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:600}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.sec{background:var(--panel2);color:var(--txt);border:1px solid var(--line)}
+  .btn.ghost{background:transparent;color:var(--mut);border:1px solid var(--line)}
+  .btn.sm{padding:5px 9px;font-size:12px;border-radius:6px}
+  .btn.danger{background:var(--bad)}
+  input,select,textarea{font:inherit;background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);outline-offset:-1px}
+  label{font-size:12px;color:var(--mut);display:block;margin-bottom:4px}
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  .muted{color:var(--mut)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+  .pill.good{background:rgba(34,197,94,.15);color:#7ef0a9}
+  .pill.warn{background:rgba(245,158,11,.15);color:#ffcf72}
+  .pill.bad{background:rgba(239,68,68,.18);color:#ff9a9a}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  /* shell */
+  header.app{display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  header.app .logo{font-weight:800;letter-spacing:.3px}
+  header.app .logo small{color:var(--mut);font-weight:600}
+  nav.tabs{display:flex;gap:4px;margin-left:8px;flex-wrap:wrap}
+  nav.tabs button{background:transparent;border:0;color:var(--mut);padding:8px 12px;border-radius:8px;font-weight:600}
+  nav.tabs button.active{background:var(--chip);color:var(--txt)}
+  header.app .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  main{padding:18px;max-width:1280px;margin:0 auto}
+  h2{margin:0 0 12px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr.section td{background:var(--panel2);font-weight:700;border-top:2px solid var(--acc)}
+  tr.totals td{font-weight:700;background:rgba(79,140,255,.08)}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(4,8,18,.66);display:flex;align-items:flex-start;justify-content:center;padding:28px;z-index:50;overflow:auto}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;width:min(720px,100%);box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 14px}
+  .close{margin-left:auto}
+  .kv{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line)}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .stat b{display:block;font-size:22px}
+  .stat span{color:var(--mut);font-size:12px}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:10px 16px;border-radius:10px;box-shadow:var(--shadow);z-index:80}
+  .hide{display:none!important}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:34px;text-align:center;color:var(--mut)}
+  .drop.hot{border-color:var(--acc);color:var(--txt);background:rgba(79,140,255,.07)}
+  .tag{font-size:11px;color:var(--mut)}
+  .signin{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .signin .card{width:min(400px,100%)}
+  details summary{cursor:pointer;font-weight:600;margin:8px 0}
+  code.k{background:var(--panel2);padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+</style>
+</head>
+<body>
+
+<!-- ===================== SIGN IN ===================== -->
+<div id="signin" class="signin">
+  <div class="card">
+    <div class="logo" style="font-size:22px;font-weight:800;margin-bottom:4px">Cal&nbsp;Payroll</div>
+    <p class="muted" style="margin-top:0">Secure payroll workspace. Access is restricted to approved emails.</p>
+    <div class="grid" style="gap:10px">
+      <div><label>Email</label><input id="si-email" type="email" autocomplete="username" placeholder="you@cal.delivery"></div>
+      <div><label>Password</label><input id="si-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div class="row">
+        <button class="btn" id="si-login" style="flex:1">Sign in</button>
+        <button class="btn sec" id="si-signup">Create account</button>
+      </div>
+      <div id="si-msg" class="muted" style="font-size:12px;min-height:16px"></div>
+      <div class="tag">If you're new, use an approved email to create an account, then sign in.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app" class="hide">
+  <header class="app">
+    <div class="logo">Cal&nbsp;Payroll <small id="periodChip"></small></div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="dashboard" class="active">Pay run</button>
+      <button data-tab="import">Import</button>
+      <button data-tab="employees">Employees</button>
+      <button data-tab="compliance">Compliance library</button>
+    </nav>
+    <div class="right">
+      <span class="muted" id="whoami" style="font-size:12px"></span>
+      <button class="btn ghost sm" id="signout">Sign out</button>
+    </div>
+  </header>
+  <main>
+    <section id="tab-dashboard"></section>
+    <section id="tab-import" class="hide"></section>
+    <section id="tab-employees" class="hide"></section>
+    <section id="tab-compliance" class="hide"></section>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+/* ============================================================
+   Config
+============================================================ */
+const SB_URL = 'https://upjsvdofnazrmnuxxhcv.supabase.co';
+const SB_KEY = 'sb_publishable_GMoQE86jvBPCX0buZ-x1yA_bwCEc5JP';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+/* ============================================================
+   Small helpers
+============================================================ */
+const $ = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const el = (tag,props={},...kids)=>{const n=document.createElement(tag);for(const k in props){if(k==='class')n.className=props[k];else if(k==='html')n.innerHTML=props[k];else if(k.startsWith('on'))n.addEventListener(k.slice(2),props[k]);else if(props[k]!=null)n.setAttribute(k,props[k]);}for(const c of kids.flat()){if(c==null)continue;n.append(c.nodeType?c:document.createTextNode(c));}return n;};
+const num = v => { const n=parseFloat(v); return isNaN(n)?0:n; };
+const round2 = v => Math.round((num(v)+Number.EPSILON)*100)/100;
+const gbp = v => '£'+round2(v).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+function toast(msg,kind){const t=el('div',{class:'toast'},msg);if(kind==='bad')t.style.borderColor='var(--bad)';$('#toastRoot').append(t);setTimeout(()=>t.remove(),2600);}
+function modal(node){const ov=el('div',{class:'overlay',onclick:e=>{if(e.target===ov)ov.remove();}});const box=el('div',{class:'modal'});box.append(node);ov.append(box);$('#modalRoot').append(ov);return ov;}
+function fmtDate(d){if(!d)return'';const x=new Date(d);return isNaN(x)?'':x.toLocaleDateString('en-GB');}
+
+/* ============================================================
+   In-memory state
+============================================================ */
+const DB = {
+  employees:[], periods:[], period:null,
+  lines:[], deductions:[], leave:[],
+  ref:{ nmw:[], ssp:[], dedTypes:[], notes:[] }
+};
+
+/* ============================================================
+   Calculation engine
+============================================================ */
+function deriveRates(emp){
+  const annual = num(emp.annual_salary);
+  const hpw = num(emp.hours_per_week);
+  const weekly = annual/52;
+  return {
+    annual, weekly,
+    monthly: annual/12,
+    hourRate: hpw>0 ? weekly/hpw : 0,
+    dayRate: weekly/5
+  };
+}
+function ageOn(dob, ref){
+  if(!dob) return null;
+  const d=new Date(dob), r=new Date(ref);
+  let a=r.getFullYear()-d.getFullYear();
+  const m=r.getMonth()-d.getMonth();
+  if(m<0||(m===0&&r.getDate()<d.getDate())) a--;
+  return a;
+}
+function nmwBand(emp, refDate){
+  if(emp.apprentice) return 'apprentice';
+  const a = ageOn(emp.dob, refDate);
+  if(a==null) return '21_plus';      // assume adult if DOB unknown
+  if(a<18) return 'under_18';
+  if(a<21) return '18_20';
+  return '21_plus';
+}
+function nmwRateFor(band, refDate){
+  const cands = DB.ref.nmw.filter(r=>r.band===band && r.effective_from<=refDate)
+                          .sort((a,b)=> a.effective_from<b.effective_from?1:-1);
+  return cands[0] ? num(cands[0].hourly_rate) : null;
+}
+function activeSsp(refDate){
+  const c = DB.ref.ssp.filter(s=>s.effective_from<=refDate)
+                      .sort((a,b)=> a.effective_from<b.effective_from?1:-1);
+  return c[0]||DB.ref.ssp[0]||null;
+}
+// SSP for a number of approved sick days (salaried daily model)
+function sspForDays(days, emp, refDate){
+  const ssp = activeSsp(refDate); if(!ssp) return 0;
+  const wd = num(ssp.working_days_per_week)||5;
+  const sspDay = num(ssp.weekly_rate)/wd;
+  const rates = deriveRates(emp);
+  const aweDay = (rates.weekly*0.8)/wd;          // 80% of average weekly earnings
+  const perDay = Math.min(sspDay, aweDay);        // SSP = lower of the two
+  const payableDays = Math.max(0, num(days) - num(ssp.waiting_days||0));
+  return round2(perDay*payableDays);
+}
+// Compliance check for an employee at a reference date
+function complianceCheck(emp, refDate){
+  const rates = deriveRates(emp);
+  const out = [];
+  const band = nmwBand(emp, refDate);
+  const rate = nmwRateFor(band, refDate);
+  const bandLabel = {'21_plus':'21+','18_20':'18–20','under_18':'Under 18','apprentice':'Apprentice'}[band];
+  if(rate!=null && rates.hourRate>0){
+    if(rates.hourRate < rate){
+      out.push({level:'bad',text:`Below NMW (${bandLabel}): ${gbp(rates.hourRate)}/hr < ${gbp(rate)}/hr`});
+    } else {
+      out.push({level:'good',text:`NMW ok (${bandLabel}): ${gbp(rates.hourRate)}/hr ≥ ${gbp(rate)}/hr`});
+    }
+  }
+  if(num(emp.hours_per_week)>48){
+    out.push({level:'warn',text:`Hours ${num(emp.hours_per_week)}/wk exceed 48h Working Time average — needs opt-out`});
+  }
+  return out;
+}
+// Compute a payroll line's totals
+function computeLine(line, emp){
+  const ded = DB.deductions.filter(d=>d.payroll_line_id===line.id);
+  const otherDed = ded.reduce((s,d)=>s+num(d.amount),0);
+  const gross = num(line.basic_pay)+num(line.bonus)+num(line.commission)+num(line.on_call)+num(line.car_allowance);
+  const totalDed = num(line.sick_deduction)+otherDed;
+  const total = gross + num(line.ssp_amount) - totalDed;
+  return {gross, otherDed, totalDed, total, dedList:ded};
+}
+
+/* ============================================================
+   Auth
+============================================================ */
+async function refreshSession(){
+  const {data:{session}} = await sb.auth.getSession();
+  if(session){ enterApp(session); } else { showSignin(); }
+}
+function showSignin(){ $('#signin').classList.remove('hide'); $('#app').classList.add('hide'); }
+async function enterApp(session){
+  $('#signin').classList.add('hide'); $('#app').classList.remove('hide');
+  $('#whoami').textContent = session.user.email;
+  try{ await loadAll(); }
+  catch(e){
+    console.error(e);
+    if(String(e.message||e).match(/permission|row-level|RLS|denied/i)){
+      $('#signin').classList.remove('hide'); $('#app').classList.add('hide');
+      $('#si-msg').innerHTML = '<span style="color:var(--warn)">This email is signed in but not on the approved list. Ask an admin to add '+session.user.email+'.</span>';
+      await sb.auth.signOut();
+    } else { toast('Load error: '+(e.message||e),'bad'); }
+  }
+}
+$('#si-login').onclick = async ()=>{
+  $('#si-msg').textContent='Signing in…';
+  const {error}=await sb.auth.signInWithPassword({email:$('#si-email').value.trim(),password:$('#si-pass').value});
+  if(error){$('#si-msg').innerHTML='<span style="color:var(--bad)">'+error.message+'</span>';return;}
+  refreshSession();
+};
+$('#si-signup').onclick = async ()=>{
+  $('#si-msg').textContent='Creating account…';
+  const {error}=await sb.auth.signUp({email:$('#si-email').value.trim(),password:$('#si-pass').value});
+  if(error){$('#si-msg').innerHTML='<span style="color:var(--bad)">'+error.message+'</span>';return;}
+  $('#si-msg').innerHTML='<span style="color:var(--acc2)">Account created. If email confirmation is on, confirm then sign in.</span>';
+};
+$('#signout').onclick = async ()=>{ await sb.auth.signOut(); showSignin(); };
+
+/* ============================================================
+   Data loading
+============================================================ */
+async function loadRef(){
+  const [nmw,ssp,dt,notes] = await Promise.all([
+    sb.from('nmw_rates').select('*'),
+    sb.from('ssp_config').select('*'),
+    sb.from('deduction_types').select('*').order('sort_order'),
+    sb.from('compliance_notes').select('*').order('sort_order'),
+  ]);
+  for(const r of [nmw,ssp,dt,notes]) if(r.error) throw r.error;
+  DB.ref.nmw=nmw.data; DB.ref.ssp=ssp.data; DB.ref.dedTypes=dt.data; DB.ref.notes=notes.data;
+}
+async function loadAll(){
+  await loadRef();
+  const emps = await sb.from('employees').select('*').order('office').order('full_name');
+  if(emps.error) throw emps.error; DB.employees=emps.data;
+  const pers = await sb.from('pay_periods').select('*').order('start_date',{ascending:false});
+  if(pers.error) throw pers.error; DB.periods=pers.data;
+  if(!DB.period && DB.periods.length) DB.period=DB.periods[0];
+  await loadPeriod();
+  render();
+}
+async function loadPeriod(){
+  if(!DB.period){ DB.lines=[]; DB.deductions=[]; DB.leave=[]; return; }
+  const lines = await sb.from('payroll_lines').select('*').eq('pay_period_id',DB.period.id);
+  if(lines.error) throw lines.error; DB.lines=lines.data;
+  const ids = DB.lines.map(l=>l.id);
+  if(ids.length){
+    const d = await sb.from('deductions').select('*').in('payroll_line_id',ids);
+    if(d.error) throw d.error; DB.deductions=d.data;
+  } else DB.deductions=[];
+  const lv = await sb.from('leave_records').select('*').eq('pay_period_id',DB.period.id);
+  if(lv.error) throw lv.error; DB.leave=lv.data;
+}
+
+/* ============================================================
+   Tabs
+============================================================ */
+$$('#tabs button').forEach(b=>b.onclick=()=>{
+  $$('#tabs button').forEach(x=>x.classList.toggle('active',x===b));
+  ['dashboard','import','employees','compliance'].forEach(t=>$('#tab-'+t).classList.toggle('hide',t!==b.dataset.tab));
+});
+function render(){
+  $('#periodChip').textContent = DB.period ? '· '+DB.period.label : '';
+  renderDashboard(); renderImport(); renderEmployees(); renderCompliance();
+}
+
+/* ============================================================
+   Dashboard / pay run
+============================================================ */
+function empById(id){ return DB.employees.find(e=>e.id===id); }
+function lineForEmp(empId){ return DB.lines.find(l=>l.employee_id===empId); }
+
+async function ensurePeriod(){
+  if(DB.period) return DB.period;
+  toast('Create a pay period first');
+  return null;
+}
+async function createPeriod(){
+  const wrap = el('div',{},
+    el('h3',{},'New pay period'),
+    el('div',{class:'grid g2'},
+      lblInput('Label','np-label','e.g. May 2026'),
+      el('div',{},'')),
+    el('div',{class:'grid g2'},
+      lblInput('Start (16th)','np-start','', 'date'),
+      lblInput('End (15th)','np-end','', 'date')),
+    el('p',{class:'muted',style:'font-size:12px'},'A pay run runs 16th → 15th.'),
+    el('div',{class:'row',style:'margin-top:8px'},
+      el('button',{class:'btn',onclick:async()=>{
+        const label=$('#np-label').value.trim(), s=$('#np-start').value, e=$('#np-end').value;
+        if(!label||!s||!e){toast('Fill all fields','bad');return;}
+        const {data,error}=await sb.from('pay_periods').insert({label,start_date:s,end_date:e}).select().single();
+        if(error){toast(error.message,'bad');return;}
+        DB.periods.unshift(data); DB.period=data; await loadPeriod(); render(); ov.remove(); toast('Period created');
+      }},'Create'),
+      el('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel')));
+  const ov=modal(wrap);
+}
+function lblInput(label,id,ph,type='text',val=''){
+  return el('div',{},el('label',{},label),el('input',{id,type,placeholder:ph||'',value:val}));
+}
+
+function renderDashboard(){
+  const root=$('#tab-dashboard'); root.innerHTML='';
+  // controls
+  const sel=el('select',{style:'max-width:240px',onchange:async e=>{DB.period=DB.periods.find(p=>p.id===e.target.value);await loadPeriod();render();}});
+  DB.periods.forEach(p=>sel.append(el('option',{value:p.id, ...(DB.period&&p.id===DB.period.id?{selected:'selected'}:{})},p.label)));
+  const bar=el('div',{class:'row',style:'align-items:flex-end;margin-bottom:14px'},
+    el('div',{},el('label',{},'Pay period'),sel),
+    el('button',{class:'btn sec',onclick:createPeriod},'+ New period'),
+    el('button',{class:'btn sec',onclick:syncFromMaster},'Generate lines from employees'),
+    el('div',{style:'flex:1'}),
+    el('button',{class:'btn',onclick:exportXlsx},'⬇ Export .xlsx'));
+  root.append(el('h2',{},'Pay run'),bar);
+
+  if(!DB.period){ root.append(el('div',{class:'card'},el('p',{class:'muted'},'No pay period yet. Create one to begin.'))); return; }
+  if(!DB.lines.length){ root.append(el('div',{class:'card'},el('p',{class:'muted'},'No lines yet. Click "Generate lines from employees" to seed this run from your active staff, or import the Timetastic file.'))); return; }
+
+  // stats
+  let gGross=0,gSsp=0,gDed=0,gTotal=0;
+  DB.lines.forEach(l=>{const c=computeLine(l,empById(l.employee_id));gGross+=c.gross;gSsp+=num(l.ssp_amount);gDed+=c.totalDed;gTotal+=c.total;});
+  const stats=el('div',{class:'grid g4',style:'margin-bottom:14px'},
+    stat('Headcount',DB.lines.length),
+    stat('Gross',gbp(gGross)),
+    stat('SSP',gbp(gSsp)),
+    stat('Total pay',gbp(gTotal)));
+  root.append(stats);
+
+  // group by office
+  const offices={};
+  DB.lines.forEach(l=>{const e=empById(l.employee_id);const o=(e&&e.office)||'Unassigned';(offices[o]=offices[o]||[]).push(l);});
+  const table=el('table');
+  table.append(el('thead',{},el('tr',{},...['Employee','Office','Basic','Bonus','Comm','On-call','Car','SSP','Deductions','Total','Compliance',''].map(h=>el('th',{class:['Basic','Bonus','Comm','On-call','Car','SSP','Deductions','Total'].includes(h)?'num':''},h)))));
+  const tb=el('tbody');
+  Object.keys(offices).sort().forEach(o=>{
+    let sGross=0,sTot=0;
+    tb.append(el('tr',{class:'section'},el('td',{colspan:12},o+' · '+DB.period.label)));
+    offices[o].forEach(l=>{
+      const e=empById(l.employee_id); const c=computeLine(l,e);
+      sGross+=c.gross; sTot+=c.total;
+      const flags=complianceCheck(e,DB.period.end_date);
+      const worst=flags.find(f=>f.level==='bad')||flags.find(f=>f.level==='warn')||flags[0];
+      const badge = worst?el('span',{class:'pill '+worst.level,title:flags.map(f=>f.text).join('\n')},worst.level==='good'?'OK':worst.level==='warn'?'Check':'Breach'):'';
+      tb.append(el('tr',{},
+        el('td',{},e?e.full_name:'?'),
+        el('td',{class:'muted'},o),
+        el('td',{class:'num'},gbp(l.basic_pay)),
+        el('td',{class:'num'},gbp(l.bonus)),
+        el('td',{class:'num'},gbp(l.commission)),
+        el('td',{class:'num'},gbp(l.on_call)),
+        el('td',{class:'num'},gbp(l.car_allowance)),
+        el('td',{class:'num'},gbp(l.ssp_amount)),
+        el('td',{class:'num',style:c.totalDed?'color:#ff9a9a':''},c.totalDed?'-'+gbp(c.totalDed):gbp(0)),
+        el('td',{class:'num',style:'font-weight:700'},gbp(c.total)),
+        el('td',{},badge),
+        el('td',{},el('button',{class:'btn sm sec',onclick:()=>editLine(l)},'Edit'))));
+    });
+    tb.append(el('tr',{class:'totals'},el('td',{colspan:9},o+' total'),el('td',{class:'num'},gbp(sTot)),el('td',{colspan:2},'')));
+  });
+  table.append(tb);
+  root.append(el('div',{class:'card',style:'overflow:auto'},table));
+}
+function stat(label,val){return el('div',{class:'stat'},el('b',{},String(val)),el('span',{},label));}
+
+// Create payroll lines for all active employees not yet in this period
+async function syncFromMaster(){
+  if(!await ensurePeriod()) return;
+  const have=new Set(DB.lines.map(l=>l.employee_id));
+  const rows=DB.employees.filter(e=>e.active&&!have.has(e.id)).map(e=>{
+    const r=deriveRates(e);
+    return {pay_period_id:DB.period.id, employee_id:e.id, basic_pay:round2(r.monthly), on_call:0};
+  });
+  if(!rows.length){toast('All active employees already have lines');return;}
+  const {error}=await sb.from('payroll_lines').insert(rows);
+  if(error){toast(error.message,'bad');return;}
+  await loadPeriod(); render(); toast(rows.length+' lines created');
+}
+
+/* ============================================================
+   Line editor
+============================================================ */
+function editLine(line){
+  const e=empById(line.employee_id);
+  const rates=deriveRates(e);
+  const flags=complianceCheck(e,DB.period.end_date);
+  let local={...line};
+  let localDed=DB.deductions.filter(d=>d.payroll_line_id===line.id).map(d=>({...d}));
+
+  const totalsBox=el('div',{class:'card',style:'background:var(--panel2)'});
+  function recalc(){
+    const otherDed=localDed.reduce((s,d)=>s+num(d.amount),0);
+    const gross=num(local.basic_pay)+num(local.bonus)+num(local.commission)+num(local.on_call)+num(local.car_allowance);
+    const totalDed=num(local.sick_deduction)+otherDed;
+    const total=gross+num(local.ssp_amount)-totalDed;
+    totalsBox.innerHTML='';
+    totalsBox.append(
+      kv('Gross pay',gbp(gross)),
+      kv('SSP',gbp(local.ssp_amount)),
+      kv('Sick deduction',(num(local.sick_deduction)?'-':'')+gbp(local.sick_deduction)),
+      kv('Other deductions',(otherDed?'-':'')+gbp(otherDed)),
+      el('div',{class:'kv',style:'border:0;font-size:18px;font-weight:800;margin-top:6px'},el('span',{},'Net total'),el('span',{},gbp(total))));
+  }
+  function kv(k,v){return el('div',{class:'kv'},el('span',{class:'muted'},k),el('span',{},v));}
+
+  const dedWrap=el('div',{});
+  function renderDed(){
+    dedWrap.innerHTML='';
+    localDed.forEach((d,i)=>{
+      const sel=el('select',{onchange:e=>{d.type_code=e.target.value;}});
+      DB.ref.dedTypes.forEach(t=>sel.append(el('option',{value:t.code,...(t.code===d.type_code?{selected:'selected'}:{})},t.label)));
+      dedWrap.append(el('div',{class:'row',style:'margin-bottom:6px'},
+        el('div',{style:'flex:2'},sel),
+        el('div',{style:'flex:1'},el('input',{type:'number',step:'0.01',value:d.amount,placeholder:'Amount',oninput:e=>{d.amount=e.target.value;recalc();}})),
+        el('div',{style:'flex:2'},el('input',{value:d.note||'',placeholder:'Note',oninput:e=>{d.note=e.target.value;}})),
+        el('button',{class:'btn sm danger',onclick:()=>{localDed.splice(i,1);renderDed();recalc();}},'✕')));
+    });
+    dedWrap.append(el('button',{class:'btn sm sec',onclick:()=>{localDed.push({type_code:DB.ref.dedTypes[0]?.code||'other',amount:0,note:'',payroll_line_id:line.id});renderDed();}},'+ Add deduction'));
+  }
+
+  const sickInfo=el('div',{class:'tag'});
+  function field(label,key,extra){
+    const i=el('input',{type:'number',step:'0.01',value:local[key]??0,oninput:e=>{local[key]=e.target.value;recalc();}});
+    return el('div',{},el('label',{},label),i,extra||null);
+  }
+  const sickDaysInput=el('input',{type:'number',step:'0.5',value:local.sick_days_unpaid??0,oninput:e=>{
+    local.sick_days_unpaid=e.target.value;
+    local.sick_deduction=round2(rates.dayRate*num(e.target.value));
+    local.ssp_amount=sspForDays(num(e.target.value),e_emp(),DB.period.end_date);
+    sickFields(); recalc();
+  }});
+  function e_emp(){return e;}
+
+  const sickBox=el('div',{class:'card',style:'background:var(--panel2)'});
+  function sickFields(){
+    sickBox.innerHTML='';
+    sickBox.append(
+      el('div',{class:'grid g3'},
+        el('div',{},el('label',{},'Unpaid sick days'),sickDaysInput),
+        field('Sick deduction','sick_deduction'),
+        field('SSP','ssp_amount')),
+      el('div',{class:'tag',style:'margin-top:6px'},`Day rate ${gbp(rates.dayRate)} · SSP/day ${gbp((activeSsp(DB.period.end_date)?.weekly_rate||0)/((activeSsp(DB.period.end_date)?.working_days_per_week)||5))} · auto = day-rate deduction + SSP added back (from day 1, ≤28 wks).`));
+  }
+
+  const flagBox=el('div',{class:'row',style:'gap:6px;margin:6px 0 12px'});
+  flags.forEach(f=>flagBox.append(el('span',{class:'pill '+f.level},f.text)));
+
+  const form=el('div',{},
+    el('div',{class:'row',style:'align-items:center'},el('h3',{style:'margin:0'},e?e.full_name:'Line'),el('span',{class:'tag',style:'margin-left:8px'},(e&&e.office||'')+' · '+gbp(rates.annual)+'/yr · '+num(e&&e.hours_per_week)+'h/wk · '+gbp(rates.hourRate)+'/hr'),el('button',{class:'btn ghost sm close',onclick:()=>ov.remove()},'Close')),
+    flagBox,
+    el('div',{class:'grid g3'},
+      field('Basic pay (month)','basic_pay'),
+      field('Bonus','bonus'),
+      field('Commission','commission'),
+      field('On-call','on_call'),
+      field('Car allowance','car_allowance'),
+      el('div',{})),
+    el('h4',{style:'margin:14px 0 6px'},'Sick / SSP'),
+    sickBox,
+    el('h4',{style:'margin:14px 0 6px'},'Deductions'),
+    dedWrap,
+    el('div',{class:'grid g2',style:'margin-top:12px'},
+      el('div',{},el('label',{},'Notes (payslip)'),el('textarea',{rows:2,oninput:e=>local.notes=e.target.value},local.notes||'')),
+      el('div',{},el('label',{},'Internal notes'),el('textarea',{rows:2,oninput:e=>local.internal_notes=e.target.value},local.internal_notes||''))),
+    el('h4',{style:'margin:14px 0 6px'},'Summary'),
+    totalsBox,
+    el('div',{class:'row',style:'margin-top:14px'},
+      el('button',{class:'btn',onclick:save},'Save line'),
+      el('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel')));
+  const ov=modal(form);
+  renderDed(); sickFields(); recalc();
+
+  async function save(){
+    const otherDed=localDed.reduce((s,d)=>s+num(d.amount),0);
+    local.total_deductions=round2(num(local.sick_deduction)+otherDed);
+    const gross=num(local.basic_pay)+num(local.bonus)+num(local.commission)+num(local.on_call)+num(local.car_allowance);
+    local.total_pay=round2(gross+num(local.ssp_amount)-local.total_deductions);
+    const patch={basic_pay:num(local.basic_pay),bonus:num(local.bonus),commission:num(local.commission),on_call:num(local.on_call),car_allowance:num(local.car_allowance),ssp_amount:num(local.ssp_amount),sick_days_unpaid:num(local.sick_days_unpaid),sick_deduction:num(local.sick_deduction),total_deductions:local.total_deductions,total_pay:local.total_pay,notes:local.notes,internal_notes:local.internal_notes,updated_at:new Date().toISOString()};
+    const {error}=await sb.from('payroll_lines').update(patch).eq('id',line.id);
+    if(error){toast(error.message,'bad');return;}
+    // replace deductions
+    await sb.from('deductions').delete().eq('payroll_line_id',line.id);
+    const ins=localDed.filter(d=>num(d.amount)!==0).map(d=>({payroll_line_id:line.id,type_code:d.type_code,amount:num(d.amount),note:d.note||null}));
+    if(ins.length){const r=await sb.from('deductions').insert(ins);if(r.error){toast(r.error.message,'bad');return;}}
+    await loadPeriod(); render(); ov.remove(); toast('Saved');
+  }
+}
+
+/* ============================================================
+   Import (Timetastic)
+============================================================ */
+function renderImport(){
+  const root=$('#tab-import'); root.innerHTML='';
+  root.append(el('h2',{},'Import Timetastic export'));
+  root.append(el('p',{class:'muted'},'Drop the monthly summary .xlsx. We read the "Leave" sheet, count only Approved Holiday and Sick days, ignore "No Break", and pre-fill unpaid-sick deductions + SSP onto the current pay run.'));
+  if(!DB.period){ root.append(el('div',{class:'card'},el('p',{class:'muted'},'Create/select a pay period on the Pay run tab first.'))); return; }
+
+  const drop=el('div',{class:'drop'},'Drop .xlsx here, or click to choose');
+  const file=el('input',{type:'file',accept:'.xlsx,.xls',class:'hide',onchange:e=>{if(e.target.files[0])handleFile(e.target.files[0]);}});
+  drop.onclick=()=>file.click();
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('hot');};
+  drop.ondragleave=()=>drop.classList.remove('hot');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('hot');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);};
+  root.append(el('div',{class:'card'},drop,file));
+  root.append(el('div',{id:'importPreview'}));
+}
+function handleFile(f){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      const parsed=parseTimetastic(wb);
+      previewImport(parsed,f.name);
+    }catch(err){toast('Parse error: '+err.message,'bad');console.error(err);}
+  };
+  reader.readAsArrayBuffer(f);
+}
+function parseTimetastic(wb){
+  const sheet = wb.Sheets['Leave'] || wb.Sheets[wb.SheetNames.find(n=>/leave/i.test(n))];
+  if(!sheet) throw new Error('No "Leave" sheet found');
+  const rows=XLSX.utils.sheet_to_json(sheet,{defval:''});
+  const ps=DB.period.start_date, pe=DB.period.end_date;
+  const inPeriod=d=>{ if(!d) return true; const x=(new Date(d)).toISOString().slice(0,10); return x>=ps&&x<=pe; };
+  const raw=[];
+  const agg={}; // uid -> {name, holiday, sick}
+  rows.forEach(r=>{
+    const type=String(r['Leave Type']||'').trim();
+    const status=String(r['Status']||'').trim();
+    if(/no break/i.test(type)) return;            // ignore early-finish / internal
+    const uid=String(r['User Id']||'').trim();
+    const name=((r['Firstname']||'')+' '+(r['Surname']||'')).trim();
+    const start=r['Start Time'];
+    const working=num(r['Working This Month']); // working days affected this month
+    raw.push({timetastic_user_id:uid,first_name:r['Firstname'],surname:r['Surname'],leave_type:type,status,
+      start_time:start?new Date(start).toISOString():null,end_time:r['End Time']?new Date(r['End Time']).toISOString():null,
+      days:working,deducted_this_month:num(r['Deducted This Month']),reason:r['Reason']||null,booking_id:String(r['Booking Id']||'')||null});
+    if(status!=='Approved') return;
+    if(!inPeriod(start)) return;
+    agg[uid]=agg[uid]||{uid,name,holiday:0,sick:0};
+    if(/holiday/i.test(type)) agg[uid].holiday+=working;
+    else if(/sick/i.test(type)) agg[uid].sick+=working;
+  });
+  return {raw, agg:Object.values(agg)};
+}
+function previewImport(parsed,fname){
+  const root=$('#importPreview'); root.innerHTML='';
+  const matched=parsed.agg.map(a=>{
+    const emp=DB.employees.find(e=>String(e.timetastic_user_id)===String(a.uid))
+            || DB.employees.find(e=>e.full_name.toLowerCase().replace(/\s+/g,' ').trim()===a.name.toLowerCase());
+    return {...a, emp};
+  });
+  const tbl=el('table');
+  tbl.append(el('thead',{},el('tr',{},...['Timetastic name','Matched employee','Holiday','Sick (unpaid)','→ Deduction','→ SSP'].map(h=>el('th',{class:['Holiday','Sick (unpaid)','→ Deduction','→ SSP'].includes(h)?'num':''},h)))));
+  const tb=el('tbody');
+  matched.forEach(m=>{
+    const ded=m.emp?round2(deriveRates(m.emp).dayRate*m.sick):0;
+    const ssp=m.emp?sspForDays(m.sick,m.emp,DB.period.end_date):0;
+    tb.append(el('tr',{},
+      el('td',{},m.name),
+      el('td',{},m.emp?m.emp.full_name:el('span',{class:'pill bad'},'no match')),
+      el('td',{class:'num'},m.holiday||''),
+      el('td',{class:'num'},m.sick||''),
+      el('td',{class:'num'},m.sick&&m.emp?'-'+gbp(ded):''),
+      el('td',{class:'num'},m.sick&&m.emp?gbp(ssp):'')));
+  });
+  tbl.append(tb);
+  root.append(el('div',{class:'card',style:'margin-top:14px;overflow:auto'},
+    el('div',{class:'row',style:'align-items:center;margin-bottom:8px'},
+      el('b',{},fname),
+      el('span',{class:'tag'},parsed.agg.length+' people · '+parsed.raw.length+' bookings'),
+      el('div',{style:'flex:1'}),
+      el('button',{class:'btn',onclick:()=>commitImport(parsed,matched)},'Apply to pay run')),
+    tbl,
+    el('p',{class:'tag',style:'margin-top:8px'},'“Apply” stores all bookings for audit, creates payroll lines for matched staff if missing, and sets unpaid sick days → deduction + SSP. Holidays are recorded as paid (informational). You can still override any line afterwards.')));
+}
+async function commitImport(parsed,matched){
+  // 1. store raw leave (idempotent on booking_id), tagged to period
+  const raw=parsed.raw.filter(r=>r.booking_id).map(r=>({...r,pay_period_id:DB.period.id,
+    employee_id:(DB.employees.find(e=>String(e.timetastic_user_id)===String(r.timetastic_user_id))||{}).id||null}));
+  if(raw.length){
+    const {error}=await sb.from('leave_records').upsert(raw,{onConflict:'booking_id'});
+    if(error){toast('Leave save: '+error.message,'bad');return;}
+  }
+  // 2. ensure lines + apply sick
+  for(const m of matched){
+    if(!m.emp) continue;
+    let line=DB.lines.find(l=>l.employee_id===m.emp.id);
+    const r=deriveRates(m.emp);
+    const sick=num(m.sick);
+    const sick_deduction=round2(r.dayRate*sick);
+    const ssp=sspForDays(sick,m.emp,DB.period.end_date);
+    if(!line){
+      const {data,error}=await sb.from('payroll_lines').insert({pay_period_id:DB.period.id,employee_id:m.emp.id,
+        basic_pay:round2(r.monthly),sick_days_unpaid:sick,sick_deduction,ssp_amount:ssp,holiday_days:num(m.holiday)}).select().single();
+      if(error){toast(error.message,'bad');return;} line=data;
+    } else {
+      const {error}=await sb.from('payroll_lines').update({sick_days_unpaid:sick,sick_deduction,ssp_amount:ssp,holiday_days:num(m.holiday),updated_at:new Date().toISOString()}).eq('id',line.id);
+      if(error){toast(error.message,'bad');return;}
+    }
+  }
+  await loadAll();
+  $$('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab==='dashboard'));
+  ['dashboard','import','employees','compliance'].forEach(t=>$('#tab-'+t).classList.toggle('hide',t!=='dashboard'));
+  toast('Imported & applied');
+}
+
+/* ============================================================
+   Employees
+============================================================ */
+function renderEmployees(){
+  const root=$('#tab-employees'); root.innerHTML='';
+  root.append(el('div',{class:'row',style:'align-items:center;margin-bottom:12px'},
+    el('h2',{style:'margin:0'},'Employees'),
+    el('div',{style:'flex:1'}),
+    el('button',{class:'btn',onclick:()=>empForm()},'+ Add employee')));
+  const tbl=el('table');
+  tbl.append(el('thead',{},el('tr',{},...['Name','Office','Salary','Hours/wk','Hour rate','Day rate','Band/NMW','Timetastic ID',''].map(h=>el('th',{class:['Salary','Hours/wk','Hour rate','Day rate'].includes(h)?'num':''},h)))));
+  const tb=el('tbody');
+  DB.employees.forEach(e=>{
+    const r=deriveRates(e); const refDate=DB.period?DB.period.end_date:new Date().toISOString().slice(0,10);
+    const band=nmwBand(e,refDate); const rate=nmwRateFor(band,refDate);
+    const below=r.hourRate>0&&rate!=null&&r.hourRate<rate;
+    tb.append(el('tr',{},
+      el('td',{},e.full_name,e.active?'':el('span',{class:'tag'},' (inactive)')),
+      el('td',{class:'muted'},e.office||''),
+      el('td',{class:'num'},gbp(e.annual_salary)),
+      el('td',{class:'num'},num(e.hours_per_week)),
+      el('td',{class:'num'},gbp(r.hourRate)),
+      el('td',{class:'num'},gbp(r.dayRate)),
+      el('td',{},el('span',{class:'pill '+(below?'bad':'good')},({'21_plus':'21+','18_20':'18–20','under_18':'<18','apprentice':'Appr'}[band])+(rate!=null?' '+gbp(rate):''))),
+      el('td',{class:'muted'},e.timetastic_user_id||'—'),
+      el('td',{},el('button',{class:'btn sm sec',onclick:()=>empForm(e)},'Edit'))));
+  });
+  tbl.append(tb);
+  root.append(el('div',{class:'card',style:'overflow:auto'},tbl));
+}
+function empForm(emp){
+  const isNew=!emp; emp=emp||{employment_type:'salaried',active:true,hours_per_week:45,contracted_days:5};
+  const f={};
+  function inp(label,key,type='text'){const i=el('input',{type,value:emp[key]??'',oninput:e=>f[key]=e.target.value});f[key]=emp[key]??'';return el('div',{},el('label',{},label),i);}
+  const typeSel=el('select',{onchange:e=>f.employment_type=e.target.value});
+  ['salaried','hourly','zero_hours'].forEach(t=>typeSel.append(el('option',{value:t,...(emp.employment_type===t?{selected:'selected'}:{})},t)));
+  f.employment_type=emp.employment_type||'salaried';
+  const appr=el('input',{type:'checkbox',...(emp.apprentice?{checked:'checked'}:{}),onchange:e=>f.apprentice=e.target.checked});f.apprentice=!!emp.apprentice;
+  const act=el('input',{type:'checkbox',...(emp.active!==false?{checked:'checked'}:{}),onchange:e=>f.active=e.target.checked});f.active=emp.active!==false;
+  const form=el('div',{},
+    el('h3',{},isNew?'Add employee':'Edit '+emp.full_name),
+    el('div',{class:'grid g2'},
+      inp('Full name','full_name'),
+      inp('Office / department','office')),
+    el('div',{class:'grid g3'},
+      inp('Annual salary (£)','annual_salary','number'),
+      inp('Hours per week','hours_per_week','number'),
+      inp('Date of birth','dob','date')),
+    el('div',{class:'grid g3'},
+      el('div',{},el('label',{},'Employment type'),typeSel),
+      inp('Timetastic User Id','timetastic_user_id'),
+      inp('On-call rate (£/hr)','on_call_rate','number')),
+    el('div',{class:'grid g3'},
+      inp('Start date','start_date','date'),
+      inp('End date','end_date','date'),
+      el('div',{},el('label',{},'Flags'),el('div',{class:'row',style:'gap:14px;padding-top:6px'},el('label',{style:'display:flex;gap:5px;align-items:center'},appr,'Apprentice'),el('label',{style:'display:flex;gap:5px;align-items:center'},act,'Active')))),
+    el('div',{},el('label',{},'Notes'),el('textarea',{rows:2,oninput:e=>f.notes=e.target.value},emp.notes||'')),
+    el('div',{class:'row',style:'margin-top:14px'},
+      el('button',{class:'btn',onclick:save},'Save'),
+      el('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel'),
+      isNew?null:el('button',{class:'btn danger',style:'margin-left:auto',onclick:del},'Delete')));
+  const ov=modal(form);
+  async function save(){
+    const payload={full_name:f.full_name,office:f.office||null,annual_salary:num(f.annual_salary),hours_per_week:num(f.hours_per_week)||0,
+      dob:f.dob||null,employment_type:f.employment_type,timetastic_user_id:f.timetastic_user_id||null,on_call_rate:f.on_call_rate?num(f.on_call_rate):null,
+      start_date:f.start_date||null,end_date:f.end_date||null,apprentice:!!f.apprentice,active:!!f.active,notes:f.notes||null,updated_at:new Date().toISOString()};
+    if(!payload.full_name){toast('Name required','bad');return;}
+    let res;
+    if(isNew) res=await sb.from('employees').insert(payload);
+    else res=await sb.from('employees').update(payload).eq('id',emp.id);
+    if(res.error){toast(res.error.message,'bad');return;}
+    await loadAll(); ov.remove(); toast('Saved');
+  }
+  async function del(){
+    if(!confirm('Delete '+emp.full_name+'? This removes their master record.'))return;
+    const {error}=await sb.from('employees').delete().eq('id',emp.id);
+    if(error){toast(error.message,'bad');return;}
+    await loadAll(); ov.remove(); toast('Deleted');
+  }
+}
+
+/* ============================================================
+   Compliance library
+============================================================ */
+function renderCompliance(){
+  const root=$('#tab-compliance'); root.innerHTML='';
+  root.append(el('h2',{},'Compliance library — UK pay law'));
+  root.append(el('p',{class:'muted'},'These reference values drive the automatic checks and SSP/NMW calculations. Update them when statutory rates change; everything is effective-dated.'));
+
+  // NMW
+  const nmwTbl=el('table');
+  nmwTbl.append(el('thead',{},el('tr',{},el('th',{},'Effective from'),el('th',{},'21+'),el('th',{},'18–20'),el('th',{},'Under 18'),el('th',{},'Apprentice'))));
+  const byDate={};
+  DB.ref.nmw.forEach(r=>{(byDate[r.effective_from]=byDate[r.effective_from]||{})[r.band]=r.hourly_rate;});
+  const ntb=el('tbody');
+  Object.keys(byDate).sort().reverse().forEach(d=>{
+    const b=byDate[d];
+    ntb.append(el('tr',{},el('td',{},fmtDate(d)),el('td',{},b['21_plus']!=null?gbp(b['21_plus']):'—'),el('td',{},b['18_20']!=null?gbp(b['18_20']):'—'),el('td',{},b['under_18']!=null?gbp(b['under_18']):'—'),el('td',{},b['apprentice']!=null?gbp(b['apprentice']):'—')));
+  });
+  nmwTbl.append(ntb);
+  root.append(el('div',{class:'card',style:'margin-bottom:14px'},el('h3',{style:'margin-top:0'},'National Minimum / Living Wage'),nmwTbl,
+    el('button',{class:'btn sm sec',style:'margin-top:10px',onclick:editNmw},'Update rates')));
+
+  // SSP
+  const ssp=activeSsp(DB.period?DB.period.end_date:new Date().toISOString().slice(0,10));
+  const sspCard=el('div',{class:'card',style:'margin-bottom:14px'},el('h3',{style:'margin-top:0'},'Statutory Sick Pay (SSP)'));
+  if(ssp){
+    sspCard.append(el('div',{class:'grid g4'},
+      stat('Weekly rate',gbp(ssp.weekly_rate)),
+      stat('Per day',gbp(num(ssp.weekly_rate)/(num(ssp.working_days_per_week)||5))),
+      stat('Max weeks',ssp.max_weeks),
+      stat('Waiting days',ssp.waiting_days)),
+      el('p',{class:'tag',style:'margin-top:10px'},'SSP = lower of '+gbp(ssp.weekly_rate)+'/week or 80% of average weekly earnings. Paid from day 1 (waiting days '+ssp.waiting_days+'), up to '+ssp.max_weeks+' weeks. Lower Earnings Limit '+gbp(ssp.lel_weekly)+'/wk to qualify.'),
+      el('button',{class:'btn sm sec',onclick:editSsp},'Update SSP'));
+  }
+  root.append(sspCard);
+
+  // Deduction types
+  const dtCard=el('div',{class:'card',style:'margin-bottom:14px'},el('h3',{style:'margin-top:0'},'Deduction reason codes (dropdown)'));
+  const list=el('div',{class:'row',style:'gap:8px'});
+  DB.ref.dedTypes.forEach(t=>list.append(el('span',{class:'pill',style:'background:var(--chip)'},t.label)));
+  dtCard.append(list,el('div',{class:'row',style:'margin-top:10px;gap:8px'},
+    el('input',{id:'newDtLabel',placeholder:'New reason e.g. Parking fine',style:'max-width:240px'}),
+    el('button',{class:'btn sm sec',onclick:addDt},'+ Add reason')));
+  root.append(dtCard);
+
+  // Notes
+  const notesCard=el('div',{class:'card'},el('h3',{style:'margin-top:0'},'Reference notes'));
+  DB.ref.notes.forEach(n=>notesCard.append(el('details',{},el('summary',{},n.topic),el('div',{class:'muted',style:'white-space:pre-wrap'},n.body))));
+  root.append(notesCard);
+}
+function editNmw(){
+  const latest={};
+  DB.ref.nmw.forEach(r=>{ if(!latest[r.band]||r.effective_from>latest[r.band].effective_from)latest[r.band]=r;});
+  const f={effective_from:new Date().toISOString().slice(0,10)};
+  const bands=[['21_plus','21 and over'],['18_20','18 to 20'],['under_18','Under 18'],['apprentice','Apprentice']];
+  const inputs={};
+  const grid=el('div',{class:'grid g2'});
+  bands.forEach(([b,lab])=>{inputs[b]=el('input',{type:'number',step:'0.01',value:latest[b]?latest[b].hourly_rate:''});grid.append(el('div',{},el('label',{},lab),inputs[b]));});
+  const form=el('div',{},el('h3',{},'Update NMW rates'),
+    el('div',{},el('label',{},'Effective from'),el('input',{type:'date',value:f.effective_from,oninput:e=>f.effective_from=e.target.value})),
+    el('div',{style:'height:8px'}),grid,
+    el('div',{class:'row',style:'margin-top:14px'},el('button',{class:'btn',onclick:save},'Save'),el('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel')));
+  const ov=modal(form);
+  async function save(){
+    const rows=bands.filter(([b])=>inputs[b].value!=='').map(([b])=>({band:b,hourly_rate:num(inputs[b].value),effective_from:f.effective_from}));
+    const {error}=await sb.from('nmw_rates').upsert(rows,{onConflict:'band,effective_from'});
+    if(error){toast(error.message,'bad');return;}
+    await loadRef(); render(); ov.remove(); toast('NMW updated');
+  }
+}
+function editSsp(){
+  const cur=activeSsp(new Date().toISOString().slice(0,10))||{weekly_rate:123.25,max_weeks:28,waiting_days:0,lel_weekly:125,working_days_per_week:5};
+  const f={...cur,effective_from:new Date().toISOString().slice(0,10)};
+  function n(label,key,step='0.01'){return el('div',{},el('label',{},label),el('input',{type:'number',step,value:f[key],oninput:e=>f[key]=e.target.value}));}
+  const form=el('div',{},el('h3',{},'Update SSP config'),
+    el('div',{class:'grid g2'},n('Weekly rate (£)','weekly_rate'),n('Lower Earnings Limit (£/wk)','lel_weekly')),
+    el('div',{class:'grid g3'},n('Max weeks','max_weeks','1'),n('Waiting days','waiting_days','1'),n('Working days/week','working_days_per_week','1')),
+    el('div',{},el('label',{},'Effective from'),el('input',{type:'date',value:f.effective_from,oninput:e=>f.effective_from=e.target.value})),
+    el('div',{class:'row',style:'margin-top:14px'},el('button',{class:'btn',onclick:save},'Save'),el('button',{class:'btn ghost',onclick:()=>ov.remove()},'Cancel')));
+  const ov=modal(form);
+  async function save(){
+    const row={weekly_rate:num(f.weekly_rate),lel_weekly:num(f.lel_weekly),max_weeks:parseInt(f.max_weeks),waiting_days:parseInt(f.waiting_days),working_days_per_week:parseInt(f.working_days_per_week),effective_from:f.effective_from};
+    const {error}=await sb.from('ssp_config').upsert(row,{onConflict:'effective_from'});
+    if(error){toast(error.message,'bad');return;}
+    await loadRef(); render(); ov.remove(); toast('SSP updated');
+  }
+}
+async function addDt(){
+  const label=$('#newDtLabel').value.trim(); if(!label)return;
+  const code=label.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,'');
+  const {error}=await sb.from('deduction_types').insert({code,label,sort_order:200});
+  if(error){toast(error.message,'bad');return;}
+  await loadRef(); render(); toast('Added');
+}
+
+/* ============================================================
+   Export to .xlsx (template layout)
+============================================================ */
+function exportXlsx(){
+  if(!DB.period||!DB.lines.length){toast('Nothing to export','bad');return;}
+  const aoa=[];
+  const header=['Employee','Basic Pay','Bonus','Commission','On Call','Car Allowance','Deductions','SSP / SMP','Total Pay','Notes','Hours Per Week','Hour rate','Day Rate','Monthly','Annual'];
+  const offices={};
+  DB.lines.forEach(l=>{const e=empById(l.employee_id);const o=(e&&e.office)||'Unassigned';(offices[o]=offices[o]||[]).push(l);});
+  let grand=0;
+  Object.keys(offices).sort().forEach(o=>{
+    aoa.push([o+' — '+DB.period.label]);
+    aoa.push(header);
+    let sub=0;
+    offices[o].forEach(l=>{
+      const e=empById(l.employee_id);const r=deriveRates(e);const c=computeLine(l,e);sub+=c.total;grand+=c.total;
+      aoa.push([e?e.full_name:'?',round2(l.basic_pay),round2(l.bonus),round2(l.commission),round2(l.on_call),round2(l.car_allowance),
+        c.totalDed?-round2(c.totalDed):0,round2(l.ssp_amount),round2(c.total),l.notes||'',
+        num(e&&e.hours_per_week),round2(r.hourRate),round2(r.dayRate),round2(r.monthly),round2(r.annual)]);
+    });
+    aoa.push(['',' ',' ',' ',' ',' ',' ','Total',round2(sub)]);
+    aoa.push([]);
+  });
+  aoa.push(['GRAND TOTAL','','','','','','','',round2(grand)]);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=header.map((h,i)=>({wch:i===0?22:i===9?28:12}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Payroll');
+  XLSX.writeFile(wb,'Cal-Payroll-'+DB.period.label.replace(/\s+/g,'-')+'.xlsx');
+}
+
+/* ============================================================
+   Boot
+============================================================ */
+sb.auth.onAuthStateChange((_e,session)=>{ if(!session) showSignin(); });
+refreshSession();
+</script>
+</body>
+</html>
