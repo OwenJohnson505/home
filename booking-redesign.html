@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Booking — Ultra-wide redesign</title>
+<style>
+  :root{
+    --bg:#e8e8ed;
+    --panel:#ffffff;
+    --grouped-bg:#f5f5f7;
+    --ink:#1d1d1f;
+    --ink-2:#6e6e73;
+    --ink-3:#8e8e93;
+    --hair:rgba(60,60,67,.12);
+    --hair-strong:rgba(60,60,67,.20);
+    --blue:#0071e3;
+    --blue-tint:rgba(0,113,227,.10);
+    --green:#1a7f37;
+    --green-tint:rgba(26,127,55,.10);
+    --amber:#9a6700;
+    --amber-tint:rgba(154,103,0,.12);
+    --fill:rgba(118,118,128,.08);
+    --fill-2:rgba(118,118,128,.12);
+    --radius:14px;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06);
+    font-synthesis:none;
+    -webkit-font-smoothing:antialiased;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,"SF Pro Text","SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 15% -10%,#f0f0f5 0%,transparent 60%),
+      radial-gradient(1200px 600px at 100% 110%,#ececf2 0%,transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    letter-spacing:-.01em;
+    overflow-x:auto;
+    overflow-y:hidden;
+  }
+
+  /* ============ ULTRA-WIDE CANVAS ============ */
+  .canvas{
+    display:flex;
+    gap:14px;
+    height:100vh;
+    padding:14px;
+    align-items:stretch;
+    min-width:max-content;
+  }
+  .col{
+    width:360px;
+    flex:0 0 360px;
+    background:var(--panel);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    border:1px solid rgba(255,255,255,.6);
+  }
+  /* dimmed neighbours to convey the side-by-side workspace */
+  .col.ghost{opacity:.55;filter:saturate(.85)}
+  .col.ghost .body{overflow:hidden}
+
+  /* ============ COLUMN HEADER ============ */
+  .topbar{
+    height:52px;flex:0 0 52px;
+    display:flex;align-items:center;gap:8px;
+    padding:0 12px 0 14px;
+    border-bottom:1px solid var(--hair);
+    background:rgba(255,255,255,.8);
+    backdrop-filter:saturate(180%) blur(20px);
+  }
+  .biz{display:flex;align-items:center;gap:8px;min-width:0}
+  .biz .glyph{
+    width:26px;height:26px;border-radius:8px;flex:0 0 26px;
+    background:linear-gradient(160deg,#0a84ff,#0060df);
+    display:grid;place-items:center;color:#fff;font-size:13px;font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+  .biz .name{font-size:15px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pill{
+    font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;
+    background:var(--green-tint);color:var(--green);letter-spacing:0;white-space:nowrap;
+  }
+  .topbar .spacer{flex:1}
+  .icobtn{
+    width:30px;height:30px;border-radius:8px;border:none;background:transparent;
+    color:var(--ink-2);display:grid;place-items:center;cursor:pointer;font-size:15px;
+    transition:background .15s;
+  }
+  .icobtn:hover{background:var(--fill)}
+  .ref{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;margin-right:2px}
+
+  /* ============ BODY (fixed, no page scroll) ============ */
+  .body{
+    flex:1;min-height:0;
+    padding:12px;
+    display:flex;flex-direction:column;gap:12px;
+    overflow-y:auto;
+  }
+  .body::-webkit-scrollbar{width:8px}
+  .body::-webkit-scrollbar-thumb{background:var(--hair-strong);border-radius:8px;border:2px solid var(--panel)}
+
+  /* ============ GROUPED SECTION (iOS inset list) ============ */
+  .section{background:var(--grouped-bg);border-radius:var(--radius);overflow:hidden}
+  .sec-head{
+    display:flex;align-items:center;gap:6px;
+    padding:9px 14px 4px;
+  }
+  .sec-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+  .sec-head .spacer{flex:1}
+  .sec-action{font-size:12px;color:var(--blue);font-weight:500;cursor:pointer;padding:2px 4px;border-radius:6px}
+  .sec-action:hover{background:var(--blue-tint)}
+
+  .list{padding:2px 0 4px}
+  .row{
+    position:relative;
+    display:flex;align-items:flex-start;gap:10px;
+    padding:9px 14px;
+    cursor:pointer;
+    transition:background .12s;
+  }
+  .row:hover{background:var(--fill)}
+  .row + .row{border-top:1px solid var(--hair)}
+  .row:active{background:var(--fill-2)}
+
+  /* stop marker */
+  .marker{flex:0 0 22px;display:flex;flex-direction:column;align-items:center;padding-top:1px}
+  .dot{
+    width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;font-weight:600;color:#fff;
+  }
+  .dot.pickup{background:#34785b}
+  .dot.drop{background:#0071e3}
+  .stem{width:2px;flex:1;background:var(--hair-strong);margin:2px 0 -12px;border-radius:2px}
+
+  .row-main{flex:1;min-width:0}
+  .row-top{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+  .kind{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+  .chip{
+    font-size:10px;font-weight:600;padding:1px 6px;border-radius:5px;
+    background:var(--fill-2);color:var(--ink-2);font-variant-numeric:tabular-nums;
+  }
+  .row-top .spacer{flex:1}
+  .eta{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .eta b{color:var(--ink);font-weight:600}
+
+  /* THE SMART SUMMARY line */
+  .summary{font-size:14px;font-weight:600;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .summary .pc{color:var(--ink-2);font-weight:500}
+  .subline{font-size:12px;color:var(--ink-2);margin-top:2px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .subline .sep{color:var(--hair-strong)}
+  .subline a{color:var(--blue);text-decoration:none}
+  .goods{
+    margin-top:6px;display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;color:var(--ink-2);background:var(--panel);
+    border:1px solid var(--hair);padding:2px 8px;border-radius:100px;
+  }
+  .chev{color:var(--ink-3);font-size:13px;align-self:center;flex:0 0 auto;opacity:.6}
+
+  /* generic label:value row */
+  .kv{display:flex;align-items:center;gap:10px;padding:9px 14px}
+  .kv + .kv{border-top:1px solid var(--hair)}
+  .kv .k{font-size:13px;color:var(--ink-2);flex:0 0 92px}
+  .kv .v{flex:1;font-size:13px;font-weight:500;text-align:right;color:var(--ink);display:flex;justify-content:flex-end;flex-wrap:wrap;gap:5px;align-items:center}
+  .kv .v.muted{color:var(--ink-3);font-weight:400}
+
+  .tag{
+    font-size:11.5px;font-weight:500;padding:2px 9px;border-radius:100px;
+    background:var(--panel);border:1px solid var(--hair);color:var(--ink);white-space:nowrap;
+  }
+  .tag.blue{background:var(--blue-tint);border-color:transparent;color:#0060df}
+  .tag.amber{background:var(--amber-tint);border-color:transparent;color:var(--amber)}
+
+  /* charges */
+  .charge{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;font-size:13px}
+  .charge + .charge{border-top:1px solid var(--hair)}
+  .charge .amt{font-weight:600;font-variant-numeric:tabular-nums}
+  .add-inline{color:var(--blue)}
+
+  .note{padding:10px 14px;font-size:12.5px;color:var(--ink);line-height:1.45}
+  .note .q{color:var(--ink-3)}
+
+  .driver-empty{display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--ink-3);font-size:13px}
+  .driver-empty .add{margin-left:auto;font-size:12px;color:var(--blue);font-weight:500}
+
+  /* ============ FOOTER ============ */
+  .footer{
+    flex:0 0 auto;
+    border-top:1px solid var(--hair);
+    padding:10px 14px;
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(20px);
+  }
+  .foot-meta{display:flex;flex-direction:column;line-height:1.2}
+  .foot-meta .lbl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+  .foot-meta .total{font-size:22px;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+  .footer .spacer{flex:1}
+  .btn{font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;border:none;cursor:pointer;transition:.15s}
+  .btn.ghost{background:var(--fill);color:var(--ink)}
+  .btn.ghost:hover{background:var(--fill-2)}
+  .btn.primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+  .btn.primary:hover{background:#0060df}
+
+  /* ============ INLINE POPOVER EDITOR ============ */
+  .editor{
+    display:none;
+    padding:2px 14px 14px;
+  }
+  .row.editing + .editor{display:block}
+  .row.editing{background:var(--fill);cursor:default}
+  .row.editing .chev{transform:rotate(90deg)}
+  .field{margin-top:10px}
+  .field label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .field input{
+    width:100%;font-size:13px;padding:8px 10px;border-radius:9px;
+    border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);
+    font-family:inherit;outline:none;transition:.15s;
+  }
+  .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+  .field-row{display:flex;gap:8px}
+  .field-row .field{flex:1;margin-top:10px}
+  .field-row .field.pc{flex:0 0 110px}
+  .editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+  .editor-actions .btn{padding:6px 14px}
+
+  /* ghost column placeholder content */
+  .ghost-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+  .ghost-card{background:var(--grouped-bg);border-radius:12px;padding:11px 13px}
+  .ghost-card .gh-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .ghost-card .gh-name{font-size:13px;font-weight:600}
+  .ghost-card .gh-sum{font-size:13px;font-weight:600;letter-spacing:-.02em}
+  .ghost-card .gh-sub{font-size:11px;color:var(--ink-2);margin-top:2px}
+
+  .legend{
+    position:fixed;left:14px;bottom:14px;z-index:20;
+    background:rgba(29,29,31,.9);color:#fff;backdrop-filter:blur(20px);
+    padding:9px 13px;border-radius:12px;font-size:11.5px;line-height:1.5;max-width:300px;
+    box-shadow:0 8px 30px rgba(0,0,0,.25);
+  }
+  .legend b{color:#fff}
+  .legend .k{color:#0a84ff;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <!-- ========== GHOST COLUMN (left neighbour) ========== -->
+  <section class="col ghost">
+    <div class="topbar">
+      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#ff9f0a,#ff8000)">N</div><span class="name">Northgate Foods</span></div>
+      <span class="pill">Booking</span><div class="spacer"></div>
+    </div>
+    <div class="ghost-list">
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Coldstore Depot <span style="color:var(--ink-2)">· M17 1PZ</span></span></div><div class="gh-sub">ASAP · Wed 1 Jul by 09:00</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Booths RDC <span style="color:var(--ink-2)">· PR5 6BX</span></span></div><div class="gh-sub">ASAP · Wed 1 Jul by 13:30</div></div>
+      <div class="ghost-card"><div class="gh-sub" style="margin:0">18t · Fridge · Dedicated</div></div>
+    </div>
+  </section>
+
+  <!-- ========== PRIMARY COLUMN (the redesign) ========== -->
+  <section class="col">
+
+    <!-- header -->
+    <div class="topbar">
+      <div class="biz">
+        <div class="glyph">B</div>
+        <span class="name">Brightway Trading</span>
+      </div>
+      <span class="pill">Booking</span>
+      <div class="spacer"></div>
+      <span class="ref">BK-100482</span>
+      <button class="icobtn" title="History">◷</button>
+      <button class="icobtn" title="Providers">⿻</button>
+      <button class="icobtn" title="Close">✕</button>
+    </div>
+
+    <!-- body -->
+    <div class="body">
+
+      <!-- ROUTE -->
+      <div class="section">
+        <div class="sec-head">
+          <span class="sec-title">Route</span>
+          <div class="spacer"></div>
+          <span class="sec-action">+ Add stop</span>
+        </div>
+        <div class="list">
+
+          <!-- Stop 1 -->
+          <div class="row" data-edit>
+            <div class="marker"><div class="dot pickup">1</div><div class="stem"></div></div>
+            <div class="row-main">
+              <div class="row-top">
+                <span class="kind">Collection</span>
+                <span class="chip">COL-7781</span>
+                <div class="spacer"></div>
+                <span class="eta">ASAP · <b>Wed 1 Jul</b> · 10:36</span>
+              </div>
+              <div class="summary">Brightway DC <span class="pc">· LS9 0PX</span></div>
+              <div class="subline">Mark Stiles <span class="sep">·</span> <a>0113 555 0190</a></div>
+              <span class="goods">▦ 0 / 3 lines · add goods</span>
+            </div>
+            <span class="chev">›</span>
+          </div>
+          <!-- inline editor for stop 1 -->
+          <div class="editor">
+            <div class="field"><label>Company name</label><input value="Brightway DC"></div>
+            <div class="field"><label>Address</label><input placeholder="Street address"></div>
+            <div class="field-row">
+              <div class="field"><label>City</label><input placeholder="City"></div>
+              <div class="field pc"><label>Postcode</label><input value="LS9 0PX"></div>
+            </div>
+            <div class="editor-actions">
+              <button class="btn ghost" data-cancel>Cancel</button>
+              <button class="btn primary" data-cancel>Save</button>
+            </div>
+          </div>
+
+          <!-- Stop 2 -->
+          <div class="row" data-edit>
+            <div class="marker"><div class="dot drop">2</div></div>
+            <div class="row-main">
+              <div class="row-top">
+                <span class="kind">Delivery</span>
+                <span class="chip">DEL-7781</span>
+                <div class="spacer"></div>
+                <span class="eta">ASAP · <b>Wed 1 Jul</b> · 10:36</span>
+              </div>
+              <div class="summary">Tesco Extra <span class="pc">· WA2 7NE</span></div>
+              <div class="subline">Goods-in desk <span class="sep">·</span> <a>01925 555 010</a></div>
+              <span class="goods">▦ 2 / 3 lines</span>
+            </div>
+            <span class="chev">›</span>
+          </div>
+          <div class="editor">
+            <div class="field"><label>Company name</label><input value="Tesco Extra"></div>
+            <div class="field"><label>Address</label><input placeholder="Street address"></div>
+            <div class="field-row">
+              <div class="field"><label>City</label><input value="Warrington"></div>
+              <div class="field pc"><label>Postcode</label><input value="WA2 7NE"></div>
+            </div>
+            <div class="editor-actions">
+              <button class="btn ghost" data-cancel>Cancel</button>
+              <button class="btn primary" data-cancel>Save</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SERVICE & VEHICLE -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Service &amp; Vehicle</span></div>
+        <div class="kv"><span class="k">Vehicle</span><span class="v">18t · Curtain side</span></div>
+        <div class="kv"><span class="k">Equipment</span><span class="v"><span class="tag">Tail lift</span><span class="tag">Pump truck</span></span></div>
+        <div class="kv"><span class="k">Service</span><span class="v"><span class="tag blue">Dedicated</span><span class="tag amber">ADR</span></span></div>
+      </div>
+
+      <!-- CHARGES -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Charges</span><div class="spacer"></div><span class="sec-action">+ Add</span></div>
+        <div class="charge"><span>Handballing</span><span class="amt">£35.00</span></div>
+      </div>
+
+      <!-- DRIVER -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Driver</span></div>
+        <div class="driver-empty">◎ Unassigned<span class="add">Assign driver</span></div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Job notes</span><span class="chip" style="margin-left:6px">internal</span></div>
+        <div class="note"><span class="q">“</span>Call ahead — gate code 4471.<span class="q">”</span></div>
+      </div>
+
+    </div>
+
+    <!-- footer -->
+    <div class="footer">
+      <div class="foot-meta">
+        <span class="lbl">Total revenue</span>
+        <span class="total">£35.00</span>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn ghost">Cancel</button>
+      <button class="btn primary">Update</button>
+    </div>
+
+  </section>
+
+  <!-- ========== GHOST COLUMNS (right neighbours) ========== -->
+  <section class="col ghost">
+    <div class="topbar">
+      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#30d158,#248a3d)">P</div><span class="name">Peak Logistics</span></div>
+      <span class="pill" style="background:var(--amber-tint);color:var(--amber)">Quote</span><div class="spacer"></div>
+    </div>
+    <div class="ghost-list">
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Sheffield Hub <span style="color:var(--ink-2)">· S9 1XH</span></span></div><div class="gh-sub">Wed 1 Jul · 08:00–10:00</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Amazon LBA4 <span style="color:var(--ink-2)">· LS10 1AB</span></span></div><div class="gh-sub">Wed 1 Jul · by 14:00</div></div>
+      <div class="ghost-card"><div class="gh-sub" style="margin:0">7.5t · Box · Tail lift</div></div>
+    </div>
+  </section>
+
+  <section class="col ghost">
+    <div class="topbar">
+      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#bf5af2,#8944ab)">V</div><span class="name">Vantage Parts</span></div>
+      <span class="pill">Booking</span><div class="spacer"></div>
+    </div>
+    <div class="ghost-list">
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Vantage NDC <span style="color:var(--ink-2)">· CV6 5RY</span></span></div><div class="gh-sub">ASAP · Wed 1 Jul</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Halfords DC <span style="color:var(--ink-2)">· RG24 8PZ</span></span></div><div class="gh-sub">Wed 1 Jul · by 16:00</div></div>
+      <div class="ghost-card"><div class="gh-sub" style="margin:0">Van · Dedicated</div></div>
+    </div>
+  </section>
+
+  <section class="col ghost">
+    <div class="topbar">
+      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#64d2ff,#0a84ff)">C</div><span class="name">Crest Chemicals</span></div>
+      <span class="pill">Booking</span><div class="spacer"></div>
+    </div>
+    <div class="ghost-list">
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Crest Works <span style="color:var(--ink-2)">· TS23 1PY</span></span></div><div class="gh-sub">Thu 2 Jul · 07:00</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Runcorn Site <span style="color:var(--ink-2)">· WA7 4QX</span></span></div><div class="gh-sub">Thu 2 Jul · by 12:00</div></div>
+      <div class="ghost-card"><div class="gh-sub" style="margin:0">18t · Curtain · ADR</div></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="legend">
+  <b>Ultra-wide workspace</b> — five <span class="k">360px</span> booking columns side-by-side.<br>
+  The centre column is expanded; neighbours collapse to smart summaries.<br>
+  <b>Click any Route stop</b> to expand the inline editor.
+</div>
+
+<script>
+  document.querySelectorAll('.row[data-edit]').forEach(row=>{
+    row.addEventListener('click',e=>{
+      if(e.target.closest('a'))return;
+      const wasOpen=row.classList.contains('editing');
+      // close siblings
+      document.querySelectorAll('.row.editing').forEach(r=>r.classList.remove('editing'));
+      if(!wasOpen){
+        row.classList.add('editing');
+        const inp=row.nextElementSibling.querySelector('input');
+        if(inp)setTimeout(()=>inp.focus(),50);
+      }
+    });
+  });
+  document.querySelectorAll('[data-cancel]').forEach(b=>{
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      document.querySelectorAll('.row.editing').forEach(r=>r.classList.remove('editing'));
+    });
+  });
+</script>
+
+</body>
+</html>
