@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking — Ultra-wide redesign v3</title>
+<title>Booking — Ultra-wide redesign v4</title>
 <style>
   :root{
     --bg:#e8e8ed;
@@ -38,7 +38,6 @@
   }
   a{color:var(--blue);text-decoration:none;cursor:pointer}
 
-  /* ============ ULTRA-WIDE CANVAS ============ */
   .canvas{display:flex;gap:14px;height:100vh;padding:14px;align-items:stretch;min-width:max-content}
   .col{
     width:372px;flex:0 0 372px;background:var(--panel);border-radius:20px;
@@ -47,37 +46,45 @@
   }
   .col.ghost{opacity:.5;filter:saturate(.85)}
 
-  /* ============ HEADER (two rows) ============ */
+  /* ============ HEADER ============ */
   .topbar{
-    flex:0 0 auto;padding:12px 12px 10px 14px;border-bottom:1px solid var(--hair);
+    position:relative;flex:0 0 auto;padding:12px 12px 10px 14px;border-bottom:1px solid var(--hair);
     background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);
   }
   .tb-row1{display:flex;align-items:center;gap:11px}
   .glyph{
     width:34px;height:34px;border-radius:9px;flex:0 0 34px;
     background:linear-gradient(160deg,#0a84ff,#0060df);
-    display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600;
-    box-shadow:0 1px 2px rgba(0,0,0,.18);
+    display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.18);
   }
   .cust{min-width:0;flex:1}
   .cust-name{font-size:16px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
   .cust-contact{font-size:12.5px;color:var(--ink-2);margin-top:1px}
   .tb-row2{display:flex;align-items:center;gap:8px;margin-top:11px}
   .pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--green-tint);color:var(--green);white-space:nowrap}
-  .ref{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .ref{font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums;line-height:1.15;max-width:72px}
   .tb-row2 .spacer{flex:1}
-  .txtbtn{
-    height:27px;padding:0 11px;border-radius:8px;border:none;background:var(--fill);
-    color:var(--ink-2);cursor:pointer;font:inherit;font-size:12px;font-weight:500;transition:background .15s;
-    display:inline-flex;align-items:center;
+  .actions{display:flex;align-items:center;gap:5px}
+  .iconbtn{
+    height:28px;min-width:28px;padding:0 6px;border-radius:8px;border:none;background:var(--fill);
+    color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:4px;transition:background .15s;
   }
-  .txtbtn:hover{background:var(--fill-2)}
-  /* close is the one place an icon alone is clearer than a word */
-  .closebtn{
-    width:27px;height:27px;border-radius:8px;border:none;background:var(--fill);color:var(--ink-2);
-    cursor:pointer;font-size:16px;line-height:1;display:grid;place-items:center;transition:background .15s;
+  .iconbtn:hover{background:var(--fill-2)}
+  .iconbtn.active{background:var(--blue-tint);color:var(--blue)}
+  .iconbtn svg{width:16px;height:16px;display:block}
+  .iconbtn .badge{font-size:11px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .iconbtn.close{font-size:17px;line-height:1}
+
+  /* job-notes popover */
+  .notes-pop{
+    position:absolute;top:78px;right:12px;z-index:30;width:240px;
+    background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:12px 14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.14);display:none;
   }
-  .closebtn:hover{background:var(--fill-2)}
+  .notes-pop.open{display:block}
+  .np-title{font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+  .np-body{font-size:13px;line-height:1.5;color:var(--ink)}
+  .np-body .q{color:var(--ink-3)}
 
   /* ============ BODY ============ */
   .body{flex:1;min-height:0;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
@@ -91,7 +98,7 @@
   .sec-action{font-size:12.5px;color:var(--blue);font-weight:500;cursor:pointer;padding:2px 6px;border-radius:6px;user-select:none}
   .sec-action:hover{background:var(--blue-tint)}
 
-  /* ============ ROUTE STOPS (compact, icon-free) ============ */
+  /* ============ ROUTE STOPS ============ */
   .stops{padding:4px 0 2px}
   .stop{display:flex;gap:12px;padding:8px 14px 10px}
   .rail{display:flex;flex-direction:column;align-items:center;flex:0 0 22px;padding-top:1px}
@@ -114,23 +121,24 @@
   .place .pc{color:var(--ink-2);font-weight:500;white-space:nowrap}
   .place .chev{margin-left:auto;color:var(--ink-3);opacity:0;transition:opacity .15s;font-weight:400;align-self:center}
   .place:hover .chev{opacity:1}
-  .ml{font-size:12.5px;color:var(--ink-2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ml{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ml b{color:var(--ink);font-weight:600}
   .ml .dim{color:var(--ink-3)}
 
   .add-row{
-    width:calc(100% - 20px);margin:2px 10px 10px;padding:10px;border-radius:10px;
+    width:calc(100% - 20px);margin:2px 10px 10px;padding:7px;border-radius:9px;
     border:1px dashed var(--hair-strong);background:transparent;color:var(--blue);
-    font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;
+    font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;transition:.15s;
   }
   .add-row:hover{background:var(--blue-tint);border-color:transparent}
 
   /* ============ KV ROWS ============ */
   .kv{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;min-height:44px}
-  .kv + .kv,.stops + .kv{border-top:1px solid var(--hair)}
-  .kv .k{font-size:13px;color:var(--ink-2);flex:0 0 84px;padding-top:3px}
+  .kv + .kv{border-top:1px solid var(--hair)}
+  .kv .k{font-size:13px;color:var(--ink-2);flex:0 0 78px;padding-top:3px}
   .kv .v{flex:1;font-size:14px;font-weight:500;text-align:right;color:var(--ink);display:flex;justify-content:flex-end;align-items:center;min-height:24px}
-  .chips{flex-wrap:wrap;gap:6px}
+  /* chips left-aligned per feedback */
+  .kv .v.chips{justify-content:flex-start;text-align:left;flex-wrap:wrap;gap:6px}
 
   .tag{
     font-size:12.5px;font-weight:500;padding:3px 6px 3px 11px;border-radius:100px;
@@ -147,16 +155,13 @@
   }
   .add-pill:hover{background:var(--blue-tint);border-color:transparent}
 
-  /* ============ PICKER (multi-select popover) ============ */
+  /* ============ PICKER ============ */
   .picker{display:none;padding:2px 14px 14px}
   .picker.open{display:block}
   .picker-inner{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
   .picker-title{font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin:0 2px 9px}
   .opts{display:flex;flex-wrap:wrap;gap:6px}
-  .opt{
-    font:inherit;font-size:12.5px;font-weight:500;padding:5px 12px;border-radius:100px;cursor:pointer;
-    background:var(--fill);border:1px solid transparent;color:var(--ink);transition:.12s;
-  }
+  .opt{font:inherit;font-size:12.5px;font-weight:500;padding:5px 12px;border-radius:100px;cursor:pointer;background:var(--fill);border:1px solid transparent;color:var(--ink);transition:.12s}
   .opt:hover{background:var(--fill-2)}
   .opt.selected{background:var(--blue);color:#fff}
   .opt.selected.amber{background:var(--amber)}
@@ -168,6 +173,13 @@
   .menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;transition:background .12s}
   .menu-item:hover{background:var(--fill)}
   .menu-item .mrate{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:12.5px}
+
+  /* ============ REQUIREMENTS ============ */
+  .req{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;font-size:13.5px}
+  .req + .req{border-top:1px solid var(--hair)}
+  .req-name{font-weight:500}
+  .req-scope{font-size:10.5px;font-weight:600;color:var(--green);background:var(--green-tint);padding:2px 9px;border-radius:100px;white-space:nowrap}
+  .req-empty{padding:10px 14px;font-size:13px;color:var(--ink-3)}
 
   /* ============ CHARGES ============ */
   .charge{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13.5px}
@@ -185,10 +197,8 @@
   .charge .del:hover{color:#d70015;background:rgba(215,0,21,.08)}
   .charges-empty{padding:11px 14px;font-size:13px;color:var(--ink-3)}
 
-  /* ============ DRIVER / NOTES ============ */
+  /* ============ DRIVER ============ */
   .kv .v.muted{color:var(--ink-3);font-weight:400}
-  .note{padding:4px 14px 12px;font-size:13px;color:var(--ink);line-height:1.5}
-  .note .q{color:var(--ink-3)}
 
   /* ============ INLINE ADDRESS EDITOR ============ */
   .editor{display:none;margin-top:10px}
@@ -208,20 +218,18 @@
   .btn.primary:hover{background:#0060df}
   .btn.sm{padding:6px 13px}
 
-  /* ============ FOOTER ============ */
+  /* ============ FOOTER (tightened) ============ */
   .footer{flex:0 0 auto;border-top:1px solid var(--hair);padding:10px 14px 12px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px)}
-  .booked{font-size:11.5px;color:var(--ink-3);margin-bottom:10px}
+  .booked{font-size:11.5px;color:var(--ink-3);margin-bottom:6px}
   .booked b{color:var(--ink-2);font-weight:600}
-  .custref label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
   .custref input{width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s}
   .custref input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
-  .pay{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:11px;border-top:1px solid var(--hair)}
+  .pay{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--hair)}
   .foot-meta{display:flex;flex-direction:column;line-height:1.15}
   .foot-meta .lbl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
   .foot-meta .total{font-size:23px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
   .pay .spacer{flex:1}
 
-  /* ghost columns */
   .ghost-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
   .ghost-card{background:var(--grouped-bg);border-radius:12px;padding:11px 13px}
   .gh-top{display:flex;align-items:center;gap:7px;margin-bottom:5px}
@@ -261,9 +269,27 @@
         <span class="pill">Booking</span>
         <span class="ref">BK-2026-100482</span>
         <div class="spacer"></div>
-        <button class="txtbtn">History</button>
-        <button class="txtbtn">Providers · 8</button>
-        <button class="closebtn" title="Close">&times;</button>
+        <div class="actions">
+          <button class="iconbtn" id="notesBtn" title="Job notes">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3.5h6.2L18 8.2V20.5H7z"/><path d="M13 3.6V8.4H17.8"/><path d="M9.4 12.5h5M9.4 15.4h5"/></svg>
+          </button>
+          <button class="iconbtn" title="History">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.4 2"/></svg>
+          </button>
+          <button class="iconbtn" title="Providers · 8 bids">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></svg>
+            <span class="badge">8</span>
+          </button>
+          <button class="iconbtn" title="Quick actions">
+            <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18.5" cy="12" r="1.7"/></svg>
+          </button>
+          <button class="iconbtn close" title="Close">&times;</button>
+        </div>
+      </div>
+      <!-- job notes popover -->
+      <div class="notes-pop" id="notesPop">
+        <div class="np-title">Job notes · internal</div>
+        <div class="np-body"><span class="q">“</span>Call ahead — gate code 4471.<span class="q">”</span></div>
       </div>
     </div>
 
@@ -275,14 +301,15 @@
         <div class="sec-head"><span class="sec-title">Route · 2 stops</span></div>
         <div class="stops">
 
-          <!-- STOP 1 -->
+          <!-- STOP 1 — Address · Time · Contact · Goods -->
           <div class="stop">
             <div class="rail"><div class="dot pickup">1</div><div class="stem"></div></div>
             <div class="stop-content">
               <div class="stop-top"><span class="kind">Collection</span><div class="spacer"></div><span class="chip">COL-7781</span></div>
               <div class="place" data-edit><span class="name">Brightway DC</span><span class="pc">· LS9 0PX · Leeds</span><span class="chev">›</span></div>
+              <div class="ml">ASAP · <b>Wed 1 Jul</b> · by 10:36</div>
               <div class="ml">Mark Stiles · <a>0113 555 0190</a></div>
-              <div class="ml">ASAP · <b>Wed 1 Jul</b> · by 10:36 <span class="dim">· 0/3 goods ·</span> <a>add</a></div>
+              <div class="ml"><span class="dim">0/3 goods ·</span> <a>add</a></div>
               <div class="editor">
                 <div class="field"><label>Company name</label><input value="Brightway DC"></div>
                 <div class="field"><label>Address</label><input placeholder="Street address"></div>
@@ -295,14 +322,15 @@
             </div>
           </div>
 
-          <!-- STOP 2 -->
+          <!-- STOP 2 — same hierarchy -->
           <div class="stop">
             <div class="rail"><div class="dot drop">2</div></div>
             <div class="stop-content">
               <div class="stop-top"><span class="kind">Delivery</span><div class="spacer"></div><span class="chip">DEL-7781</span></div>
               <div class="place" data-edit><span class="name">Tesco Extra</span><span class="pc">· WA2 7NE · Warrington</span><span class="chev">›</span></div>
+              <div class="ml">ASAP · <b>Wed 1 Jul</b> · by 10:36</div>
               <div class="ml">Goods-in desk · <a>01925 555 010</a></div>
-              <div class="ml">ASAP · <b>Wed 1 Jul</b> · by 10:36 <span class="dim">· 2/3 goods ·</span> <a>view</a></div>
+              <div class="ml"><span class="dim">2/3 goods ·</span> <a>view</a></div>
               <div class="editor">
                 <div class="field"><label>Company name</label><input value="Tesco Extra"></div>
                 <div class="field"><label>Address</label><input placeholder="Street address"></div>
@@ -319,7 +347,7 @@
         <button class="add-row" id="addStop">+ Add stop</button>
       </div>
 
-      <!-- SERVICE & VEHICLE -->
+      <!-- SERVICE & VEHICLE (directly above Driver) -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Service &amp; Vehicle</span></div>
         <div class="kv"><span class="k">Vehicle</span><span class="v">18t · Curtain side</span></div>
@@ -329,23 +357,23 @@
         <div class="picker" data-picker="service"></div>
       </div>
 
-      <!-- CHARGES -->
-      <div class="section">
-        <div class="sec-head"><span class="sec-title">Charges</span><div class="spacer"></div><span class="sec-action" id="addCharge">+ Add charge</span></div>
-        <div class="picker" data-picker="charge"></div>
-        <div id="chargeList"></div>
-      </div>
-
       <!-- DRIVER -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Driver</span></div>
         <div class="kv"><span class="k">Assigned</span><span class="v muted">Unassigned · <a>Assign</a></span></div>
       </div>
 
-      <!-- NOTES -->
+      <!-- REQUIREMENTS (replaces Job Notes) -->
       <div class="section">
-        <div class="sec-head"><span class="sec-title">Job notes</span><span class="chip" style="margin-left:6px">internal</span></div>
-        <div class="note"><span class="q">“</span>Call ahead — gate code 4471.<span class="q">”</span></div>
+        <div class="sec-head"><span class="sec-title">Requirements</span><div class="spacer"></div><span class="sec-title" style="color:var(--ink-3);text-transform:none;letter-spacing:0;font-weight:500">auto from service</span></div>
+        <div id="reqList"></div>
+      </div>
+
+      <!-- CHARGES (closest to revenue) -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Charges</span><div class="spacer"></div><span class="sec-action" id="addCharge">+ Add charge</span></div>
+        <div class="picker" data-picker="charge"></div>
+        <div id="chargeList"></div>
       </div>
 
     </div>
@@ -353,10 +381,7 @@
     <!-- FOOTER -->
     <div class="footer">
       <div class="booked">Booked by <b>Owen Johnson</b> · 6 Jun 2026, 18:53</div>
-      <div class="custref">
-        <label>Customer reference · appears on invoice</label>
-        <input placeholder="PO number / reference…">
-      </div>
+      <div class="custref"><input placeholder="Customer reference / PO number…"></div>
       <div class="pay">
         <div class="foot-meta"><span class="lbl">Total revenue</span><span class="total" id="total">£35.00</span></div>
         <div class="spacer"></div>
@@ -393,10 +418,15 @@
 </div>
 
 <div class="legend">
-  <b>v3</b> — Icons stripped back to clean glyphs (no more clipped “fins”). Stops recompacted to one summary line. History / Providers are text-only; only Close and chip-remove stay icon-only.
+  <b>v4</b> — Section order Route → Service&amp;Vehicle → Driver → Requirements → Charges. Stops now Address → Time → Contact → Goods. Top-bar actions are icons (clock / person·8 / three-dots); the note icon pops out the internal job notes. Chips left-aligned.
 </div>
 
 <script>
+  /* ---------- job notes popover ---------- */
+  const notesBtn=document.getElementById('notesBtn'), notesPop=document.getElementById('notesPop');
+  notesBtn.addEventListener('click',e=>{e.stopPropagation();const o=notesPop.classList.toggle('open');notesBtn.classList.toggle('active',o);});
+  document.addEventListener('click',e=>{if(!notesPop.contains(e.target)&&e.target!==notesBtn){notesPop.classList.remove('open');notesBtn.classList.remove('active');}});
+
   /* ---------- inline address editors ---------- */
   document.querySelectorAll('.place[data-edit]').forEach(place=>{
     place.addEventListener('click',()=>{
@@ -406,9 +436,7 @@
       if(!open){ed.classList.add('open');const i=ed.querySelector('input');setTimeout(()=>i&&i.focus(),50);}
     });
   });
-  document.querySelectorAll('[data-cancel]').forEach(b=>b.addEventListener('click',e=>{
-    e.stopPropagation();b.closest('.editor').classList.remove('open');
-  }));
+  document.querySelectorAll('[data-cancel]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();b.closest('.editor').classList.remove('open');}));
 
   /* ---------- equipment / service multi-select ---------- */
   const CATALOG={
@@ -428,7 +456,7 @@
       const t=document.createElement('span');
       t.className='tag '+(AMBER.has(v)?'amber':(group==='service'?'blue':''));
       t.innerHTML=v+'<span class="x">&times;</span>';
-      t.querySelector('.x').addEventListener('click',ev=>{ev.stopPropagation();state[group].delete(v);renderChips(group);});
+      t.querySelector('.x').addEventListener('click',ev=>{ev.stopPropagation();state[group].delete(v);renderChips(group);renderRequirements();});
       box.appendChild(t);
     });
     const add=document.createElement('span');
@@ -444,12 +472,10 @@
     p.innerHTML=`<div class="picker-inner"><div class="picker-title">Select ${group}</div><div class="opts"></div><div class="picker-foot"><span class="picker-done">Done</span></div></div>`;
     const opts=p.querySelector('.opts');
     CATALOG[group].forEach(v=>{
-      const o=document.createElement('button');
-      opts.appendChild(o);
-      paintOpt(o,group,v);
+      const o=document.createElement('button');opts.appendChild(o);paintOpt(o,group,v);
       o.addEventListener('click',()=>{
         if(state[group].has(v))state[group].delete(v);else state[group].add(v);
-        renderChips(group);paintOpt(o,group,v);
+        renderChips(group);renderRequirements();paintOpt(o,group,v);
       });
     });
     p.querySelector('.picker-done').addEventListener('click',()=>p.classList.remove('open'));
@@ -460,13 +486,21 @@
     o.className='opt'+(sel?' selected':'')+(sel&&AMBER.has(v)?' amber':'');
     o.innerHTML=(sel?'<span class="ck">✓</span>':'')+v;
   }
-  renderChips('equipment');renderChips('service');
+
+  /* ---------- requirements (derived from equipment + service) ---------- */
+  function renderRequirements(){
+    const box=document.getElementById('reqList');
+    const items=[...state.equipment,...state.service];
+    if(!items.length){box.innerHTML='<div class="req-empty">No requirements.</div>';return;}
+    box.innerHTML=items.map(v=>`<div class="req"><span class="req-name">${v}</span><span class="req-scope">whole job</span></div>`).join('');
+  }
+
+  renderChips('equipment');renderChips('service');renderRequirements();
 
   /* ---------- charges ---------- */
   const CHARGE_CAT=[['Handballing',35],['Waiting time',45],['Congestion charge',15],['Ferry crossing',120],
     ['Timed delivery',25],['Out of hours',60],['Pallet exchange',12],['ADR surcharge',50],['Storage',20]];
   let charges=[{name:'Handballing',amount:35}];
-
   const money=n=>'£'+n.toFixed(2);
   function updateTotal(){document.getElementById('total').textContent=money(charges.reduce((s,c)=>s+(parseFloat(c.amount)||0),0));}
   function renderCharges(){
@@ -498,7 +532,6 @@
   });
   renderCharges();
 
-  /* ---------- add stop (demo) ---------- */
   document.getElementById('addStop').addEventListener('click',()=>alert('New delivery stop would be appended to the end of the route.'));
 </script>
 
