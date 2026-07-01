@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking — Ultra-wide redesign v2</title>
+<title>Booking — Ultra-wide redesign v3</title>
 <style>
   :root{
     --bg:#e8e8ed;
@@ -36,13 +36,12 @@
       var(--bg);
     color:var(--ink);letter-spacing:-.01em;overflow-x:auto;overflow-y:hidden;
   }
-  a{color:var(--blue);text-decoration:none}
-  .icon{width:14px;height:14px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  a{color:var(--blue);text-decoration:none;cursor:pointer}
 
   /* ============ ULTRA-WIDE CANVAS ============ */
   .canvas{display:flex;gap:14px;height:100vh;padding:14px;align-items:stretch;min-width:max-content}
   .col{
-    width:380px;flex:0 0 380px;background:var(--panel);border-radius:20px;
+    width:372px;flex:0 0 372px;background:var(--panel);border-radius:20px;
     box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;
     border:1px solid rgba(255,255,255,.6);
   }
@@ -62,20 +61,23 @@
   }
   .cust{min-width:0;flex:1}
   .cust-name{font-size:16px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
-  .cust-contact{font-size:12.5px;color:var(--ink-2);margin-top:1px;display:flex;align-items:center;gap:5px}
-  .cust-contact .icon{width:12px;height:12px;color:var(--ink-3)}
+  .cust-contact{font-size:12.5px;color:var(--ink-2);margin-top:1px}
   .tb-row2{display:flex;align-items:center;gap:8px;margin-top:11px}
   .pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--green-tint);color:var(--green);white-space:nowrap}
-  .ref{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:0}
+  .ref{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
   .tb-row2 .spacer{flex:1}
-  .icobtn{
-    display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 9px;border-radius:8px;
-    border:none;background:var(--fill);color:var(--ink-2);cursor:pointer;font-size:12px;font-weight:500;
-    transition:background .15s;
+  .txtbtn{
+    height:27px;padding:0 11px;border-radius:8px;border:none;background:var(--fill);
+    color:var(--ink-2);cursor:pointer;font:inherit;font-size:12px;font-weight:500;transition:background .15s;
+    display:inline-flex;align-items:center;
   }
-  .icobtn:hover{background:var(--fill-2)}
-  .icobtn.square{width:28px;padding:0;justify-content:center}
-  .icobtn .icon{width:15px;height:15px}
+  .txtbtn:hover{background:var(--fill-2)}
+  /* close is the one place an icon alone is clearer than a word */
+  .closebtn{
+    width:27px;height:27px;border-radius:8px;border:none;background:var(--fill);color:var(--ink-2);
+    cursor:pointer;font-size:16px;line-height:1;display:grid;place-items:center;transition:background .15s;
+  }
+  .closebtn:hover{background:var(--fill-2)}
 
   /* ============ BODY ============ */
   .body{flex:1;min-height:0;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
@@ -89,41 +91,39 @@
   .sec-action{font-size:12.5px;color:var(--blue);font-weight:500;cursor:pointer;padding:2px 6px;border-radius:6px;user-select:none}
   .sec-action:hover{background:var(--blue-tint)}
 
-  /* ============ ROUTE STOPS (roomier) ============ */
+  /* ============ ROUTE STOPS (compact, icon-free) ============ */
   .stops{padding:4px 0 2px}
-  .stop{display:flex;gap:12px;padding:8px 14px 12px}
-  .rail{display:flex;flex-direction:column;align-items:center;flex:0 0 24px;padding-top:2px}
-  .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:0 0 24px}
+  .stop{display:flex;gap:12px;padding:8px 14px 10px}
+  .rail{display:flex;flex-direction:column;align-items:center;flex:0 0 22px;padding-top:1px}
+  .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:11.5px;font-weight:600;color:#fff;flex:0 0 22px}
   .dot.pickup{background:#34785b}
   .dot.drop{background:#0071e3}
-  .stem{width:2px;flex:1;min-height:14px;background:var(--hair-strong);border-radius:2px;margin:4px 0 -12px}
+  .stem{width:2px;flex:1;min-height:10px;background:var(--hair-strong);border-radius:2px;margin:3px 0 -10px}
 
   .stop-content{flex:1;min-width:0}
-  .stop-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;min-height:24px}
-  .kind{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+  .stop-top{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+  .kind{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
   .stop-top .spacer{flex:1}
-  .chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--fill-2);color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .chip{font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:5px;background:var(--fill-2);color:var(--ink-2);font-variant-numeric:tabular-nums}
 
-  .place{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.25;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-radius:6px}
-  .place .edit-hint{opacity:0;color:var(--ink-3);transition:opacity .15s}
-  .place .edit-hint .icon{width:13px;height:13px}
-  .place:hover .edit-hint{opacity:1}
-  .place-sub{font-size:13px;color:var(--ink-2);margin-top:1px}
-
-  .meta{margin-top:11px;display:flex;flex-direction:column;gap:7px}
-  .ml{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .ml .icon{color:var(--ink-3)}
+  .place{
+    font-size:15.5px;font-weight:600;letter-spacing:-.02em;line-height:1.3;cursor:pointer;
+    display:flex;align-items:baseline;gap:5px;border-radius:6px;
+  }
+  .place .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .place .pc{color:var(--ink-2);font-weight:500;white-space:nowrap}
+  .place .chev{margin-left:auto;color:var(--ink-3);opacity:0;transition:opacity .15s;font-weight:400;align-self:center}
+  .place:hover .chev{opacity:1}
+  .ml{font-size:12.5px;color:var(--ink-2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ml b{color:var(--ink);font-weight:600}
-  .ml .val{color:var(--ink);font-weight:500}
+  .ml .dim{color:var(--ink-3)}
 
   .add-row{
-    width:calc(100% - 20px);margin:2px 10px 10px;padding:11px;border-radius:10px;
+    width:calc(100% - 20px);margin:2px 10px 10px;padding:10px;border-radius:10px;
     border:1px dashed var(--hair-strong);background:transparent;color:var(--blue);
-    font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
-    transition:.15s;
+    font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;
   }
   .add-row:hover{background:var(--blue-tint);border-color:transparent}
-  .add-row .icon{width:15px;height:15px}
 
   /* ============ KV ROWS ============ */
   .kv{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;min-height:44px}
@@ -133,83 +133,69 @@
   .chips{flex-wrap:wrap;gap:6px}
 
   .tag{
-    font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:100px;
+    font-size:12.5px;font-weight:500;padding:3px 6px 3px 11px;border-radius:100px;
     background:var(--panel);border:1px solid var(--hair);color:var(--ink);white-space:nowrap;
-    display:inline-flex;align-items:center;gap:6px;
+    display:inline-flex;align-items:center;gap:3px;
   }
   .tag.blue{background:var(--blue-tint);border-color:transparent;color:#0060df}
   .tag.amber{background:var(--amber-tint);border-color:transparent;color:var(--amber)}
-  .tag .x{cursor:pointer;opacity:.5;font-weight:600;display:inline-flex;font-size:14px;line-height:1}
-  .tag .x:hover{opacity:1}
+  .tag .x{cursor:pointer;font-size:15px;line-height:1;opacity:.4;padding:0 2px;font-weight:400}
+  .tag .x:hover{opacity:.9}
   .add-pill{
-    font-size:12.5px;font-weight:600;padding:3px 11px;border-radius:100px;cursor:pointer;
-    background:transparent;border:1px dashed var(--hair-strong);color:var(--blue);
-    display:inline-flex;align-items:center;gap:4px;transition:.15s;
+    font-size:12.5px;font-weight:600;padding:3px 12px;border-radius:100px;cursor:pointer;
+    background:transparent;border:1px dashed var(--hair-strong);color:var(--blue);transition:.15s;
   }
   .add-pill:hover{background:var(--blue-tint);border-color:transparent}
 
   /* ============ PICKER (multi-select popover) ============ */
   .picker{display:none;padding:2px 14px 14px}
   .picker.open{display:block}
-  .picker-inner{
-    background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:10px;
-    box-shadow:0 4px 16px rgba(0,0,0,.06);
-  }
+  .picker-inner{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:10px;box-shadow:0 4px 16px rgba(0,0,0,.06)}
   .picker-title{font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin:0 2px 9px}
   .opts{display:flex;flex-wrap:wrap;gap:6px}
   .opt{
-    font:inherit;font-size:12.5px;font-weight:500;padding:5px 11px;border-radius:100px;cursor:pointer;
-    background:var(--fill);border:1px solid transparent;color:var(--ink);
-    display:inline-flex;align-items:center;gap:6px;transition:.12s;
+    font:inherit;font-size:12.5px;font-weight:500;padding:5px 12px;border-radius:100px;cursor:pointer;
+    background:var(--fill);border:1px solid transparent;color:var(--ink);transition:.12s;
   }
   .opt:hover{background:var(--fill-2)}
   .opt.selected{background:var(--blue);color:#fff}
   .opt.selected.amber{background:var(--amber)}
-  .opt .icon{width:13px;height:13px;opacity:.9}
+  .opt .ck{margin-right:4px;font-weight:700}
   .picker-foot{display:flex;justify-content:flex-end;margin-top:10px}
   .picker-done{font-size:12.5px;font-weight:600;color:var(--blue);cursor:pointer;padding:4px 10px;border-radius:7px}
   .picker-done:hover{background:var(--blue-tint)}
-
-  /* charge picker uses a menu list */
   .menu{display:flex;flex-direction:column;gap:2px}
-  .menu-item{
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-    padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;transition:background .12s;
-  }
+  .menu-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;transition:background .12s}
   .menu-item:hover{background:var(--fill)}
   .menu-item .mrate{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:12.5px}
 
   /* ============ CHARGES ============ */
-  .charge{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13.5px}
+  .charge{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13.5px}
   .charge + .charge{border-top:1px solid var(--hair)}
   .charge .cname{flex:1;font-weight:500}
-  .charge .cfield{display:inline-flex;align-items:center;gap:1px;font-variant-numeric:tabular-nums}
-  .charge .cfield span{color:var(--ink-2)}
+  .charge .cfield{display:inline-flex;align-items:center;font-variant-numeric:tabular-nums}
+  .charge .cfield .cur{color:var(--ink-2);margin-right:1px}
   .charge input{
-    width:66px;text-align:right;font:inherit;font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;
+    width:64px;text-align:right;font:inherit;font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;
     border:1px solid transparent;background:transparent;border-radius:7px;padding:4px 6px;color:var(--ink);outline:none;transition:.15s;
   }
   .charge input:hover{background:var(--fill)}
   .charge input:focus{background:var(--panel);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
-  .charge .del{cursor:pointer;color:var(--ink-3);display:inline-flex;padding:3px;border-radius:6px}
+  .charge .del{cursor:pointer;color:var(--ink-3);font-size:16px;line-height:1;padding:2px 5px;border-radius:6px}
   .charge .del:hover{color:#d70015;background:rgba(215,0,21,.08)}
   .charges-empty{padding:11px 14px;font-size:13px;color:var(--ink-3)}
 
   /* ============ DRIVER / NOTES ============ */
-  .kv .add-link{color:var(--blue);font-weight:500;cursor:pointer}
   .kv .v.muted{color:var(--ink-3);font-weight:400}
   .note{padding:4px 14px 12px;font-size:13px;color:var(--ink);line-height:1.5}
   .note .q{color:var(--ink-3)}
 
   /* ============ INLINE ADDRESS EDITOR ============ */
-  .editor{display:none;margin-top:12px}
+  .editor{display:none;margin-top:10px}
   .editor.open{display:block}
   .field{margin-top:9px}
   .field label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-  .field input{
-    width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;
-    border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s;
-  }
+  .field input{width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s}
   .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
   .field-row{display:flex;gap:8px}
   .field-row .field{flex:1}
@@ -223,18 +209,11 @@
   .btn.sm{padding:6px 13px}
 
   /* ============ FOOTER ============ */
-  .footer{
-    flex:0 0 auto;border-top:1px solid var(--hair);padding:10px 14px 12px;
-    background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);
-  }
-  .booked{font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:6px;margin-bottom:10px}
-  .booked .icon{width:13px;height:13px}
+  .footer{flex:0 0 auto;border-top:1px solid var(--hair);padding:10px 14px 12px;background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px)}
+  .booked{font-size:11.5px;color:var(--ink-3);margin-bottom:10px}
   .booked b{color:var(--ink-2);font-weight:600}
   .custref label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-  .custref input{
-    width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;
-    border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s;
-  }
+  .custref input{width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s}
   .custref input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
   .pay{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:11px;border-top:1px solid var(--hair)}
   .foot-meta{display:flex;flex-direction:column;line-height:1.15}
@@ -248,31 +227,12 @@
   .gh-top{display:flex;align-items:center;gap:7px;margin-bottom:5px}
   .gh-sum{font-size:14px;font-weight:600;letter-spacing:-.02em}
   .gh-sub{font-size:11.5px;color:var(--ink-2);margin-top:2px}
-  .gh-name{font-size:14px;font-weight:600}
 
-  .legend{
-    position:fixed;left:14px;bottom:14px;z-index:20;background:rgba(29,29,31,.9);color:#fff;
-    backdrop-filter:blur(20px);padding:9px 13px;border-radius:12px;font-size:11.5px;line-height:1.55;max-width:320px;
-    box-shadow:0 8px 30px rgba(0,0,0,.25);
-  }
-  .legend b{color:#fff}.legend .k{color:#0a84ff;font-weight:600}
+  .legend{position:fixed;left:14px;bottom:14px;z-index:20;background:rgba(29,29,31,.9);color:#fff;backdrop-filter:blur(20px);padding:9px 13px;border-radius:12px;font-size:11.5px;line-height:1.55;max-width:330px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+  .legend b{color:#fff}
 </style>
 </head>
 <body>
-
-<!-- reusable SVG symbols -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></symbol>
-  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.4 2"/></symbol>
-  <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21 4 16.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.8-2.8L5 17.2V20z"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
-  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
-  <symbol id="i-clock2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.4 2"/></symbol>
-  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/></symbol>
-  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M6 7l1 12h10l1-12"/></symbol>
-</svg>
 
 <div class="canvas">
 
@@ -288,22 +248,22 @@
   <!-- ================= PRIMARY COLUMN ================= -->
   <section class="col">
 
-    <!-- HEADER: customer + contact on row 1, meta + actions on row 2 -->
+    <!-- HEADER -->
     <div class="topbar">
       <div class="tb-row1">
         <div class="glyph">B</div>
         <div class="cust">
           <div class="cust-name">Brightway Trading Ltd</div>
-          <div class="cust-contact"><svg class="icon"><use href="#i-user"/></svg>James Okoro · Transport desk</div>
+          <div class="cust-contact">James Okoro · Transport desk</div>
         </div>
       </div>
       <div class="tb-row2">
         <span class="pill">Booking</span>
         <span class="ref">BK-2026-100482</span>
         <div class="spacer"></div>
-        <button class="icobtn"><svg class="icon"><use href="#i-clock"/></svg>History</button>
-        <button class="icobtn"><svg class="icon"><use href="#i-truck"/></svg>Providers · 8</button>
-        <button class="icobtn square"><svg class="icon"><use href="#i-x"/></svg></button>
+        <button class="txtbtn">History</button>
+        <button class="txtbtn">Providers · 8</button>
+        <button class="closebtn" title="Close">&times;</button>
       </div>
     </div>
 
@@ -320,13 +280,9 @@
             <div class="rail"><div class="dot pickup">1</div><div class="stem"></div></div>
             <div class="stop-content">
               <div class="stop-top"><span class="kind">Collection</span><div class="spacer"></div><span class="chip">COL-7781</span></div>
-              <div class="place" data-edit>Brightway DC<span class="edit-hint"><svg class="icon"><use href="#i-pencil"/></svg></span></div>
-              <div class="place-sub">LS9 0PX · Leeds</div>
-              <div class="meta">
-                <div class="ml"><svg class="icon"><use href="#i-user"/></svg>Mark Stiles · <a>0113 555 0190</a></div>
-                <div class="ml"><svg class="icon"><use href="#i-clock2"/></svg>ASAP · <b>Wed 1 Jul</b> · by 10:36</div>
-                <div class="ml"><svg class="icon"><use href="#i-box"/></svg><span class="val">0 / 3</span>&nbsp;goods lines · <a>add</a></div>
-              </div>
+              <div class="place" data-edit><span class="name">Brightway DC</span><span class="pc">· LS9 0PX · Leeds</span><span class="chev">›</span></div>
+              <div class="ml">Mark Stiles · <a>0113 555 0190</a></div>
+              <div class="ml">ASAP · <b>Wed 1 Jul</b> · by 10:36 <span class="dim">· 0/3 goods ·</span> <a>add</a></div>
               <div class="editor">
                 <div class="field"><label>Company name</label><input value="Brightway DC"></div>
                 <div class="field"><label>Address</label><input placeholder="Street address"></div>
@@ -344,13 +300,9 @@
             <div class="rail"><div class="dot drop">2</div></div>
             <div class="stop-content">
               <div class="stop-top"><span class="kind">Delivery</span><div class="spacer"></div><span class="chip">DEL-7781</span></div>
-              <div class="place" data-edit>Tesco Extra<span class="edit-hint"><svg class="icon"><use href="#i-pencil"/></svg></span></div>
-              <div class="place-sub">WA2 7NE · Warrington</div>
-              <div class="meta">
-                <div class="ml"><svg class="icon"><use href="#i-user"/></svg>Goods-in desk · <a>01925 555 010</a></div>
-                <div class="ml"><svg class="icon"><use href="#i-clock2"/></svg>ASAP · <b>Wed 1 Jul</b> · by 10:36</div>
-                <div class="ml"><svg class="icon"><use href="#i-box"/></svg><span class="val">2 / 3</span>&nbsp;goods lines · <a>view</a></div>
-              </div>
+              <div class="place" data-edit><span class="name">Tesco Extra</span><span class="pc">· WA2 7NE · Warrington</span><span class="chev">›</span></div>
+              <div class="ml">Goods-in desk · <a>01925 555 010</a></div>
+              <div class="ml">ASAP · <b>Wed 1 Jul</b> · by 10:36 <span class="dim">· 2/3 goods ·</span> <a>view</a></div>
               <div class="editor">
                 <div class="field"><label>Company name</label><input value="Tesco Extra"></div>
                 <div class="field"><label>Address</label><input placeholder="Street address"></div>
@@ -364,7 +316,7 @@
           </div>
 
         </div>
-        <button class="add-row" id="addStop"><svg class="icon"><use href="#i-plus"/></svg>Add stop</button>
+        <button class="add-row" id="addStop">+ Add stop</button>
       </div>
 
       <!-- SERVICE & VEHICLE -->
@@ -387,7 +339,7 @@
       <!-- DRIVER -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Driver</span></div>
-        <div class="kv"><span class="k">Assigned</span><span class="v muted">Unassigned<span>&nbsp;·&nbsp;</span><span class="add-link">Assign</span></span></div>
+        <div class="kv"><span class="k">Assigned</span><span class="v muted">Unassigned · <a>Assign</a></span></div>
       </div>
 
       <!-- NOTES -->
@@ -398,9 +350,9 @@
 
     </div>
 
-    <!-- FOOTER: booked-by, customer ref, then total + actions -->
+    <!-- FOOTER -->
     <div class="footer">
-      <div class="booked"><svg class="icon"><use href="#i-user"/></svg>Booked by <b>Owen Johnson</b> · 6 Jun 2026, 18:53</div>
+      <div class="booked">Booked by <b>Owen Johnson</b> · 6 Jun 2026, 18:53</div>
       <div class="custref">
         <label>Customer reference · appears on invoice</label>
         <input placeholder="PO number / reference…">
@@ -441,8 +393,7 @@
 </div>
 
 <div class="legend">
-  <b>v2</b> — Header now shows full customer + contact. Stops given room; <b>+ Add stop</b> sits at the end.<br>
-  <b>Click a place name</b> to edit its address. <b>Tap the dashed “+”</b> on Equipment/Service to multi-select — watch the rows reflow. <b>+ Add charge</b> updates the total live.
+  <b>v3</b> — Icons stripped back to clean glyphs (no more clipped “fins”). Stops recompacted to one summary line. History / Providers are text-only; only Close and chip-remove stay icon-only.
 </div>
 
 <script>
@@ -469,9 +420,6 @@
     equipment:new Set(['Tail lift','Pump truck','Moffett','Straps']),
     service:new Set(['Dedicated','ADR','Timed delivery','Two-man','Fragile'])
   };
-  const plus='<svg class="icon"><use href="#i-plus"/></svg>';
-  const check='<svg class="icon"><use href="#i-check"/></svg>';
-  const xmark='<span class="x"><svg class="icon" style="width:12px;height:12px"><use href="#i-x"/></svg></span>';
 
   function renderChips(group){
     const box=document.querySelector(`.chips[data-group="${group}"]`);
@@ -479,12 +427,12 @@
     state[group].forEach(v=>{
       const t=document.createElement('span');
       t.className='tag '+(AMBER.has(v)?'amber':(group==='service'?'blue':''));
-      t.innerHTML=v+xmark;
+      t.innerHTML=v+'<span class="x">&times;</span>';
       t.querySelector('.x').addEventListener('click',ev=>{ev.stopPropagation();state[group].delete(v);renderChips(group);});
       box.appendChild(t);
     });
     const add=document.createElement('span');
-    add.className='add-pill';add.innerHTML=plus+'Add';
+    add.className='add-pill';add.textContent='+ Add';
     add.addEventListener('click',()=>togglePicker(group));
     box.appendChild(add);
   }
@@ -493,32 +441,24 @@
     const open=p.classList.contains('open');
     document.querySelectorAll('.picker.open').forEach(x=>x.classList.remove('open'));
     if(open){p.classList.remove('open');return;}
-    p.innerHTML=`<div class="picker-inner">
-      <div class="picker-title">Select ${group}</div>
-      <div class="opts"></div>
-      <div class="picker-foot"><span class="picker-done">Done</span></div></div>`;
+    p.innerHTML=`<div class="picker-inner"><div class="picker-title">Select ${group}</div><div class="opts"></div><div class="picker-foot"><span class="picker-done">Done</span></div></div>`;
     const opts=p.querySelector('.opts');
     CATALOG[group].forEach(v=>{
       const o=document.createElement('button');
-      const sel=state[group].has(v);
-      o.className='opt'+(sel?' selected':'')+(sel&&AMBER.has(v)?' amber':'');
-      o.innerHTML=(sel?check:'')+v;
+      opts.appendChild(o);
+      paintOpt(o,group,v);
       o.addEventListener('click',()=>{
         if(state[group].has(v))state[group].delete(v);else state[group].add(v);
-        renderChips(group);togglePicker(group);togglePicker(group); // re-render open menu
-        p.classList.add('open');refreshOpts(group,opts);
+        renderChips(group);paintOpt(o,group,v);
       });
-      opts.appendChild(o);
     });
     p.querySelector('.picker-done').addEventListener('click',()=>p.classList.remove('open'));
     p.classList.add('open');
   }
-  function refreshOpts(group,opts){
-    [...opts.children].forEach((o,i)=>{
-      const v=CATALOG[group][i];const sel=state[group].has(v);
-      o.className='opt'+(sel?' selected':'')+(sel&&AMBER.has(v)?' amber':'');
-      o.innerHTML=(sel?check:'')+v;
-    });
+  function paintOpt(o,group,v){
+    const sel=state[group].has(v);
+    o.className='opt'+(sel?' selected':'')+(sel&&AMBER.has(v)?' amber':'');
+    o.innerHTML=(sel?'<span class="ck">✓</span>':'')+v;
   }
   renderChips('equipment');renderChips('service');
 
@@ -527,19 +467,14 @@
     ['Timed delivery',25],['Out of hours',60],['Pallet exchange',12],['ADR surcharge',50],['Storage',20]];
   let charges=[{name:'Handballing',amount:35}];
 
-  function money(n){return '£'+n.toFixed(2);}
-  function updateTotal(){
-    const t=charges.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
-    document.getElementById('total').textContent=money(t);
-  }
+  const money=n=>'£'+n.toFixed(2);
+  function updateTotal(){document.getElementById('total').textContent=money(charges.reduce((s,c)=>s+(parseFloat(c.amount)||0),0));}
   function renderCharges(){
     const list=document.getElementById('chargeList');list.innerHTML='';
     if(!charges.length){list.innerHTML='<div class="charges-empty">No charges yet — add one above.</div>';updateTotal();return;}
     charges.forEach((c,idx)=>{
       const row=document.createElement('div');row.className='charge';
-      row.innerHTML=`<span class="cname">${c.name}</span>
-        <span class="cfield"><span>£</span><input inputmode="decimal" value="${c.amount.toFixed ? c.amount.toFixed(2):c.amount}"></span>
-        <span class="del"><svg class="icon"><use href="#i-trash"/></svg></span>`;
+      row.innerHTML=`<span class="cname">${c.name}</span><span class="cfield"><span class="cur">£</span><input inputmode="decimal" value="${(+c.amount).toFixed(2)}"></span><span class="del" title="Remove">&times;</span>`;
       row.querySelector('input').addEventListener('input',e=>{c.amount=parseFloat(e.target.value)||0;updateTotal();});
       row.querySelector('.del').addEventListener('click',()=>{charges.splice(idx,1);renderCharges();});
       list.appendChild(row);
@@ -564,10 +499,7 @@
   renderCharges();
 
   /* ---------- add stop (demo) ---------- */
-  document.getElementById('addStop').addEventListener('click',()=>{
-    document.querySelector('.stops').lastElementChild.querySelector('.stem')?.remove();
-    alert('New delivery stop would be appended to the end of the route.');
-  });
+  document.getElementById('addStop').addEventListener('click',()=>alert('New delivery stop would be appended to the end of the route.'));
 </script>
 
 </body>
