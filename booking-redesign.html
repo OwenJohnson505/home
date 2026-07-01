@@ -137,8 +137,12 @@
   .kv + .kv{border-top:1px solid var(--hair)}
   .kv .k{font-size:13px;color:var(--ink-2);flex:0 0 78px;padding-top:3px}
   .kv .v{flex:1;font-size:14px;font-weight:500;text-align:right;color:var(--ink);display:flex;justify-content:flex-end;align-items:center;min-height:24px}
-  /* chips left-aligned per feedback */
-  .kv .v.chips{justify-content:flex-start;text-align:left;flex-wrap:wrap;gap:6px}
+  /* full-width chip stack: label on top, chips wrap beneath (uses the whole column) */
+  .stack{padding:9px 14px 11px;border-top:1px solid var(--hair)}
+  .stack-head{display:flex;align-items:center;margin-bottom:8px}
+  .stack-label{font-size:13px;color:var(--ink-2)}
+  .stack-head .spacer{flex:1}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
 
   .tag{
     font-size:12.5px;font-weight:500;padding:3px 6px 3px 11px;border-radius:100px;
@@ -174,11 +178,15 @@
   .menu-item:hover{background:var(--fill)}
   .menu-item .mrate{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:12.5px}
 
-  /* ============ REQUIREMENTS ============ */
-  .req{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;font-size:13.5px}
-  .req + .req{border-top:1px solid var(--hair)}
-  .req-name{font-weight:500}
-  .req-scope{font-size:10.5px;font-weight:600;color:var(--green);background:var(--green-tint);padding:2px 9px;border-radius:100px;white-space:nowrap}
+  /* ============ REQUIREMENTS (two-column, scope stacked under name) ============ */
+  .req-grid{display:grid;grid-template-columns:1fr 1fr;padding:2px 0}
+  .req{padding:7px 14px;min-width:0}
+  .req:nth-child(odd){border-right:1px solid var(--hair)}
+  .req:nth-child(n+3){border-top:1px solid var(--hair)}
+  .req-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .req-scope{font-size:11px;font-weight:500;margin-top:1px}
+  .req-scope.wj{color:var(--green)}
+  .req-scope.sp{color:#0060df}
   .req-empty{padding:10px 14px;font-size:13px;color:var(--ink-3)}
 
   /* ============ CHARGES ============ */
@@ -347,33 +355,33 @@
         <button class="add-row" id="addStop">+ Add stop</button>
       </div>
 
-      <!-- SERVICE & VEHICLE (directly above Driver) -->
+      <!-- SERVICE & VEHICLE — full-width chip stacks -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Service &amp; Vehicle</span></div>
         <div class="kv"><span class="k">Vehicle</span><span class="v">18t · Curtain side</span></div>
-        <div class="kv"><span class="k">Equipment</span><div class="v chips" data-group="equipment"></div></div>
+        <div class="stack">
+          <div class="stack-head"><span class="stack-label">Equipment</span></div>
+          <div class="chips" data-group="equipment"></div>
+        </div>
         <div class="picker" data-picker="equipment"></div>
-        <div class="kv"><span class="k">Service</span><div class="v chips" data-group="service"></div></div>
+        <div class="stack">
+          <div class="stack-head"><span class="stack-label">Service</span></div>
+          <div class="chips" data-group="service"></div>
+        </div>
         <div class="picker" data-picker="service"></div>
       </div>
 
-      <!-- DRIVER -->
-      <div class="section">
-        <div class="sec-head"><span class="sec-title">Driver</span></div>
-        <div class="kv"><span class="k">Assigned</span><span class="v muted">Unassigned · <a>Assign</a></span></div>
-      </div>
-
-      <!-- REQUIREMENTS (replaces Job Notes) -->
-      <div class="section">
-        <div class="sec-head"><span class="sec-title">Requirements</span><div class="spacer"></div><span class="sec-title" style="color:var(--ink-3);text-transform:none;letter-spacing:0;font-weight:500">auto from service</span></div>
-        <div id="reqList"></div>
-      </div>
-
-      <!-- CHARGES (closest to revenue) -->
+      <!-- CHARGES — sits next to Service & Vehicle -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Charges</span><div class="spacer"></div><span class="sec-action" id="addCharge">+ Add charge</span></div>
         <div class="picker" data-picker="charge"></div>
         <div id="chargeList"></div>
+      </div>
+
+      <!-- REQUIREMENTS — summary, at the bottom -->
+      <div class="section">
+        <div class="sec-head"><span class="sec-title">Requirements</span><div class="spacer"></div><span style="font-size:11px;color:var(--ink-3);font-weight:500">auto from service</span></div>
+        <div id="reqList"></div>
       </div>
 
     </div>
@@ -488,11 +496,17 @@
   }
 
   /* ---------- requirements (derived from equipment + service) ---------- */
+  // scope defaults to whole-job; some requirements are stop-specific
+  const SCOPE={'Tail lift':'Delivery only','Two-man':'Delivery only','Booking-in':'Delivery only'};
+  const scopeOf=v=>SCOPE[v]||'whole job';
   function renderRequirements(){
     const box=document.getElementById('reqList');
     const items=[...state.equipment,...state.service];
     if(!items.length){box.innerHTML='<div class="req-empty">No requirements.</div>';return;}
-    box.innerHTML=items.map(v=>`<div class="req"><span class="req-name">${v}</span><span class="req-scope">whole job</span></div>`).join('');
+    box.innerHTML='<div class="req-grid">'+items.map(v=>{
+      const s=scopeOf(v);
+      return `<div class="req"><div class="req-name">${v}</div><div class="req-scope ${s==='whole job'?'wj':'sp'}">${s}</div></div>`;
+    }).join('')+'</div>';
   }
 
   renderChips('equipment');renderChips('service');renderRequirements();
