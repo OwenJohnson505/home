@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Booking — Ultra-wide redesign</title>
+<title>Booking — Ultra-wide redesign v2</title>
 <style>
   :root{
     --bg:#e8e8ed;
@@ -12,8 +12,8 @@
     --ink:#1d1d1f;
     --ink-2:#6e6e73;
     --ink-3:#8e8e93;
-    --hair:rgba(60,60,67,.12);
-    --hair-strong:rgba(60,60,67,.20);
+    --hair:rgba(60,60,67,.11);
+    --hair-strong:rgba(60,60,67,.22);
     --blue:#0071e3;
     --blue-tint:rgba(0,113,227,.10);
     --green:#1a7f37;
@@ -21,11 +21,10 @@
     --amber:#9a6700;
     --amber-tint:rgba(154,103,0,.12);
     --fill:rgba(118,118,128,.08);
-    --fill-2:rgba(118,118,128,.12);
+    --fill-2:rgba(118,118,128,.14);
     --radius:14px;
-    --shadow:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06);
-    font-synthesis:none;
-    -webkit-font-smoothing:antialiased;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 26px rgba(0,0,0,.07);
+    font-synthesis:none;-webkit-font-smoothing:antialiased;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
@@ -35,344 +34,360 @@
       radial-gradient(1200px 600px at 15% -10%,#f0f0f5 0%,transparent 60%),
       radial-gradient(1200px 600px at 100% 110%,#ececf2 0%,transparent 55%),
       var(--bg);
-    color:var(--ink);
-    letter-spacing:-.01em;
-    overflow-x:auto;
-    overflow-y:hidden;
+    color:var(--ink);letter-spacing:-.01em;overflow-x:auto;overflow-y:hidden;
   }
+  a{color:var(--blue);text-decoration:none}
+  .icon{width:14px;height:14px;flex:0 0 auto;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
   /* ============ ULTRA-WIDE CANVAS ============ */
-  .canvas{
-    display:flex;
-    gap:14px;
-    height:100vh;
-    padding:14px;
-    align-items:stretch;
-    min-width:max-content;
-  }
+  .canvas{display:flex;gap:14px;height:100vh;padding:14px;align-items:stretch;min-width:max-content}
   .col{
-    width:360px;
-    flex:0 0 360px;
-    background:var(--panel);
-    border-radius:20px;
-    box-shadow:var(--shadow);
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
+    width:380px;flex:0 0 380px;background:var(--panel);border-radius:20px;
+    box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;
     border:1px solid rgba(255,255,255,.6);
   }
-  /* dimmed neighbours to convey the side-by-side workspace */
-  .col.ghost{opacity:.55;filter:saturate(.85)}
-  .col.ghost .body{overflow:hidden}
+  .col.ghost{opacity:.5;filter:saturate(.85)}
 
-  /* ============ COLUMN HEADER ============ */
+  /* ============ HEADER (two rows) ============ */
   .topbar{
-    height:52px;flex:0 0 52px;
-    display:flex;align-items:center;gap:8px;
-    padding:0 12px 0 14px;
-    border-bottom:1px solid var(--hair);
-    background:rgba(255,255,255,.8);
-    backdrop-filter:saturate(180%) blur(20px);
+    flex:0 0 auto;padding:12px 12px 10px 14px;border-bottom:1px solid var(--hair);
+    background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(20px);
   }
-  .biz{display:flex;align-items:center;gap:8px;min-width:0}
-  .biz .glyph{
-    width:26px;height:26px;border-radius:8px;flex:0 0 26px;
+  .tb-row1{display:flex;align-items:center;gap:11px}
+  .glyph{
+    width:34px;height:34px;border-radius:9px;flex:0 0 34px;
     background:linear-gradient(160deg,#0a84ff,#0060df);
-    display:grid;place-items:center;color:#fff;font-size:13px;font-weight:600;
-    box-shadow:0 1px 2px rgba(0,0,0,.15);
+    display:grid;place-items:center;color:#fff;font-size:16px;font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,.18);
   }
-  .biz .name{font-size:15px;font-weight:600;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pill{
-    font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;
-    background:var(--green-tint);color:var(--green);letter-spacing:0;white-space:nowrap;
-  }
-  .topbar .spacer{flex:1}
+  .cust{min-width:0;flex:1}
+  .cust-name{font-size:16px;font-weight:600;letter-spacing:-.02em;line-height:1.2}
+  .cust-contact{font-size:12.5px;color:var(--ink-2);margin-top:1px;display:flex;align-items:center;gap:5px}
+  .cust-contact .icon{width:12px;height:12px;color:var(--ink-3)}
+  .tb-row2{display:flex;align-items:center;gap:8px;margin-top:11px}
+  .pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;background:var(--green-tint);color:var(--green);white-space:nowrap}
+  .ref{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums;letter-spacing:0}
+  .tb-row2 .spacer{flex:1}
   .icobtn{
-    width:30px;height:30px;border-radius:8px;border:none;background:transparent;
-    color:var(--ink-2);display:grid;place-items:center;cursor:pointer;font-size:15px;
+    display:inline-flex;align-items:center;gap:5px;height:28px;padding:0 9px;border-radius:8px;
+    border:none;background:var(--fill);color:var(--ink-2);cursor:pointer;font-size:12px;font-weight:500;
     transition:background .15s;
   }
-  .icobtn:hover{background:var(--fill)}
-  .ref{font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums;margin-right:2px}
+  .icobtn:hover{background:var(--fill-2)}
+  .icobtn.square{width:28px;padding:0;justify-content:center}
+  .icobtn .icon{width:15px;height:15px}
 
-  /* ============ BODY (fixed, no page scroll) ============ */
-  .body{
-    flex:1;min-height:0;
-    padding:12px;
-    display:flex;flex-direction:column;gap:12px;
-    overflow-y:auto;
-  }
+  /* ============ BODY ============ */
+  .body{flex:1;min-height:0;padding:12px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
   .body::-webkit-scrollbar{width:8px}
   .body::-webkit-scrollbar-thumb{background:var(--hair-strong);border-radius:8px;border:2px solid var(--panel)}
 
-  /* ============ GROUPED SECTION (iOS inset list) ============ */
   .section{background:var(--grouped-bg);border-radius:var(--radius);overflow:hidden}
-  .sec-head{
-    display:flex;align-items:center;gap:6px;
-    padding:9px 14px 4px;
-  }
+  .sec-head{display:flex;align-items:center;gap:6px;padding:10px 14px 6px}
   .sec-title{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
   .sec-head .spacer{flex:1}
-  .sec-action{font-size:12px;color:var(--blue);font-weight:500;cursor:pointer;padding:2px 4px;border-radius:6px}
+  .sec-action{font-size:12.5px;color:var(--blue);font-weight:500;cursor:pointer;padding:2px 6px;border-radius:6px;user-select:none}
   .sec-action:hover{background:var(--blue-tint)}
 
-  .list{padding:2px 0 4px}
-  .row{
-    position:relative;
-    display:flex;align-items:flex-start;gap:10px;
-    padding:9px 14px;
-    cursor:pointer;
-    transition:background .12s;
-  }
-  .row:hover{background:var(--fill)}
-  .row + .row{border-top:1px solid var(--hair)}
-  .row:active{background:var(--fill-2)}
-
-  /* stop marker */
-  .marker{flex:0 0 22px;display:flex;flex-direction:column;align-items:center;padding-top:1px}
-  .dot{
-    width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
-    font-size:11px;font-weight:600;color:#fff;
-  }
+  /* ============ ROUTE STOPS (roomier) ============ */
+  .stops{padding:4px 0 2px}
+  .stop{display:flex;gap:12px;padding:8px 14px 12px}
+  .rail{display:flex;flex-direction:column;align-items:center;flex:0 0 24px;padding-top:2px}
+  .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:600;color:#fff;flex:0 0 24px}
   .dot.pickup{background:#34785b}
   .dot.drop{background:#0071e3}
-  .stem{width:2px;flex:1;background:var(--hair-strong);margin:2px 0 -12px;border-radius:2px}
+  .stem{width:2px;flex:1;min-height:14px;background:var(--hair-strong);border-radius:2px;margin:4px 0 -12px}
 
-  .row-main{flex:1;min-width:0}
-  .row-top{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-  .kind{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
-  .chip{
-    font-size:10px;font-weight:600;padding:1px 6px;border-radius:5px;
-    background:var(--fill-2);color:var(--ink-2);font-variant-numeric:tabular-nums;
+  .stop-content{flex:1;min-width:0}
+  .stop-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;min-height:24px}
+  .kind{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+  .stop-top .spacer{flex:1}
+  .chip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--fill-2);color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+  .place{font-size:17px;font-weight:600;letter-spacing:-.02em;line-height:1.25;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-radius:6px}
+  .place .edit-hint{opacity:0;color:var(--ink-3);transition:opacity .15s}
+  .place .edit-hint .icon{width:13px;height:13px}
+  .place:hover .edit-hint{opacity:1}
+  .place-sub{font-size:13px;color:var(--ink-2);margin-top:1px}
+
+  .meta{margin-top:11px;display:flex;flex-direction:column;gap:7px}
+  .ml{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ml .icon{color:var(--ink-3)}
+  .ml b{color:var(--ink);font-weight:600}
+  .ml .val{color:var(--ink);font-weight:500}
+
+  .add-row{
+    width:calc(100% - 20px);margin:2px 10px 10px;padding:11px;border-radius:10px;
+    border:1px dashed var(--hair-strong);background:transparent;color:var(--blue);
+    font:inherit;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:.15s;
   }
-  .row-top .spacer{flex:1}
-  .eta{font-size:11px;color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
-  .eta b{color:var(--ink);font-weight:600}
+  .add-row:hover{background:var(--blue-tint);border-color:transparent}
+  .add-row .icon{width:15px;height:15px}
 
-  /* THE SMART SUMMARY line */
-  .summary{font-size:14px;font-weight:600;letter-spacing:-.02em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .summary .pc{color:var(--ink-2);font-weight:500}
-  .subline{font-size:12px;color:var(--ink-2);margin-top:2px;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .subline .sep{color:var(--hair-strong)}
-  .subline a{color:var(--blue);text-decoration:none}
-  .goods{
-    margin-top:6px;display:inline-flex;align-items:center;gap:5px;
-    font-size:11px;color:var(--ink-2);background:var(--panel);
-    border:1px solid var(--hair);padding:2px 8px;border-radius:100px;
-  }
-  .chev{color:var(--ink-3);font-size:13px;align-self:center;flex:0 0 auto;opacity:.6}
-
-  /* generic label:value row */
-  .kv{display:flex;align-items:center;gap:10px;padding:9px 14px}
-  .kv + .kv{border-top:1px solid var(--hair)}
-  .kv .k{font-size:13px;color:var(--ink-2);flex:0 0 92px}
-  .kv .v{flex:1;font-size:13px;font-weight:500;text-align:right;color:var(--ink);display:flex;justify-content:flex-end;flex-wrap:wrap;gap:5px;align-items:center}
-  .kv .v.muted{color:var(--ink-3);font-weight:400}
+  /* ============ KV ROWS ============ */
+  .kv{display:flex;align-items:flex-start;gap:12px;padding:11px 14px;min-height:44px}
+  .kv + .kv,.stops + .kv{border-top:1px solid var(--hair)}
+  .kv .k{font-size:13px;color:var(--ink-2);flex:0 0 84px;padding-top:3px}
+  .kv .v{flex:1;font-size:14px;font-weight:500;text-align:right;color:var(--ink);display:flex;justify-content:flex-end;align-items:center;min-height:24px}
+  .chips{flex-wrap:wrap;gap:6px}
 
   .tag{
-    font-size:11.5px;font-weight:500;padding:2px 9px;border-radius:100px;
+    font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:100px;
     background:var(--panel);border:1px solid var(--hair);color:var(--ink);white-space:nowrap;
+    display:inline-flex;align-items:center;gap:6px;
   }
   .tag.blue{background:var(--blue-tint);border-color:transparent;color:#0060df}
   .tag.amber{background:var(--amber-tint);border-color:transparent;color:var(--amber)}
+  .tag .x{cursor:pointer;opacity:.5;font-weight:600;display:inline-flex;font-size:14px;line-height:1}
+  .tag .x:hover{opacity:1}
+  .add-pill{
+    font-size:12.5px;font-weight:600;padding:3px 11px;border-radius:100px;cursor:pointer;
+    background:transparent;border:1px dashed var(--hair-strong);color:var(--blue);
+    display:inline-flex;align-items:center;gap:4px;transition:.15s;
+  }
+  .add-pill:hover{background:var(--blue-tint);border-color:transparent}
 
-  /* charges */
-  .charge{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;font-size:13px}
+  /* ============ PICKER (multi-select popover) ============ */
+  .picker{display:none;padding:2px 14px 14px}
+  .picker.open{display:block}
+  .picker-inner{
+    background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:10px;
+    box-shadow:0 4px 16px rgba(0,0,0,.06);
+  }
+  .picker-title{font-size:10.5px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin:0 2px 9px}
+  .opts{display:flex;flex-wrap:wrap;gap:6px}
+  .opt{
+    font:inherit;font-size:12.5px;font-weight:500;padding:5px 11px;border-radius:100px;cursor:pointer;
+    background:var(--fill);border:1px solid transparent;color:var(--ink);
+    display:inline-flex;align-items:center;gap:6px;transition:.12s;
+  }
+  .opt:hover{background:var(--fill-2)}
+  .opt.selected{background:var(--blue);color:#fff}
+  .opt.selected.amber{background:var(--amber)}
+  .opt .icon{width:13px;height:13px;opacity:.9}
+  .picker-foot{display:flex;justify-content:flex-end;margin-top:10px}
+  .picker-done{font-size:12.5px;font-weight:600;color:var(--blue);cursor:pointer;padding:4px 10px;border-radius:7px}
+  .picker-done:hover{background:var(--blue-tint)}
+
+  /* charge picker uses a menu list */
+  .menu{display:flex;flex-direction:column;gap:2px}
+  .menu-item{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;transition:background .12s;
+  }
+  .menu-item:hover{background:var(--fill)}
+  .menu-item .mrate{color:var(--ink-3);font-variant-numeric:tabular-nums;font-size:12.5px}
+
+  /* ============ CHARGES ============ */
+  .charge{display:flex;align-items:center;gap:10px;padding:10px 14px;font-size:13.5px}
   .charge + .charge{border-top:1px solid var(--hair)}
-  .charge .amt{font-weight:600;font-variant-numeric:tabular-nums}
-  .add-inline{color:var(--blue)}
+  .charge .cname{flex:1;font-weight:500}
+  .charge .cfield{display:inline-flex;align-items:center;gap:1px;font-variant-numeric:tabular-nums}
+  .charge .cfield span{color:var(--ink-2)}
+  .charge input{
+    width:66px;text-align:right;font:inherit;font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;
+    border:1px solid transparent;background:transparent;border-radius:7px;padding:4px 6px;color:var(--ink);outline:none;transition:.15s;
+  }
+  .charge input:hover{background:var(--fill)}
+  .charge input:focus{background:var(--panel);border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+  .charge .del{cursor:pointer;color:var(--ink-3);display:inline-flex;padding:3px;border-radius:6px}
+  .charge .del:hover{color:#d70015;background:rgba(215,0,21,.08)}
+  .charges-empty{padding:11px 14px;font-size:13px;color:var(--ink-3)}
 
-  .note{padding:10px 14px;font-size:12.5px;color:var(--ink);line-height:1.45}
+  /* ============ DRIVER / NOTES ============ */
+  .kv .add-link{color:var(--blue);font-weight:500;cursor:pointer}
+  .kv .v.muted{color:var(--ink-3);font-weight:400}
+  .note{padding:4px 14px 12px;font-size:13px;color:var(--ink);line-height:1.5}
   .note .q{color:var(--ink-3)}
 
-  .driver-empty{display:flex;align-items:center;gap:8px;padding:10px 14px;color:var(--ink-3);font-size:13px}
-  .driver-empty .add{margin-left:auto;font-size:12px;color:var(--blue);font-weight:500}
-
-  /* ============ FOOTER ============ */
-  .footer{
-    flex:0 0 auto;
-    border-top:1px solid var(--hair);
-    padding:10px 14px;
-    display:flex;align-items:center;gap:10px;
-    background:rgba(255,255,255,.85);
-    backdrop-filter:saturate(180%) blur(20px);
+  /* ============ INLINE ADDRESS EDITOR ============ */
+  .editor{display:none;margin-top:12px}
+  .editor.open{display:block}
+  .field{margin-top:9px}
+  .field label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+  .field input{
+    width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;
+    border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s;
   }
-  .foot-meta{display:flex;flex-direction:column;line-height:1.2}
-  .foot-meta .lbl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
-  .foot-meta .total{font-size:22px;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
-  .footer .spacer{flex:1}
-  .btn{font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;border:none;cursor:pointer;transition:.15s}
+  .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+  .field-row{display:flex;gap:8px}
+  .field-row .field{flex:1}
+  .field-row .field.pc{flex:0 0 118px}
+  .editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+  .btn{font:inherit;font-size:13px;font-weight:600;padding:8px 15px;border-radius:10px;border:none;cursor:pointer;transition:.15s}
   .btn.ghost{background:var(--fill);color:var(--ink)}
   .btn.ghost:hover{background:var(--fill-2)}
   .btn.primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.12)}
   .btn.primary:hover{background:#0060df}
+  .btn.sm{padding:6px 13px}
 
-  /* ============ INLINE POPOVER EDITOR ============ */
-  .editor{
-    display:none;
-    padding:2px 14px 14px;
+  /* ============ FOOTER ============ */
+  .footer{
+    flex:0 0 auto;border-top:1px solid var(--hair);padding:10px 14px 12px;
+    background:rgba(255,255,255,.86);backdrop-filter:saturate(180%) blur(20px);
   }
-  .row.editing + .editor{display:block}
-  .row.editing{background:var(--fill);cursor:default}
-  .row.editing .chev{transform:rotate(90deg)}
-  .field{margin-top:10px}
-  .field label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
-  .field input{
-    width:100%;font-size:13px;padding:8px 10px;border-radius:9px;
-    border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);
-    font-family:inherit;outline:none;transition:.15s;
+  .booked{font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+  .booked .icon{width:13px;height:13px}
+  .booked b{color:var(--ink-2);font-weight:600}
+  .custref label{display:block;font-size:10px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+  .custref input{
+    width:100%;font:inherit;font-size:13px;padding:9px 11px;border-radius:9px;
+    border:1px solid var(--hair-strong);background:var(--panel);color:var(--ink);outline:none;transition:.15s;
   }
-  .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
-  .field-row{display:flex;gap:8px}
-  .field-row .field{flex:1;margin-top:10px}
-  .field-row .field.pc{flex:0 0 110px}
-  .editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-  .editor-actions .btn{padding:6px 14px}
+  .custref input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+  .pay{display:flex;align-items:center;gap:10px;margin-top:11px;padding-top:11px;border-top:1px solid var(--hair)}
+  .foot-meta{display:flex;flex-direction:column;line-height:1.15}
+  .foot-meta .lbl{font-size:10px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}
+  .foot-meta .total{font-size:23px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .pay .spacer{flex:1}
 
-  /* ghost column placeholder content */
+  /* ghost columns */
   .ghost-list{padding:10px 12px;display:flex;flex-direction:column;gap:8px}
   .ghost-card{background:var(--grouped-bg);border-radius:12px;padding:11px 13px}
-  .ghost-card .gh-top{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-  .ghost-card .gh-name{font-size:13px;font-weight:600}
-  .ghost-card .gh-sum{font-size:13px;font-weight:600;letter-spacing:-.02em}
-  .ghost-card .gh-sub{font-size:11px;color:var(--ink-2);margin-top:2px}
+  .gh-top{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .gh-sum{font-size:14px;font-weight:600;letter-spacing:-.02em}
+  .gh-sub{font-size:11.5px;color:var(--ink-2);margin-top:2px}
+  .gh-name{font-size:14px;font-weight:600}
 
   .legend{
-    position:fixed;left:14px;bottom:14px;z-index:20;
-    background:rgba(29,29,31,.9);color:#fff;backdrop-filter:blur(20px);
-    padding:9px 13px;border-radius:12px;font-size:11.5px;line-height:1.5;max-width:300px;
+    position:fixed;left:14px;bottom:14px;z-index:20;background:rgba(29,29,31,.9);color:#fff;
+    backdrop-filter:blur(20px);padding:9px 13px;border-radius:12px;font-size:11.5px;line-height:1.55;max-width:320px;
     box-shadow:0 8px 30px rgba(0,0,0,.25);
   }
-  .legend b{color:#fff}
-  .legend .k{color:#0a84ff;font-weight:600}
+  .legend b{color:#fff}.legend .k{color:#0a84ff;font-weight:600}
 </style>
 </head>
 <body>
 
+<!-- reusable SVG symbols -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.4 2"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21 4 16.5v-9L12 3z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.8-2.8L5 17.2V20z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-clock2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5.2l3.4 2"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17.5" cy="17.5" r="1.6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M6 7l1 12h10l1-12"/></symbol>
+</svg>
+
 <div class="canvas">
 
-  <!-- ========== GHOST COLUMN (left neighbour) ========== -->
+  <!-- ghost left -->
   <section class="col ghost">
-    <div class="topbar">
-      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#ff9f0a,#ff8000)">N</div><span class="name">Northgate Foods</span></div>
-      <span class="pill">Booking</span><div class="spacer"></div>
-    </div>
+    <div class="topbar"><div class="tb-row1"><div class="glyph" style="background:linear-gradient(160deg,#ff9f0a,#ff8000)">N</div><div class="cust"><div class="cust-name">Northgate Foods</div><div class="cust-contact">Dawn Petrie</div></div></div></div>
     <div class="ghost-list">
-      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Coldstore Depot <span style="color:var(--ink-2)">· M17 1PZ</span></span></div><div class="gh-sub">ASAP · Wed 1 Jul by 09:00</div></div>
-      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Booths RDC <span style="color:var(--ink-2)">· PR5 6BX</span></span></div><div class="gh-sub">ASAP · Wed 1 Jul by 13:30</div></div>
-      <div class="ghost-card"><div class="gh-sub" style="margin:0">18t · Fridge · Dedicated</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:20px;height:20px;font-size:11px">1</span><span class="gh-sum">Coldstore Depot · M17 1PZ</span></div><div class="gh-sub">ASAP · Wed 1 Jul by 09:00</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:20px;height:20px;font-size:11px">2</span><span class="gh-sum">Booths RDC · PR5 6BX</span></div><div class="gh-sub">ASAP · Wed 1 Jul by 13:30</div></div>
     </div>
   </section>
 
-  <!-- ========== PRIMARY COLUMN (the redesign) ========== -->
+  <!-- ================= PRIMARY COLUMN ================= -->
   <section class="col">
 
-    <!-- header -->
+    <!-- HEADER: customer + contact on row 1, meta + actions on row 2 -->
     <div class="topbar">
-      <div class="biz">
+      <div class="tb-row1">
         <div class="glyph">B</div>
-        <span class="name">Brightway Trading</span>
+        <div class="cust">
+          <div class="cust-name">Brightway Trading Ltd</div>
+          <div class="cust-contact"><svg class="icon"><use href="#i-user"/></svg>James Okoro · Transport desk</div>
+        </div>
       </div>
-      <span class="pill">Booking</span>
-      <div class="spacer"></div>
-      <span class="ref">BK-100482</span>
-      <button class="icobtn" title="History">◷</button>
-      <button class="icobtn" title="Providers">⿻</button>
-      <button class="icobtn" title="Close">✕</button>
+      <div class="tb-row2">
+        <span class="pill">Booking</span>
+        <span class="ref">BK-2026-100482</span>
+        <div class="spacer"></div>
+        <button class="icobtn"><svg class="icon"><use href="#i-clock"/></svg>History</button>
+        <button class="icobtn"><svg class="icon"><use href="#i-truck"/></svg>Providers · 8</button>
+        <button class="icobtn square"><svg class="icon"><use href="#i-x"/></svg></button>
+      </div>
     </div>
 
-    <!-- body -->
+    <!-- BODY -->
     <div class="body">
 
       <!-- ROUTE -->
       <div class="section">
-        <div class="sec-head">
-          <span class="sec-title">Route</span>
-          <div class="spacer"></div>
-          <span class="sec-action">+ Add stop</span>
-        </div>
-        <div class="list">
+        <div class="sec-head"><span class="sec-title">Route · 2 stops</span></div>
+        <div class="stops">
 
-          <!-- Stop 1 -->
-          <div class="row" data-edit>
-            <div class="marker"><div class="dot pickup">1</div><div class="stem"></div></div>
-            <div class="row-main">
-              <div class="row-top">
-                <span class="kind">Collection</span>
-                <span class="chip">COL-7781</span>
-                <div class="spacer"></div>
-                <span class="eta">ASAP · <b>Wed 1 Jul</b> · 10:36</span>
+          <!-- STOP 1 -->
+          <div class="stop">
+            <div class="rail"><div class="dot pickup">1</div><div class="stem"></div></div>
+            <div class="stop-content">
+              <div class="stop-top"><span class="kind">Collection</span><div class="spacer"></div><span class="chip">COL-7781</span></div>
+              <div class="place" data-edit>Brightway DC<span class="edit-hint"><svg class="icon"><use href="#i-pencil"/></svg></span></div>
+              <div class="place-sub">LS9 0PX · Leeds</div>
+              <div class="meta">
+                <div class="ml"><svg class="icon"><use href="#i-user"/></svg>Mark Stiles · <a>0113 555 0190</a></div>
+                <div class="ml"><svg class="icon"><use href="#i-clock2"/></svg>ASAP · <b>Wed 1 Jul</b> · by 10:36</div>
+                <div class="ml"><svg class="icon"><use href="#i-box"/></svg><span class="val">0 / 3</span>&nbsp;goods lines · <a>add</a></div>
               </div>
-              <div class="summary">Brightway DC <span class="pc">· LS9 0PX</span></div>
-              <div class="subline">Mark Stiles <span class="sep">·</span> <a>0113 555 0190</a></div>
-              <span class="goods">▦ 0 / 3 lines · add goods</span>
-            </div>
-            <span class="chev">›</span>
-          </div>
-          <!-- inline editor for stop 1 -->
-          <div class="editor">
-            <div class="field"><label>Company name</label><input value="Brightway DC"></div>
-            <div class="field"><label>Address</label><input placeholder="Street address"></div>
-            <div class="field-row">
-              <div class="field"><label>City</label><input placeholder="City"></div>
-              <div class="field pc"><label>Postcode</label><input value="LS9 0PX"></div>
-            </div>
-            <div class="editor-actions">
-              <button class="btn ghost" data-cancel>Cancel</button>
-              <button class="btn primary" data-cancel>Save</button>
+              <div class="editor">
+                <div class="field"><label>Company name</label><input value="Brightway DC"></div>
+                <div class="field"><label>Address</label><input placeholder="Street address"></div>
+                <div class="field-row">
+                  <div class="field"><label>City</label><input value="Leeds"></div>
+                  <div class="field pc"><label>Postcode</label><input value="LS9 0PX"></div>
+                </div>
+                <div class="editor-actions"><button class="btn ghost sm" data-cancel>Cancel</button><button class="btn primary sm" data-cancel>Save</button></div>
+              </div>
             </div>
           </div>
 
-          <!-- Stop 2 -->
-          <div class="row" data-edit>
-            <div class="marker"><div class="dot drop">2</div></div>
-            <div class="row-main">
-              <div class="row-top">
-                <span class="kind">Delivery</span>
-                <span class="chip">DEL-7781</span>
-                <div class="spacer"></div>
-                <span class="eta">ASAP · <b>Wed 1 Jul</b> · 10:36</span>
+          <!-- STOP 2 -->
+          <div class="stop">
+            <div class="rail"><div class="dot drop">2</div></div>
+            <div class="stop-content">
+              <div class="stop-top"><span class="kind">Delivery</span><div class="spacer"></div><span class="chip">DEL-7781</span></div>
+              <div class="place" data-edit>Tesco Extra<span class="edit-hint"><svg class="icon"><use href="#i-pencil"/></svg></span></div>
+              <div class="place-sub">WA2 7NE · Warrington</div>
+              <div class="meta">
+                <div class="ml"><svg class="icon"><use href="#i-user"/></svg>Goods-in desk · <a>01925 555 010</a></div>
+                <div class="ml"><svg class="icon"><use href="#i-clock2"/></svg>ASAP · <b>Wed 1 Jul</b> · by 10:36</div>
+                <div class="ml"><svg class="icon"><use href="#i-box"/></svg><span class="val">2 / 3</span>&nbsp;goods lines · <a>view</a></div>
               </div>
-              <div class="summary">Tesco Extra <span class="pc">· WA2 7NE</span></div>
-              <div class="subline">Goods-in desk <span class="sep">·</span> <a>01925 555 010</a></div>
-              <span class="goods">▦ 2 / 3 lines</span>
-            </div>
-            <span class="chev">›</span>
-          </div>
-          <div class="editor">
-            <div class="field"><label>Company name</label><input value="Tesco Extra"></div>
-            <div class="field"><label>Address</label><input placeholder="Street address"></div>
-            <div class="field-row">
-              <div class="field"><label>City</label><input value="Warrington"></div>
-              <div class="field pc"><label>Postcode</label><input value="WA2 7NE"></div>
-            </div>
-            <div class="editor-actions">
-              <button class="btn ghost" data-cancel>Cancel</button>
-              <button class="btn primary" data-cancel>Save</button>
+              <div class="editor">
+                <div class="field"><label>Company name</label><input value="Tesco Extra"></div>
+                <div class="field"><label>Address</label><input placeholder="Street address"></div>
+                <div class="field-row">
+                  <div class="field"><label>City</label><input value="Warrington"></div>
+                  <div class="field pc"><label>Postcode</label><input value="WA2 7NE"></div>
+                </div>
+                <div class="editor-actions"><button class="btn ghost sm" data-cancel>Cancel</button><button class="btn primary sm" data-cancel>Save</button></div>
+              </div>
             </div>
           </div>
 
         </div>
+        <button class="add-row" id="addStop"><svg class="icon"><use href="#i-plus"/></svg>Add stop</button>
       </div>
 
       <!-- SERVICE & VEHICLE -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Service &amp; Vehicle</span></div>
         <div class="kv"><span class="k">Vehicle</span><span class="v">18t · Curtain side</span></div>
-        <div class="kv"><span class="k">Equipment</span><span class="v"><span class="tag">Tail lift</span><span class="tag">Pump truck</span></span></div>
-        <div class="kv"><span class="k">Service</span><span class="v"><span class="tag blue">Dedicated</span><span class="tag amber">ADR</span></span></div>
+        <div class="kv"><span class="k">Equipment</span><div class="v chips" data-group="equipment"></div></div>
+        <div class="picker" data-picker="equipment"></div>
+        <div class="kv"><span class="k">Service</span><div class="v chips" data-group="service"></div></div>
+        <div class="picker" data-picker="service"></div>
       </div>
 
       <!-- CHARGES -->
       <div class="section">
-        <div class="sec-head"><span class="sec-title">Charges</span><div class="spacer"></div><span class="sec-action">+ Add</span></div>
-        <div class="charge"><span>Handballing</span><span class="amt">£35.00</span></div>
+        <div class="sec-head"><span class="sec-title">Charges</span><div class="spacer"></div><span class="sec-action" id="addCharge">+ Add charge</span></div>
+        <div class="picker" data-picker="charge"></div>
+        <div id="chargeList"></div>
       </div>
 
       <!-- DRIVER -->
       <div class="section">
         <div class="sec-head"><span class="sec-title">Driver</span></div>
-        <div class="driver-empty">◎ Unassigned<span class="add">Assign driver</span></div>
+        <div class="kv"><span class="k">Assigned</span><span class="v muted">Unassigned<span>&nbsp;·&nbsp;</span><span class="add-link">Assign</span></span></div>
       </div>
 
       <!-- NOTES -->
@@ -383,83 +398,175 @@
 
     </div>
 
-    <!-- footer -->
+    <!-- FOOTER: booked-by, customer ref, then total + actions -->
     <div class="footer">
-      <div class="foot-meta">
-        <span class="lbl">Total revenue</span>
-        <span class="total">£35.00</span>
+      <div class="booked"><svg class="icon"><use href="#i-user"/></svg>Booked by <b>Owen Johnson</b> · 6 Jun 2026, 18:53</div>
+      <div class="custref">
+        <label>Customer reference · appears on invoice</label>
+        <input placeholder="PO number / reference…">
       </div>
-      <div class="spacer"></div>
-      <button class="btn ghost">Cancel</button>
-      <button class="btn primary">Update</button>
+      <div class="pay">
+        <div class="foot-meta"><span class="lbl">Total revenue</span><span class="total" id="total">£35.00</span></div>
+        <div class="spacer"></div>
+        <button class="btn ghost">Cancel</button>
+        <button class="btn primary">Update</button>
+      </div>
     </div>
 
   </section>
 
-  <!-- ========== GHOST COLUMNS (right neighbours) ========== -->
+  <!-- ghost right x3 -->
   <section class="col ghost">
-    <div class="topbar">
-      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#30d158,#248a3d)">P</div><span class="name">Peak Logistics</span></div>
-      <span class="pill" style="background:var(--amber-tint);color:var(--amber)">Quote</span><div class="spacer"></div>
-    </div>
+    <div class="topbar"><div class="tb-row1"><div class="glyph" style="background:linear-gradient(160deg,#30d158,#248a3d)">P</div><div class="cust"><div class="cust-name">Peak Logistics</div><div class="cust-contact">Rob Ainsley</div></div></div></div>
     <div class="ghost-list">
-      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Sheffield Hub <span style="color:var(--ink-2)">· S9 1XH</span></span></div><div class="gh-sub">Wed 1 Jul · 08:00–10:00</div></div>
-      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Amazon LBA4 <span style="color:var(--ink-2)">· LS10 1AB</span></span></div><div class="gh-sub">Wed 1 Jul · by 14:00</div></div>
-      <div class="ghost-card"><div class="gh-sub" style="margin:0">7.5t · Box · Tail lift</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:20px;height:20px;font-size:11px">1</span><span class="gh-sum">Sheffield Hub · S9 1XH</span></div><div class="gh-sub">Wed 1 Jul · 08:00–10:00</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:20px;height:20px;font-size:11px">2</span><span class="gh-sum">Amazon LBA4 · LS10 1AB</span></div><div class="gh-sub">Wed 1 Jul · by 14:00</div></div>
     </div>
   </section>
-
   <section class="col ghost">
-    <div class="topbar">
-      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#bf5af2,#8944ab)">V</div><span class="name">Vantage Parts</span></div>
-      <span class="pill">Booking</span><div class="spacer"></div>
-    </div>
+    <div class="topbar"><div class="tb-row1"><div class="glyph" style="background:linear-gradient(160deg,#bf5af2,#8944ab)">V</div><div class="cust"><div class="cust-name">Vantage Parts</div><div class="cust-contact">Priya Shah</div></div></div></div>
     <div class="ghost-list">
-      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Vantage NDC <span style="color:var(--ink-2)">· CV6 5RY</span></span></div><div class="gh-sub">ASAP · Wed 1 Jul</div></div>
-      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Halfords DC <span style="color:var(--ink-2)">· RG24 8PZ</span></span></div><div class="gh-sub">Wed 1 Jul · by 16:00</div></div>
-      <div class="ghost-card"><div class="gh-sub" style="margin:0">Van · Dedicated</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:20px;height:20px;font-size:11px">1</span><span class="gh-sum">Vantage NDC · CV6 5RY</span></div><div class="gh-sub">ASAP · Wed 1 Jul</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:20px;height:20px;font-size:11px">2</span><span class="gh-sum">Halfords DC · RG24 8PZ</span></div><div class="gh-sub">Wed 1 Jul · by 16:00</div></div>
     </div>
   </section>
-
   <section class="col ghost">
-    <div class="topbar">
-      <div class="biz"><div class="glyph" style="background:linear-gradient(160deg,#64d2ff,#0a84ff)">C</div><span class="name">Crest Chemicals</span></div>
-      <span class="pill">Booking</span><div class="spacer"></div>
-    </div>
+    <div class="topbar"><div class="tb-row1"><div class="glyph" style="background:linear-gradient(160deg,#64d2ff,#0a84ff)">C</div><div class="cust"><div class="cust-name">Crest Chemicals</div><div class="cust-contact">Tom Reed</div></div></div></div>
     <div class="ghost-list">
-      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:18px;height:18px;font-size:10px">1</span><span class="gh-sum">Crest Works <span style="color:var(--ink-2)">· TS23 1PY</span></span></div><div class="gh-sub">Thu 2 Jul · 07:00</div></div>
-      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:18px;height:18px;font-size:10px">2</span><span class="gh-sum">Runcorn Site <span style="color:var(--ink-2)">· WA7 4QX</span></span></div><div class="gh-sub">Thu 2 Jul · by 12:00</div></div>
-      <div class="ghost-card"><div class="gh-sub" style="margin:0">18t · Curtain · ADR</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot pickup" style="width:20px;height:20px;font-size:11px">1</span><span class="gh-sum">Crest Works · TS23 1PY</span></div><div class="gh-sub">Thu 2 Jul · 07:00</div></div>
+      <div class="ghost-card"><div class="gh-top"><span class="dot drop" style="width:20px;height:20px;font-size:11px">2</span><span class="gh-sum">Runcorn Site · WA7 4QX</span></div><div class="gh-sub">Thu 2 Jul · by 12:00</div></div>
     </div>
   </section>
 
 </div>
 
 <div class="legend">
-  <b>Ultra-wide workspace</b> — five <span class="k">360px</span> booking columns side-by-side.<br>
-  The centre column is expanded; neighbours collapse to smart summaries.<br>
-  <b>Click any Route stop</b> to expand the inline editor.
+  <b>v2</b> — Header now shows full customer + contact. Stops given room; <b>+ Add stop</b> sits at the end.<br>
+  <b>Click a place name</b> to edit its address. <b>Tap the dashed “+”</b> on Equipment/Service to multi-select — watch the rows reflow. <b>+ Add charge</b> updates the total live.
 </div>
 
 <script>
-  document.querySelectorAll('.row[data-edit]').forEach(row=>{
-    row.addEventListener('click',e=>{
-      if(e.target.closest('a'))return;
-      const wasOpen=row.classList.contains('editing');
-      // close siblings
-      document.querySelectorAll('.row.editing').forEach(r=>r.classList.remove('editing'));
-      if(!wasOpen){
-        row.classList.add('editing');
-        const inp=row.nextElementSibling.querySelector('input');
-        if(inp)setTimeout(()=>inp.focus(),50);
-      }
+  /* ---------- inline address editors ---------- */
+  document.querySelectorAll('.place[data-edit]').forEach(place=>{
+    place.addEventListener('click',()=>{
+      const ed=place.parentElement.querySelector('.editor');
+      const open=ed.classList.contains('open');
+      document.querySelectorAll('.editor.open').forEach(e=>e.classList.remove('open'));
+      if(!open){ed.classList.add('open');const i=ed.querySelector('input');setTimeout(()=>i&&i.focus(),50);}
     });
   });
-  document.querySelectorAll('[data-cancel]').forEach(b=>{
-    b.addEventListener('click',e=>{
-      e.stopPropagation();
-      document.querySelectorAll('.row.editing').forEach(r=>r.classList.remove('editing'));
+  document.querySelectorAll('[data-cancel]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();b.closest('.editor').classList.remove('open');
+  }));
+
+  /* ---------- equipment / service multi-select ---------- */
+  const CATALOG={
+    equipment:['Tail lift','Pump truck','Moffett','Barrows','Straps','Ratchet straps','Load bars','Blankets','Cage'],
+    service:['Dedicated','ADR','Timed delivery','Two-man','Fragile','Temperature controlled','Hazardous','Booking-in','Sheeted']
+  };
+  const AMBER=new Set(['ADR','Hazardous']);
+  const state={
+    equipment:new Set(['Tail lift','Pump truck','Moffett','Straps']),
+    service:new Set(['Dedicated','ADR','Timed delivery','Two-man','Fragile'])
+  };
+  const plus='<svg class="icon"><use href="#i-plus"/></svg>';
+  const check='<svg class="icon"><use href="#i-check"/></svg>';
+  const xmark='<span class="x"><svg class="icon" style="width:12px;height:12px"><use href="#i-x"/></svg></span>';
+
+  function renderChips(group){
+    const box=document.querySelector(`.chips[data-group="${group}"]`);
+    box.innerHTML='';
+    state[group].forEach(v=>{
+      const t=document.createElement('span');
+      t.className='tag '+(AMBER.has(v)?'amber':(group==='service'?'blue':''));
+      t.innerHTML=v+xmark;
+      t.querySelector('.x').addEventListener('click',ev=>{ev.stopPropagation();state[group].delete(v);renderChips(group);});
+      box.appendChild(t);
     });
+    const add=document.createElement('span');
+    add.className='add-pill';add.innerHTML=plus+'Add';
+    add.addEventListener('click',()=>togglePicker(group));
+    box.appendChild(add);
+  }
+  function togglePicker(group){
+    const p=document.querySelector(`.picker[data-picker="${group}"]`);
+    const open=p.classList.contains('open');
+    document.querySelectorAll('.picker.open').forEach(x=>x.classList.remove('open'));
+    if(open){p.classList.remove('open');return;}
+    p.innerHTML=`<div class="picker-inner">
+      <div class="picker-title">Select ${group}</div>
+      <div class="opts"></div>
+      <div class="picker-foot"><span class="picker-done">Done</span></div></div>`;
+    const opts=p.querySelector('.opts');
+    CATALOG[group].forEach(v=>{
+      const o=document.createElement('button');
+      const sel=state[group].has(v);
+      o.className='opt'+(sel?' selected':'')+(sel&&AMBER.has(v)?' amber':'');
+      o.innerHTML=(sel?check:'')+v;
+      o.addEventListener('click',()=>{
+        if(state[group].has(v))state[group].delete(v);else state[group].add(v);
+        renderChips(group);togglePicker(group);togglePicker(group); // re-render open menu
+        p.classList.add('open');refreshOpts(group,opts);
+      });
+      opts.appendChild(o);
+    });
+    p.querySelector('.picker-done').addEventListener('click',()=>p.classList.remove('open'));
+    p.classList.add('open');
+  }
+  function refreshOpts(group,opts){
+    [...opts.children].forEach((o,i)=>{
+      const v=CATALOG[group][i];const sel=state[group].has(v);
+      o.className='opt'+(sel?' selected':'')+(sel&&AMBER.has(v)?' amber':'');
+      o.innerHTML=(sel?check:'')+v;
+    });
+  }
+  renderChips('equipment');renderChips('service');
+
+  /* ---------- charges ---------- */
+  const CHARGE_CAT=[['Handballing',35],['Waiting time',45],['Congestion charge',15],['Ferry crossing',120],
+    ['Timed delivery',25],['Out of hours',60],['Pallet exchange',12],['ADR surcharge',50],['Storage',20]];
+  let charges=[{name:'Handballing',amount:35}];
+
+  function money(n){return '£'+n.toFixed(2);}
+  function updateTotal(){
+    const t=charges.reduce((s,c)=>s+(parseFloat(c.amount)||0),0);
+    document.getElementById('total').textContent=money(t);
+  }
+  function renderCharges(){
+    const list=document.getElementById('chargeList');list.innerHTML='';
+    if(!charges.length){list.innerHTML='<div class="charges-empty">No charges yet — add one above.</div>';updateTotal();return;}
+    charges.forEach((c,idx)=>{
+      const row=document.createElement('div');row.className='charge';
+      row.innerHTML=`<span class="cname">${c.name}</span>
+        <span class="cfield"><span>£</span><input inputmode="decimal" value="${c.amount.toFixed ? c.amount.toFixed(2):c.amount}"></span>
+        <span class="del"><svg class="icon"><use href="#i-trash"/></svg></span>`;
+      row.querySelector('input').addEventListener('input',e=>{c.amount=parseFloat(e.target.value)||0;updateTotal();});
+      row.querySelector('.del').addEventListener('click',()=>{charges.splice(idx,1);renderCharges();});
+      list.appendChild(row);
+    });
+    updateTotal();
+  }
+  document.getElementById('addCharge').addEventListener('click',()=>{
+    const p=document.querySelector('.picker[data-picker="charge"]');
+    const open=p.classList.contains('open');
+    document.querySelectorAll('.picker.open').forEach(x=>x.classList.remove('open'));
+    if(open){p.classList.remove('open');return;}
+    p.innerHTML='<div class="picker-inner"><div class="picker-title">Add a charge</div><div class="menu"></div></div>';
+    const menu=p.querySelector('.menu');
+    CHARGE_CAT.forEach(([name,rate])=>{
+      const it=document.createElement('div');it.className='menu-item';
+      it.innerHTML=`<span>${name}</span><span class="mrate">${money(rate)}</span>`;
+      it.addEventListener('click',()=>{charges.push({name,amount:rate});renderCharges();p.classList.remove('open');});
+      menu.appendChild(it);
+    });
+    p.classList.add('open');
+  });
+  renderCharges();
+
+  /* ---------- add stop (demo) ---------- */
+  document.getElementById('addStop').addEventListener('click',()=>{
+    document.querySelector('.stops').lastElementChild.querySelector('.stem')?.remove();
+    alert('New delivery stop would be appended to the end of the route.');
   });
 </script>
 
