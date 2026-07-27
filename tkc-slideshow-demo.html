@@ -63,6 +63,29 @@ body{
 .qcard p{font-size:15px;line-height:1.55;color:var(--ink-700);margin:0 0 10px;font-style:italic;}
 .qcard .src{font-size:12px;color:var(--ink-500);font-weight:600;}
 
+/* ---- opportunity slide (reframed positive) ---- */
+.opp-wrap{display:grid;grid-template-columns:340px 1fr;gap:24px;width:100%;align-items:stretch;}
+.opp-left{padding:26px 26px 22px;}
+.rb-title{font-size:12.5px;font-weight:800;color:var(--ink-500);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+.rb-score{font-size:44px;font-weight:800;color:var(--green);line-height:1;margin-bottom:18px;}
+.rb-score span{font-size:15px;font-weight:700;color:var(--ink-700);margin-left:8px;}
+.rbar{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+.rbar-label{width:22px;font-size:12px;font-weight:700;color:var(--ink-500);}
+.rbar-track{flex:1;height:9px;border-radius:5px;background:var(--grey-100);overflow:hidden;}
+.rbar-fill{height:100%;border-radius:5px;background:var(--green);}
+.rbar-fill.low{background:var(--tkc-red);}
+.rbar-pct{width:32px;font-size:12px;font-weight:700;color:var(--ink-700);text-align:right;}
+.rb-note{margin-top:16px;font-size:12.5px;line-height:1.55;color:var(--ink-500);border-top:1px solid var(--grey-200);padding-top:14px;}
+.opp-right{display:flex;flex-direction:column;gap:12px;}
+.opp-item{padding:16px 20px;flex:1;display:flex;flex-direction:column;justify-content:center;}
+.opp-tag{display:inline-flex;align-self:flex-start;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;border-radius:999px;padding:4px 10px;margin-bottom:9px;}
+.opp-tag.ok{background:var(--green-soft);color:var(--green);}
+.opp-tag.no{background:var(--grey-100);color:var(--ink-500);}
+.opp-item p{font-size:13.5px;font-style:italic;color:var(--ink-700);margin:0 0 8px;line-height:1.5;}
+.opp-fix{font-size:12.5px;color:var(--tkc-red-dark);font-weight:600;line-height:1.5;}
+.opp-item.out-of-lane{background:var(--grey-50);box-shadow:none;border:1px dashed var(--grey-200);}
+.opp-item.out-of-lane p{color:var(--ink-500);font-style:normal;font-weight:600;margin:0;}
+
 /* ---- pillars ---- */
 .pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;width:100%;}
 .pillar{background:#fff;border-radius:18px;padding:26px 22px;box-shadow:var(--shadow-md);}
@@ -165,32 +188,43 @@ body{
     <div class="meta">PRESENTED TO TK COMPONENTS · CAL DELIVERY</div>
   </div>
 
-  <!-- SLIDE 2: THE PROBLEM (real reviews) -->
+  <!-- SLIDE 2: THE OPPORTUNITY (reframed positive) -->
   <div class="slide">
-    <div class="slide-kicker">What your customers are telling you</div>
-    <div class="slide-title">The pain isn't drivers. It's proof, precision, and process.</div>
-    <div class="slide-sub">83 Trustpilot reviews, 4.3★ average — but a sharp 19% one-star tail. Here's what's actually in it.</div>
+    <div class="slide-kicker">Where we can help</div>
+    <div class="slide-title">TKC customers rate you 4.3★ "Excellent." We looked at the 1-star tail — for what's ours to fix.</div>
+    <div class="slide-sub">83 Trustpilot reviews, 75% five-star. We're not here to critique your product, your suppliers, or your packing floor — only the seconds between your depot and the customer's door.</div>
     <div class="slide-body">
-      <div class="quotes">
-        <div class="qcard">
-          <div class="stars">★☆☆☆☆</div>
-          <p>"Lots of the damage was avoidable, not packed correctly, no corner protectors... one delivery came with the green sticky tape used to wrap it, stuck to the paintwork."</p>
-          <div class="src">— Alison, Trustpilot</div>
+      <div class="opp-wrap">
+        <div class="opp-left card">
+          <div class="rb-title">Trustpilot breakdown</div>
+          <div class="rb-score">4.3<span>★ Excellent</span></div>
+          <div class="rbar"><div class="rbar-label">5★</div><div class="rbar-track"><div class="rbar-fill" style="width:75%"></div></div><div class="rbar-pct">75%</div></div>
+          <div class="rbar"><div class="rbar-label">4★</div><div class="rbar-track"><div class="rbar-fill" style="width:5%"></div></div><div class="rbar-pct">5%</div></div>
+          <div class="rbar"><div class="rbar-label">3★</div><div class="rbar-track"><div class="rbar-fill" style="width:2%"></div></div><div class="rbar-pct">0%</div></div>
+          <div class="rbar"><div class="rbar-label">2★</div><div class="rbar-track"><div class="rbar-fill" style="width:1%"></div></div><div class="rbar-pct">1%</div></div>
+          <div class="rbar"><div class="rbar-label">1★</div><div class="rbar-track"><div class="rbar-fill low" style="width:19%"></div></div><div class="rbar-pct">19%</div></div>
+          <div class="rb-note">That 19% is where we focused — not to find fault, but because it's the clearest signal for where delivery software can genuinely add value.</div>
         </div>
-        <div class="qcard">
-          <div class="stars">★☆☆☆☆</div>
-          <p>"Many items came incorrect or damaged and service for replacement was very poor... someone has gone to more effort to mess up than would have been required to get it right first time."</p>
-          <div class="src">— Luke Tasker, joiner, Trustpilot</div>
-        </div>
-        <div class="qcard">
-          <div class="stars">★☆☆☆☆</div>
-          <p>"Took 4 months for the kitchen to be completed because all the parts came in different deliveries."</p>
-          <div class="src">— Paul Brand, Trustpilot</div>
-        </div>
-        <div class="qcard">
-          <div class="stars">★☆☆☆☆</div>
-          <p>"They will not speak to me direct, even though I've explained the kitchen fitter I used has gone out of business... left with a damaged door, and no help."</p>
-          <div class="src">— Paul Mills, Trustpilot</div>
+        <div class="opp-right">
+          <div class="opp-item card">
+            <div class="opp-tag ok">In our lane</div>
+            <p>"They will not speak to me direct... the kitchen fitter I used has gone out of business... left with a damaged door, and no help."</p>
+            <div class="opp-fix">→ A record that outlives the fitter relationship — the trade portal keeps every job, and "Raise a Concern" goes straight to TKC, no fitter required.</div>
+          </div>
+          <div class="opp-item card">
+            <div class="opp-tag ok">In our lane</div>
+            <p>"Took 4 months... parts came in different deliveries" with no visibility in between.</p>
+            <div class="opp-fix">→ Live status on every job and every leg — the customer always knows exactly where things stand.</div>
+          </div>
+          <div class="opp-item card">
+            <div class="opp-tag ok">In our lane</div>
+            <p>Damage disputes are hard to resolve once goods have changed hands with no record of condition.</p>
+            <div class="opp-fix">→ Photo + checklist evidence captured the moment of handover — not a fix for packing or product quality, but an end to "he said, she said."</div>
+          </div>
+          <div class="opp-item card out-of-lane">
+            <div class="opp-tag no">Not our lane</div>
+            <p>Product quality, packing technique and manufacturing — that's your team's craft, not ours to comment on.</p>
+          </div>
         </div>
       </div>
     </div>
