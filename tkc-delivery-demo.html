@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cal Delivery × TKC — Two-Man Kitchen Delivery Demo</title>
+<style>
+:root{
+  --tkc-red:#ba0c2f;
+  --tkc-red-dark:#8f0924;
+  --tkc-red-soft:#fbe9ec;
+  --ink-900:#1d1d1b;
+  --ink-800:#2a2a28;
+  --ink-700:#3c3c3c;
+  --ink-500:#6d6d6d;
+  --ink-300:#989a9b;
+  --grey-50:#f7f7f7;
+  --grey-100:#f0f0f1;
+  --grey-200:#ebebeb;
+  --white:#ffffff;
+  --blue:#1979c3;
+  --amber:#c07a12;
+  --amber-soft:#fdf0d5;
+  --green:#1c7c3e;
+  --green-soft:#e6f4ea;
+  --radius-lg:18px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(29,29,27,.06), 0 1px 1px rgba(29,29,27,.04);
+  --shadow-md:0 8px 24px rgba(29,29,27,.10);
+  --shadow-lg:0 20px 48px rgba(29,29,27,.16);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  background:var(--grey-100);
+  color:var(--ink-900);
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;}
+::selection{background:var(--tkc-red-soft);}
+
+/* ---------- App shell ---------- */
+.app-shell{min-height:100vh;display:flex;flex-direction:column;}
+
+.topbar{
+  background:var(--ink-900);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:0 24px;
+  height:64px;
+  flex-shrink:0;
+  position:sticky;top:0;z-index:50;
+  box-shadow:0 2px 10px rgba(0,0,0,.18);
+}
+.brandmark{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;letter-spacing:.2px;}
+.brandmark .cd{color:#fff;}
+.brandmark .x{color:var(--ink-300);font-weight:400;}
+.brandmark .tkc{
+  background:var(--tkc-red);
+  color:#fff;
+  border-radius:6px;
+  padding:3px 8px 4px;
+  font-weight:800;
+  font-size:14px;
+  letter-spacing:.5px;
+}
+.brand-sub{font-size:11.5px;color:var(--ink-300);font-weight:500;display:none;}
+@media(min-width:900px){.brand-sub{display:block;}}
+
+.view-switch{
+  margin-left:auto;
+  display:flex;
+  background:rgba(255,255,255,.08);
+  border-radius:999px;
+  padding:4px;
+  gap:2px;
+}
+.view-switch button{
+  border:none;background:transparent;color:var(--ink-300);
+  padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s ease;white-space:nowrap;
+}
+.view-switch button.active{background:var(--tkc-red);color:#fff;}
+.view-switch button:not(.active):hover{color:#fff;}
+
+.reset-btn{
+  border:1px solid rgba(255,255,255,.18);background:transparent;color:var(--ink-300);
+  padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:pointer;
+}
+.reset-btn:hover{color:#fff;border-color:rgba(255,255,255,.4);}
+
+.views{flex:1;position:relative;}
+.view{display:none;padding:28px;max-width:1360px;margin:0 auto;}
+.view.active{display:block;animation:fadein .25s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ---------- Shared bits ---------- */
+.card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);border:1px solid var(--grey-200);}
+.section-title{font-size:12.5px;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:.6px;margin:0 0 12px;}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 11px;font-size:11.5px;font-weight:700;letter-spacing:.2px;}
+.pill.grey{background:var(--grey-100);color:var(--ink-500);}
+.pill.red{background:var(--tkc-red-soft);color:var(--tkc-red-dark);}
+.pill.amber{background:var(--amber-soft);color:var(--amber);}
+.pill.green{background:var(--green-soft);color:var(--green);}
+.pill.blue{background:#e7f1fa;color:var(--blue);}
+.btn{
+  border:none;border-radius:999px;padding:10px 18px;font-size:13.5px;font-weight:700;
+  cursor:pointer;transition:transform .1s ease, box-shadow .15s ease;display:inline-flex;align-items:center;gap:6px;
+}
+.btn:active{transform:scale(.97);}
+.btn.primary{background:var(--tkc-red);color:#fff;}
+.btn.primary:hover{background:var(--tkc-red-dark);}
+.btn.dark{background:var(--ink-900);color:#fff;}
+.btn.ghost{background:var(--grey-100);color:var(--ink-700);}
+.btn.ghost:hover{background:var(--grey-200);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.sm{padding:7px 13px;font-size:12px;}
+select,input[type=text],textarea{
+  font-family:inherit;border:1px solid var(--grey-200);border-radius:var(--radius-sm);
+  padding:9px 11px;font-size:13.5px;color:var(--ink-900);background:#fff;width:100%;
+}
+select:focus,input:focus,textarea:focus{outline:2px solid var(--tkc-red);outline-offset:1px;}
+label.field{display:block;font-size:12px;font-weight:600;color:var(--ink-500);margin-bottom:5px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.hr{height:1px;background:var(--grey-200);margin:16px 0;border:none;}
+.muted{color:var(--ink-500);}
+.tag-team{background:var(--ink-900);color:#fff;border-radius:6px;padding:2px 8px;font-size:10.5px;font-weight:700;letter-spacing:.4px;}
+
+/* ============ DISPATCHER ============ */
+.disp-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start;}
+@media(max-width:980px){.disp-grid{grid-template-columns:1fr;}}
+
+.job-header{padding:22px 24px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.job-ref{font-size:11.5px;font-weight:700;color:var(--ink-500);letter-spacing:.4px;}
+.job-title{font-size:20px;font-weight:800;margin:4px 0 6px;}
+.job-meta{font-size:13px;color:var(--ink-500);display:flex;gap:14px;flex-wrap:wrap;}
+.job-meta span{display:inline-flex;align-items:center;gap:5px;}
+
+.stage-strip{display:flex;padding:0 24px 20px;gap:6px;}
+.stage{flex:1;text-align:center;padding:9px 6px;border-radius:var(--radius-sm);background:var(--grey-100);font-size:11px;font-weight:700;color:var(--ink-300);position:relative;}
+.stage.done{background:var(--green-soft);color:var(--green);}
+.stage.now{background:var(--tkc-red);color:#fff;}
+
+.assign-body{padding:0 24px 24px;}
+.assign-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--grey-200);}
+.assign-row:last-child{border-bottom:none;}
+.role-badge{width:40px;height:40px;border-radius:10px;background:var(--grey-100);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.role-col{flex:1;min-width:0;}
+.role-name{font-size:12.5px;font-weight:700;color:var(--ink-900);}
+.role-sub{font-size:11.5px;color:var(--ink-500);}
+.assign-select{width:190px;flex-shrink:0;}
+.assign-status{width:96px;text-align:right;flex-shrink:0;font-size:11.5px;font-weight:700;}
+
+.mode-toggle{display:flex;gap:8px;padding:16px 24px 4px;}
+.mode-opt{flex:1;border:1.5px solid var(--grey-200);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;transition:all .15s;}
+.mode-opt.active{border-color:var(--tkc-red);background:var(--tkc-red-soft);}
+.mode-opt b{display:block;font-size:12.5px;margin-bottom:3px;}
+.mode-opt span{font-size:11.5px;color:var(--ink-500);line-height:1.4;display:block;}
+.mode-opt.active span{color:var(--tkc-red-dark);}
+
+.ownership-strip{padding:18px 24px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.own-item{background:var(--grey-50);border-radius:var(--radius-md);padding:12px 14px;}
+.own-item .k{font-size:10.5px;font-weight:700;color:var(--ink-300);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;}
+.own-item .v{font-size:12.5px;font-weight:700;}
+.own-item .d{font-size:11px;color:var(--ink-500);margin-top:2px;}
+
+.timeline-panel{padding:20px;position:sticky;top:84px;max-height:calc(100vh - 110px);display:flex;flex-direction:column;}
+.timeline-scroll{overflow-y:auto;flex:1;padding-right:4px;}
+.sms-bubble{
+  border-radius:var(--radius-md);padding:11px 13px;margin-bottom:10px;font-size:12.5px;line-height:1.5;
+  border-left:3px solid var(--ink-300);background:var(--grey-50);animation:slidein .3s ease;
+}
+@keyframes slidein{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:translateX(0);}}
+.sms-bubble.fitter{border-color:var(--blue);}
+.sms-bubble.driver1{border-color:var(--tkc-red);}
+.sms-bubble.driver2{border-color:var(--amber);}
+.sms-bubble.system{border-color:var(--ink-300);background:var(--ink-900);color:#fff;}
+.sms-bubble.system .sms-to{color:var(--ink-300);}
+.sms-bubble.alert{border-color:var(--tkc-red);background:var(--tkc-red-soft);}
+.sms-to{font-size:10.5px;font-weight:700;color:var(--ink-500);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;display:flex;justify-content:space-between;}
+.sms-empty{text-align:center;color:var(--ink-300);font-size:12.5px;padding:40px 10px;}
+.fitter-action{display:flex;gap:8px;margin-top:8px;}
+
+/* ============ DRIVER APP (phone frame) ============ */
+.driver-wrap{display:flex;flex-direction:column;align-items:center;gap:18px;}
+.phone-switcher{display:flex;gap:8px;background:var(--white);border-radius:999px;padding:5px;box-shadow:var(--shadow-sm);border:1px solid var(--grey-200);}
+.phone-switcher button{border:none;background:transparent;padding:8px 16px;border-radius:999px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink-500);}
+.phone-switcher button.active{background:var(--ink-900);color:#fff;}
+
+.phone{
+  width:375px;max-width:92vw;background:#000;border-radius:44px;padding:12px;box-shadow:var(--shadow-lg);
+}
+.phone-screen{background:var(--grey-100);border-radius:34px;overflow:hidden;min-height:700px;display:flex;flex-direction:column;position:relative;}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:22px;background:#000;border-radius:0 0 14px 14px;z-index:5;}
+.phone-status{display:flex;justify-content:space-between;padding:16px 22px 4px;font-size:12px;font-weight:700;color:var(--ink-900);}
+.d-app-header{background:var(--ink-900);color:#fff;padding:16px 18px 18px;}
+.d-app-header .lbl{font-size:10.5px;color:var(--ink-300);font-weight:700;letter-spacing:.4px;text-transform:uppercase;}
+.d-app-header .name{font-size:17px;font-weight:800;margin:3px 0 6px;}
+.d-app-body{flex:1;padding:16px;overflow-y:auto;}
+.d-card{background:#fff;border-radius:var(--radius-md);padding:14px 15px;margin-bottom:12px;box-shadow:var(--shadow-sm);}
+.d-card h4{margin:0 0 4px;font-size:13.5px;}
+.d-card p{margin:0;font-size:12px;color:var(--ink-500);line-height:1.5;}
+.partner-row{display:flex;align-items:center;gap:10px;}
+.partner-dot{width:9px;height:9px;border-radius:50%;background:var(--ink-300);flex-shrink:0;}
+.partner-dot.on{background:var(--green);box-shadow:0 0 0 4px var(--green-soft);}
+.addr-block{background:var(--ink-900);color:#fff;border-radius:var(--radius-md);padding:16px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden;}
+.addr-block.locked .addr-text{filter:blur(7px);user-select:none;}
+.addr-block .lock-msg{font-size:11.5px;color:var(--ink-300);margin-top:8px;}
+.addr-text{font-size:14.5px;font-weight:700;}
+.geofence-wrap{display:flex;justify-content:center;padding:6px 0 14px;}
+.release-code{background:var(--green-soft);border:1.5px dashed var(--green);border-radius:var(--radius-md);padding:16px;text-align:center;margin-bottom:12px;}
+.release-code .code{font-size:28px;font-weight:800;letter-spacing:6px;color:var(--green);margin:4px 0 2px;}
+.release-code .lbl{font-size:10.5px;font-weight:700;color:var(--green);letter-spacing:.4px;text-transform:uppercase;}
+.checklist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--grey-100);}
+.checklist-item:last-child{border-bottom:none;}
+.ci-icon{width:34px;height:34px;border-radius:8px;background:var(--grey-100);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+.ci-icon.ok{background:var(--green-soft);}
+.ci-icon.bad{background:var(--tkc-red-soft);}
+.ci-col{flex:1;min-width:0;}
+.ci-name{font-size:12.5px;font-weight:700;}
+.ci-sub{font-size:11px;color:var(--ink-500);}
+.ci-actions{display:flex;gap:6px;flex-shrink:0;}
+.ci-actions button{border:none;border-radius:7px;padding:6px 9px;font-size:11px;font-weight:700;cursor:pointer;}
+.ci-btn-ok{background:var(--grey-100);color:var(--ink-700);}
+.ci-btn-ok.done{background:var(--green);color:#fff;}
+.ci-btn-flag{background:var(--grey-100);color:var(--ink-700);}
+.ci-btn-flag.done{background:var(--tkc-red);color:#fff;}
+.ci-note{margin-top:8px;width:100%;font-size:12px;}
+.sig-pad{background:#fff;border:1.5px dashed var(--grey-200);border-radius:var(--radius-md);position:relative;}
+.sig-pad canvas{display:block;width:100%;height:120px;border-radius:var(--radius-md);touch-action:none;}
+.demo-controls{background:var(--amber-soft);border:1px dashed var(--amber);border-radius:var(--radius-md);padding:11px 13px;margin-bottom:12px;}
+.demo-controls .lbl{font-size:10px;font-weight:800;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+.demo-controls .row{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ============ CUSTOMER PORTAL ============ */
+.portal-shell{display:grid;grid-template-columns:220px 1fr;gap:20px;}
+@media(max-width:900px){.portal-shell{grid-template-columns:1fr;}}
+.portal-nav{padding:14px;height:fit-content;}
+.pnav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;color:var(--ink-700);cursor:pointer;margin-bottom:2px;}
+.pnav-item.active{background:var(--tkc-red-soft);color:var(--tkc-red-dark);}
+.pnav-item:hover:not(.active){background:var(--grey-100);}
+.portal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+.portal-account{font-size:12px;color:var(--ink-500);}
+.portal-title{font-size:22px;font-weight:800;}
+
+.import-drop{border:2px dashed var(--grey-200);border-radius:var(--radius-lg);padding:34px 20px;text-align:center;margin-bottom:16px;cursor:pointer;transition:border-color .15s;}
+.import-drop:hover{border-color:var(--tkc-red);}
+.import-drop .ic{font-size:30px;margin-bottom:8px;}
+.import-drop b{display:block;font-size:14px;margin-bottom:3px;}
+.import-drop span{font-size:12px;color:var(--ink-500);}
+
+.map-card{padding:0;overflow:hidden;margin-bottom:18px;}
+.map-svg-wrap{position:relative;background:linear-gradient(135deg,#eef1ee,#e7ece9);height:260px;}
+.map-legend{position:absolute;bottom:12px;left:14px;background:rgba(255,255,255,.92);border-radius:var(--radius-sm);padding:8px 11px;font-size:11px;box-shadow:var(--shadow-sm);}
+.map-legend div{display:flex;align-items:center;gap:6px;margin:2px 0;}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+.job-list{display:flex;flex-direction:column;gap:10px;}
+.jrow{padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .12s;}
+.jrow:hover{background:var(--grey-50);}
+.jrow .num{font-size:11px;color:var(--ink-500);font-weight:700;width:78px;flex-shrink:0;}
+.jrow .who{flex:1;min-width:0;}
+.jrow .who b{font-size:13.5px;display:block;}
+.jrow .who span{font-size:11.5px;color:var(--ink-500);}
+.jrow .stepper{display:flex;gap:3px;width:150px;flex-shrink:0;}
+.jrow .stepper i{flex:1;height:5px;border-radius:3px;background:var(--grey-200);}
+.jrow .stepper i.on{background:var(--tkc-red);}
+.jrow .eta{width:110px;text-align:right;font-size:12px;color:var(--ink-500);flex-shrink:0;}
+
+.drawer-back{position:fixed;inset:0;background:rgba(29,29,27,.4);z-index:90;display:none;}
+.drawer-back.show{display:block;}
+.drawer{position:fixed;top:0;right:0;height:100%;width:460px;max-width:92vw;background:#fff;z-index:91;box-shadow:-14px 0 40px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .25s ease;overflow-y:auto;}
+.drawer.show{transform:translateX(0);}
+.drawer-head{padding:20px 22px;border-bottom:1px solid var(--grey-200);display:flex;justify-content:space-between;align-items:flex-start;}
+.drawer-close{border:none;background:var(--grey-100);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;}
+.drawer-body{padding:20px 22px;}
+.evt{display:flex;gap:12px;padding-bottom:16px;position:relative;}
+.evt:not(:last-child):before{content:'';position:absolute;left:8px;top:20px;bottom:-2px;width:1.5px;background:var(--grey-200);}
+.evt .dot2{width:17px;height:17px;border-radius:50%;background:var(--grey-200);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:9px;}
+.evt .dot2.done{background:var(--green);color:#fff;}
+.evt .dot2.warn{background:var(--tkc-red);color:#fff;}
+.evt b{font-size:13px;display:block;}
+.evt span{font-size:11.5px;color:var(--ink-500);}
+.pod-photos{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px;}
+.pod-photos div{aspect-ratio:1;background:var(--grey-100);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.concern-btn{width:100%;margin-top:16px;}
+.qc-banner{background:var(--tkc-red-soft);border:1px solid var(--tkc-red);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:var(--tkc-red-dark);}
+.qc-banner b{display:block;margin-bottom:2px;}
+
+.toast-wrap{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;}
+.toast{background:var(--ink-900);color:#fff;padding:11px 20px;border-radius:999px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-md);animation:toastin .2s ease;}
+@keyframes toastin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <div class="topbar">
+    <div class="brandmark">
+      <span class="cd">cal.delivery</span><span class="x">×</span><span class="tkc">TKC</span>
+    </div>
+    <div class="brand-sub">Two-man kitchen delivery, done right.</div>
+    <div class="view-switch">
+      <button data-view="dispatcher" class="active">Dispatcher</button>
+      <button data-view="driver">Driver App</button>
+      <button data-view="portal">Customer Portal</button>
+    </div>
+    <button class="reset-btn" onclick="resetDemo()">↺ Reset demo</button>
+  </div>
+
+  <div class="views">
+
+    <!-- ================= DISPATCHER VIEW ================= -->
+    <div class="view active" id="view-dispatcher">
+      <div class="disp-grid">
+        <div>
+          <div class="card">
+            <div class="job-header">
+              <div>
+                <div class="job-ref" id="d-ref">JOB #TKC-04821 · Bright &amp; Sons Kitchens (Trade a/c 2291)</div>
+                <div class="job-title">14 Oak Grove, Sheffield S10 3RJ</div>
+                <div class="job-meta">
+                  <span>📦 7-line kitchen order</span>
+                  <span>🕒 Tomorrow, 08:00–13:00</span>
+                  <span>🏭 Collect: TKC Denton, Manchester M34 3UL</span>
+                </div>
+              </div>
+              <span class="pill red" id="d-mode-pill">TWO-MAN ASSIST</span>
+            </div>
+            <div class="stage-strip" id="d-stage-strip"></div>
+
+            <div class="mode-toggle">
+              <div class="mode-opt active" data-mode="assist" onclick="setJobMode('assist')">
+                <b>Two-Man Assist</b>
+                <span>Driver 1 runs the route solo; Driver 2 meets them on site just for this delivery.</span>
+              </div>
+              <div class="mode-opt" data-mode="team" onclick="setJobMode('team')">
+                <b>Two-Man Team</b>
+                <span>Both drivers travel together in one vehicle from collection to delivery.</span>
+              </div>
+            </div>
+
+            <div class="assign-body">
+              <div class="hr"></div>
+              <div class="assign-row">
+                <div class="role-badge">🔧</div>
+                <div class="role-col">
+                  <div class="role-name">Fitter</div>
+                  <div class="role-sub">Confirms install-ready condition after delivery</div>
+                </div>
+                <select class="assign-select" id="sel-fitter" onchange="onAssign('fitter')">
+                  <option value="">— Assign fitter —</option>
+                  <option value="Craig Mensah">Craig Mensah</option>
+                  <option value="Priya Anand">Priya Anand</option>
+                  <option value="Liam O'Rourke">Liam O'Rourke</option>
+                </select>
+                <div class="assign-status" id="stat-fitter">Unassigned</div>
+              </div>
+              <div class="assign-row">
+                <div class="role-badge">🚚</div>
+                <div class="role-col">
+                  <div class="role-name">Driver 1</div>
+                  <div class="role-sub">Collects from Denton, runs the delivery route</div>
+                </div>
+                <select class="assign-select" id="sel-driver1" onchange="onAssign('driver1')">
+                  <option value="">— Assign driver —</option>
+                  <option value="Dave Ritchie">Dave Ritchie</option>
+                  <option value="Kofi Boateng">Kofi Boateng</option>
+                  <option value="Marek Nowak">Marek Nowak</option>
+                </select>
+                <div class="assign-status" id="stat-driver1">Unassigned</div>
+              </div>
+              <div class="assign-row" id="row-driver2">
+                <div class="role-badge">🚚</div>
+                <div class="role-col">
+                  <div class="role-name">Driver 2 <span class="tag-team">2ND MAN</span></div>
+                  <div class="role-sub" id="driver2-sub">Meets Driver 1 on site for the two-man lift</div>
+                </div>
+                <select class="assign-select" id="sel-driver2" onchange="onAssign('driver2')">
+                  <option value="">— Assign 2nd driver —</option>
+                  <option value="Sam Okafor">Sam Okafor</option>
+                  <option value="Ellie Frost">Ellie Frost</option>
+                  <option value="Tom Whitely">Tom Whitely</option>
+                </select>
+                <div class="assign-status" id="stat-driver2">Unassigned</div>
+              </div>
+            </div>
+
+            <div class="hr" style="margin:0 24px 0;width:calc(100% - 48px);"></div>
+            <div class="section-title" style="padding:18px 24px 0;">Process ownership</div>
+            <div class="ownership-strip">
+              <div class="own-item">
+                <div class="k">Collection sign-off</div>
+                <div class="v">TKC Depot Marshal</div>
+                <div class="d">Logged automatically at dispatch scan</div>
+              </div>
+              <div class="own-item">
+                <div class="k">Delivery sign-off</div>
+                <div class="v">Both drivers, jointly</div>
+                <div class="d">Release code = joint on-site acknowledgement</div>
+              </div>
+              <div class="own-item">
+                <div class="k">Install sign-off</div>
+                <div class="v">Fitter</div>
+                <div class="d">Confirms install-ready condition post-delivery</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card timeline-panel">
+          <div class="section-title" style="margin-bottom:14px;">Automated SMS timeline</div>
+          <div class="timeline-scroll" id="sms-log">
+            <div class="sms-empty">Assign a fitter or driver to see the automated messages fire in real time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= DRIVER APP VIEW ================= -->
+    <div class="view" id="view-driver">
+      <div class="driver-wrap">
+        <div class="phone-switcher">
+          <button data-phone="driver1" class="active" onclick="setPhone('driver1')">📱 Driver 1's phone</button>
+          <button data-phone="driver2" onclick="setPhone('driver2')">📱 Driver 2's phone</button>
+        </div>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-notch"></div>
+            <div class="phone-status"><span id="ph-time">08:14</span><span>●●●● 📶 🔋</span></div>
+            <div id="driver-app-inner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CUSTOMER PORTAL VIEW ================= -->
+    <div class="view" id="view-portal">
+      <div class="portal-shell">
+        <div class="card portal-nav">
+          <div class="pnav-item active" data-tab="today" onclick="setPortalTab('today')">📅 Today</div>
+          <div class="pnav-item" data-tab="tomorrow" onclick="setPortalTab('tomorrow')">📅 Tomorrow</div>
+          <div class="pnav-item" data-tab="all" onclick="setPortalTab('all')">📋 All jobs</div>
+          <div class="pnav-item" data-tab="import" onclick="setPortalTab('import')">⬆️ Import goods</div>
+        </div>
+
+        <div>
+          <div class="portal-header">
+            <div>
+              <div class="portal-title">Delivery dashboard</div>
+              <div class="portal-account">Bright &amp; Sons Kitchens · Trade account 2291</div>
+            </div>
+            <span class="pill grey" id="portal-tab-label">Today</span>
+          </div>
+
+          <div id="portal-import" style="display:none;">
+            <div class="import-drop" onclick="doImport()">
+              <div class="ic">📥</div>
+              <b>Import goods for delivery</b>
+              <span>Drop an order manifest (.csv) or click to bulk-add jobs from your TKC order refs</span>
+            </div>
+          </div>
+
+          <div id="portal-jobs">
+            <div class="card map-card">
+              <div class="map-svg-wrap" id="map-wrap"></div>
+            </div>
+            <div class="card">
+              <div class="section-title" style="padding:16px 16px 0;">Jobs</div>
+              <div class="job-list" id="portal-job-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="drawer-back" id="drawer-back" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer"></div>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+/* ===================== STATE ===================== */
+const JOB = {
+  ref:'TKC-04821',
+  account:'Bright & Sons Kitchens',
+  accountRef:'2291',
+  address:'14 Oak Grove, Sheffield S10 3RJ',
+  areaOnly:'Sheffield S10',
+  collection:'TKC Denton depot, Manchester M34 3UL',
+  window:'08:00–13:00',
+  mode:'assist', // 'assist' | 'team'
+  fitter:null, driver1:null, driver2:null,
+  driver1Status:'assigned', // assigned -> en_route -> on_site
+  driver2Status:'assigned',
+  bothOnSite:false,
+  geofenceCleared:false,
+  releaseCode:null,
+  podStarted:false,
+  podComplete:false,
+  qcFlag:false,
+  fitterConfirmed:null, // null | 'ok' | 'issue'
+  items:[
+    {name:'Base cabinets', qty:'8 units', ok:false, flagged:false, note:''},
+    {name:'Wall cabinets', qty:'6 units', ok:false, flagged:false, note:''},
+    {name:'Larder units', qty:'2 units', ok:false, flagged:false, note:''},
+    {name:'Worktops', qty:'3 lengths', ok:false, flagged:false, note:''},
+    {name:'Integrated appliances', qty:'oven, hob, extractor', ok:false, flagged:false, note:''},
+    {name:'Handles & hardware pack', qty:'1 pack', ok:false, flagged:false, note:''},
+    {name:'Sink & tap set', qty:'1 set', ok:false, flagged:false, note:''},
+  ],
+  events:[
+    {t:'Yesterday 16:40', label:'Order booked from TKC trade account', done:true}
+  ]
+};
+let currentPhone = 'driver1';
+let currentPortalTab = 'today';
+const PHONE_NUM = {fitter:'07700 900142', driver1:'07700 900381', driver2:'07700 900556'};
+
+function fmtNow(){
+  const d = new Date();
+  return 'today ' + String(d.getHours()%12||12).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+(d.getHours()>=12?'pm':'am');
+}
+
+/* ===================== VIEW SWITCH ===================== */
+document.querySelectorAll('.view-switch button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.view-switch button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+b.dataset.view).classList.add('active');
+    if(b.dataset.view==='driver') renderDriverApp();
+    if(b.dataset.view==='portal') renderPortal();
+  });
+});
+
+/* ===================== TOAST ===================== */
+function toast(msg){
+  const w=document.getElementById('toast-wrap');
+  const t=document.createElement('div');
+  t.className='toast'; t.textContent=msg;
+  w.appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+
+/* ===================== SMS ENGINE ===================== */
+function addSMS(who,text,opts={}){
+  const log = document.getElementById('sms-log');
+  const empty = log.querySelector('.sms-empty');
+  if(empty) empty.remove();
+  const el = document.createElement('div');
+  el.className = 'sms-bubble '+(opts.cls||who);
+  const label = who==='fitter'?'To Craig (Fitter)':who==='driver1'?'To Driver 1':who==='driver2'?'To Driver 2':who==='system'?'System':who;
+  el.innerHTML = `<div class="sms-to"><span>${label}</span><span>${fmtNow()}</span></div>${text}`;
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function setJobMode(mode){
+  JOB.mode = mode;
+  document.querySelectorAll('.mode-opt').forEach(m=>m.classList.toggle('active', m.dataset.mode===mode));
+  document.getElementById('d-mode-pill').textContent = mode==='team' ? 'TWO-MAN TEAM' : 'TWO-MAN ASSIST';
+  document.getElementById('driver2-sub').textContent = mode==='team'
+    ? 'Travels together with Driver 1 from collection'
+    : 'Meets Driver 1 on site for the two-man lift';
+  renderStageStrip();
+}
+
+function onAssign(role){
+  const val = document.getElementById('sel-'+role).value;
+  JOB[role] = val || null;
+  const statEl = document.getElementById('stat-'+role);
+  if(!val){ statEl.textContent='Unassigned'; statEl.style.color='var(--ink-300)'; return; }
+  statEl.textContent = '✓ Confirmed'; statEl.style.color = 'var(--green)';
+
+  if(role==='fitter'){
+    addSMS('fitter', `Hi ${first(val)}, you're confirmed for TKC job <b>#${JOB.ref}</b> — ${JOB.areaOnly}, tomorrow ${JOB.window}. This is a <b>${JOB.mode==='team'?'two-man team':'two-man assist'}</b> delivery. Full brief: cal.delivery/j/${JOB.ref}`);
+  }
+  if(role==='driver1' || role==='driver2'){
+    const label = role==='driver1'?'Driver 1':'Driver 2';
+    const other = role==='driver1'?'driver2':'driver1';
+    addSMS(role, `Hi ${first(val)}, you're on TKC job <b>#${JOB.ref}</b> tomorrow ${JOB.window}. Collection: ${JOB.collection}. Delivery area: <b>${JOB.areaOnly}</b> — full address unlocks in-app once you're on site.`);
+    addSMS(role, JOB.mode==='team'
+      ? `⚠️ This is a <b>two-man team</b> job — you and your partner travel together and lift as one unit throughout.`
+      : `⚠️ This is a <b>two-man assist</b> job — a second driver will meet you at the delivery point. Do not attempt to unload alone.`, {cls:'alert'});
+  }
+  maybeShareContacts();
+  renderStageStrip();
+}
+
+function first(name){ return name.split(' ')[0]; }
+
+if(!JOB._sharedPairs) JOB._sharedPairs = new Set();
+function maybeShareContacts(){
+  let sharedAny = false;
+  const pairs = [
+    ['fitter','driver1', ()=>{
+      addSMS('fitter', `Your driver for job #${JOB.ref} is <b>${JOB.driver1}</b> — ${PHONE_NUM.driver1}. Save their number to coordinate on the day.`);
+      addSMS('driver1', `Your fitter for job #${JOB.ref} is <b>${JOB.fitter}</b> — ${PHONE_NUM.fitter}.`);
+    }],
+    ['fitter','driver2', ()=>{
+      addSMS('fitter', `Your 2nd driver for job #${JOB.ref} is <b>${JOB.driver2}</b> — ${PHONE_NUM.driver2}.`);
+      addSMS('driver2', `Your fitter for job #${JOB.ref} is <b>${JOB.fitter}</b> — ${PHONE_NUM.fitter}.`);
+    }],
+    ['driver1','driver2', ()=>{
+      addSMS('driver1', `You're paired with <b>${JOB.driver2}</b> (${PHONE_NUM.driver2}) for the two-man lift on job #${JOB.ref}.`);
+      addSMS('driver2', `You're paired with <b>${JOB.driver1}</b> (${PHONE_NUM.driver1}) for the two-man lift on job #${JOB.ref}.`);
+    }],
+  ];
+  pairs.forEach(([a,b,fire])=>{
+    const key = a+'-'+b;
+    if(JOB[a] && JOB[b] && !JOB._sharedPairs.has(key)){
+      JOB._sharedPairs.add(key);
+      fire();
+      sharedAny = true;
+    }
+  });
+  if(sharedAny) toast('📇 Contact details auto-shared between assigned team members');
+}
+
+function renderStageStrip(){
+  const stages = ['Booked','Assigned','Dispatched','On site (both)','Delivered'];
+  let activeIdx = 0;
+  if(JOB.fitter||JOB.driver1||JOB.driver2) activeIdx=1;
+  if(JOB.fitter&&JOB.driver1&&JOB.driver2) activeIdx=2;
+  if(JOB.bothOnSite) activeIdx=3;
+  if(JOB.podComplete) activeIdx=4;
+  const strip = document.getElementById('d-stage-strip');
+  strip.innerHTML = stages.map((s,i)=>{
+    const cls = i<activeIdx?'done':i===activeIdx?'now':'';
+    return `<div class="stage ${cls}">${s}</div>`;
+  }).join('');
+}
+renderStageStrip();
+
+/* ===================== RESET ===================== */
+function resetDemo(){
+  location.reload();
+}
+
+/* ===================== DRIVER APP ===================== */
+function setPhone(p){
+  currentPhone = p;
+  document.querySelectorAll('.phone-switcher button').forEach(b=>b.classList.toggle('active', b.dataset.phone===p));
+  renderDriverApp();
+}
+
+function driverArrive(which){
+  JOB[which+'Status'] = 'on_site';
+  checkGeofence();
+  renderDriverApp();
+}
+
+function checkGeofence(){
+  if(JOB.driver1Status==='on_site' && (JOB.mode==='team' || JOB.driver2Status==='on_site')){
+    JOB.bothOnSite = true;
+    JOB.geofenceCleared = true;
+    if(!JOB.releaseCode) JOB.releaseCode = String(Math.floor(100000+Math.random()*900000)).replace(/(\d{3})(\d{3})/,'$1 $2');
+    logEvent('Both drivers confirmed on site — geofence cleared, release code issued', true);
+    renderStageStrip();
+  } else if(JOB.mode==='assist' && JOB.driver1Status!=='on_site' && JOB.driver2Status!=='on_site'){
+    // neither yet
+  }
+}
+
+function logEvent(label, done){
+  JOB.events.push({t:fmtNow(), label, done});
+}
+
+function driverAppHTML(who){
+  const name = JOB[who] || (who==='driver1'?'Dave Ritchie':'Sam Okafor');
+  const other = who==='driver1'?'driver2':'driver1';
+  const otherName = JOB[other] || (other==='driver1'?'Dave Ritchie':'Sam Okafor');
+  const myStatus = JOB[who+'Status'];
+  const otherStatus = JOB[other+'Status'];
+  const soloJob = JOB.mode==='assist';
+  const needsBoth = true;
+
+  let html = '';
+  html += `<div class="d-app-header">
+    <div class="lbl">Job #${JOB.ref} · ${JOB.mode==='team'?'Two-man team':'Two-man assist'}</div>
+    <div class="name">${name}</div>
+    <div style="font-size:12px;color:#cfcfcf;">${JOB.window} · ${JOB.account}</div>
+  </div>`;
+  html += `<div class="d-app-body">`;
+
+  html += `<div class="d-card">
+      <h4>Partner status</h4>
+      <div class="partner-row" style="margin-top:6px;">
+        <span class="partner-dot ${otherStatus==='on_site'?'on':''}"></span>
+        <div>
+          <div style="font-size:12.5px;font-weight:700;">${otherName}</div>
+          <div style="font-size:11px;color:var(--ink-500);">${otherStatus==='on_site'?'On site ✓':otherStatus==='en_route'?'En route':'Not dispatched yet'}</div>
+        </div>
+      </div>
+    </div>`;
+
+  const addrLocked = !JOB.bothOnSite;
+  html += `<div class="addr-block ${addrLocked?'locked':''}">
+      <div class="addr-text">${addrLocked ? JOB.areaOnly : JOB.address}</div>
+      ${addrLocked ? `<div class="lock-msg">🔒 Full address unlocks once both team members are on site</div>` : `<div class="lock-msg" style="color:#8fe0a8;">🔓 Unlocked — both on site</div>`}
+    </div>`;
+
+  if(myStatus!=='on_site'){
+    html += `<button class="btn primary" style="width:100%;justify-content:center;margin-bottom:12px;" onclick="driverArrive('${who}')">📍 Mark: Arrived on site</button>`;
+  } else if(!JOB.bothOnSite){
+    html += `<div class="d-card" style="text-align:center;color:var(--ink-500);font-size:12.5px;">✅ You're marked on site.<br>Waiting for ${otherName} to arrive within the delivery geofence…</div>`;
+  }
+
+  if(myStatus==='on_site' && !JOB.bothOnSite){
+    html += `<div class="demo-controls"><div class="lbl">Demo control</div><div class="row">
+      <button class="btn sm ghost" onclick="driverArrive('${other}')">Simulate: ${otherName} arrives on site</button>
+    </div></div>`;
+  }
+
+  if(JOB.bothOnSite){
+    html += `<div class="geofence-wrap">${geofenceSVG()}</div>`;
+    html += `<div class="release-code">
+      <div class="lbl">Release code</div>
+      <div class="code">${JOB.releaseCode}</div>
+      <div style="font-size:11px;color:var(--green);">Both drivers verified in geofence — POD unlocked</div>
+    </div>`;
+
+    if(!JOB.podStarted){
+      html += `<button class="btn dark" style="width:100%;justify-content:center;" onclick="startPOD()">Start Proof of Delivery</button>`;
+    } else {
+      html += podChecklistHTML();
+    }
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+function geofenceSVG(){
+  const p1 = JOB.driver1Status==='on_site';
+  const p2 = JOB.mode==='team' ? p1 : JOB.driver2Status==='on_site';
+  return `<svg width="160" height="160" viewBox="0 0 160 160">
+    <circle cx="80" cy="80" r="70" fill="var(--green-soft)" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="4 4"/>
+    <circle cx="80" cy="80" r="6" fill="var(--ink-900)"/>
+    <circle cx="${p1?'80':'20'}" cy="${p1?'60':'40'}" r="7" fill="var(--tkc-red)"/>
+    <circle cx="${p2?'80':'140'}" cy="${p2?'100':'120'}" r="7" fill="var(--amber)"/>
+    <text x="80" y="150" text-anchor="middle" font-size="9" fill="var(--green)" font-weight="700">150m geofence — both inside</text>
+  </svg>`;
+}
+
+function startPOD(){
+  JOB.podStarted = true;
+  logEvent('Proof of delivery started', true);
+  renderDriverApp();
+}
+
+function podChecklistHTML(){
+  let html = `<div class="d-card"><h4>Delivery checklist</h4><p>Confirm each line, or flag an issue with a photo + note.</p></div>`;
+  JOB.items.forEach((it,i)=>{
+    html += `<div class="checklist-item">
+      <div class="ci-icon ${it.flagged?'bad':it.ok?'ok':''}">${it.flagged?'⚠️':it.ok?'✓':'📦'}</div>
+      <div class="ci-col">
+        <div class="ci-name">${it.name}</div>
+        <div class="ci-sub">${it.qty}</div>
+        ${it.flagged ? `<textarea class="ci-note" placeholder="Describe the issue…" oninput="setNote(${i},this.value)">${it.note}</textarea>` : ''}
+      </div>
+      <div class="ci-actions">
+        <button class="ci-btn-ok ${it.ok?'done':''}" onclick="toggleItem(${i},'ok')">📷 OK</button>
+        <button class="ci-btn-flag ${it.flagged?'done':''}" onclick="toggleItem(${i},'flag')">Flag</button>
+      </div>
+    </div>`;
+  });
+  const allDone = JOB.items.every(it=>it.ok||it.flagged);
+  html += `<div class="d-card"><h4>Signature</h4><p>Homeowner / site contact confirms receipt.</p>
+    <div class="sig-pad"><canvas id="sigcanvas"></canvas></div>
+    <button class="btn sm ghost" style="margin-top:8px;" onclick="clearSig()">Clear signature</button>
+  </div>`;
+  html += `<button class="btn primary" style="width:100%;justify-content:center;" ${allDone?'':'disabled'} onclick="submitPOD()">Submit POD${allDone?'':' — complete all lines first'}</button>`;
+  setTimeout(initSigPad, 30);
+  return html;
+}
+
+function toggleItem(i, kind){
+  if(kind==='ok'){ JOB.items[i].ok = true; JOB.items[i].flagged = false; }
+  if(kind==='flag'){ JOB.items[i].flagged = true; JOB.items[i].ok = false; if(!JOB.items[i].note) JOB.items[i].note=''; }
+  renderDriverApp();
+}
+function setNote(i,val){ JOB.items[i].note = val; }
+
+let sigDrawing=false, sigDrawn=false;
+function initSigPad(){
+  const c = document.getElementById('sigcanvas');
+  if(!c) return;
+  const ctx = c.getContext('2d');
+  c.width = c.clientWidth; c.height = c.clientHeight;
+  ctx.strokeStyle = '#1d1d1b'; ctx.lineWidth = 2; ctx.lineCap='round';
+  function pos(e){
+    const r = c.getBoundingClientRect();
+    const cx = (e.touches? e.touches[0].clientX : e.clientX) - r.left;
+    const cy = (e.touches? e.touches[0].clientY : e.clientY) - r.top;
+    return [cx,cy];
+  }
+  function down(e){ sigDrawing=true; const [x,y]=pos(e); ctx.beginPath(); ctx.moveTo(x,y); }
+  function move(e){ if(!sigDrawing) return; const [x,y]=pos(e); ctx.lineTo(x,y); ctx.stroke(); sigDrawn=true; }
+  function up(){ sigDrawing=false; }
+  c.onmousedown=down; c.onmousemove=move; window.onmouseup=up;
+  c.ontouchstart=down; c.ontouchmove=move; c.ontouchend=up;
+}
+function clearSig(){
+  const c = document.getElementById('sigcanvas');
+  if(!c) return;
+  c.getContext('2d').clearRect(0,0,c.width,c.height);
+  sigDrawn = false;
+}
+
+function submitPOD(){
+  JOB.podComplete = true;
+  JOB.qcFlag = JOB.items.some(it=>it.flagged);
+  logEvent('Delivered & signed for — POD captured' + (JOB.qcFlag ? ' (damage flagged on 1+ items)' : ''), true);
+  if(JOB.qcFlag){
+    logEvent('⚠️ QC damage report auto-sent to TKC Ops', true);
+  }
+  logEvent('Delivery confirmation sent to customer portal', true);
+  addSMS('fitter', `Kitchen for job #${JOB.ref} has been delivered & signed for by ${JOB.driver1||'the driver'}. Please confirm you're happy to proceed with install.`, {cls:'system'});
+  const div = document.createElement('div');
+  div.innerHTML = `<div class="fitter-action"><button class="btn sm ghost" onclick="fitterConfirm('ok')">✅ Fitter: ready to install</button><button class="btn sm ghost" onclick="fitterConfirm('issue')">🚩 Fitter: report issue</button></div>`;
+  document.getElementById('sms-log').appendChild(div);
+  toast(JOB.qcFlag ? '⚠️ POD submitted — damage flagged, QC report sent to TKC Ops' : '✅ POD submitted — customer notified');
+  renderStageStrip();
+  renderDriverApp();
+}
+
+function fitterConfirm(v){
+  JOB.fitterConfirmed = v;
+  if(v==='ok'){
+    logEvent('Fitter confirmed install-ready condition', true);
+    addSMS('system', `Fitter confirmed the kitchen is in installable condition. Job #${JOB.ref} closed out cleanly.`, {cls:'system'});
+  } else {
+    logEvent('⚠️ Fitter reported an issue — escalated to TKC Ops', false);
+    addSMS('system', `🚩 Fitter reported an issue on job #${JOB.ref}. Escalated to TKC Ops for resolution — installer is not left to chase this alone.`, {cls:'alert'});
+  }
+  document.querySelectorAll('.fitter-action').forEach(f=>f.remove());
+  toast(v==='ok' ? '✅ Fitter confirmed ready to install' : '🚩 Issue escalated to TKC Ops');
+}
+
+function renderDriverApp(){
+  document.getElementById('driver-app-inner').innerHTML = driverAppHTML(currentPhone);
+}
+renderDriverApp();
+
+/* ===================== CUSTOMER PORTAL ===================== */
+function setPortalTab(tab){
+  currentPortalTab = tab;
+  document.querySelectorAll('.pnav-item').forEach(p=>p.classList.toggle('active', p.dataset.tab===tab));
+  document.getElementById('portal-tab-label').textContent = tab.charAt(0).toUpperCase()+tab.slice(1);
+  document.getElementById('portal-import').style.display = tab==='import' ? 'block':'none';
+  document.getElementById('portal-jobs').style.display = tab==='import' ? 'none':'block';
+  renderPortal();
+}
+
+function doImport(){
+  toast('📥 12 jobs imported from TKC order manifest — scheduling now available');
+  setPortalTab('today');
+}
+
+function jobProgressIdx(){
+  if(JOB.podComplete) return 4;
+  if(JOB.bothOnSite) return 3;
+  if(JOB.fitter&&JOB.driver1&&(JOB.mode==='team'?true:JOB.driver2)) return 2;
+  if(JOB.fitter||JOB.driver1||JOB.driver2) return 1;
+  return 0;
+}
+
+function renderPortal(){
+  const idx = jobProgressIdx();
+  const statusLabels = ['Booked','Assigned','Dispatched','On site','Delivered'];
+  const list = document.getElementById('portal-job-list');
+  const otherJobs = [
+    {ref:'TKC-04790',who:'M. Fairbanks, Chesterfield S41',eta:'Delivered 09:12',idx:4},
+    {ref:'TKC-04803',who:'R. Ilic, Rotherham S65',eta:'ETA 11:20',idx:2},
+    {ref:'TKC-04835',who:'J. Openshaw, Barnsley S71',eta:'ETA tomorrow',idx:0},
+  ];
+  const rows = [{ref:JOB.ref, who:JOB.address, eta: idx===4?'Delivered ✓':idx>=3?'Driver on site':idx>=1?'ETA 10:45':'Awaiting dispatch', idx, main:true}, ...otherJobs];
+  list.innerHTML = rows.map(r=>`
+    <div class="jrow" onclick="openDrawer('${r.ref}')">
+      <div class="num">#${r.ref}</div>
+      <div class="who"><b>${r.who}</b><span>${JOB.mode==='team'&&r.main?'Two-man team':r.main?'Two-man assist':''}</span></div>
+      <div class="stepper">${[0,1,2,3,4].map(i=>`<i class="${i<=r.idx?'on':''}"></i>`).join('')}</div>
+      <div class="eta">${r.eta}</div>
+    </div>
+  `).join('');
+  renderMap(idx);
+}
+
+function renderMap(idx){
+  const pct = [8,30,55,85,96][idx];
+  const wrap = document.getElementById('map-wrap');
+  wrap.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 600 260" preserveAspectRatio="none">
+    <g stroke="#d7ded9" stroke-width="6" fill="none">
+      <path d="M0,220 C150,200 200,90 300,80 S480,40 600,60"/>
+      <path d="M40,0 L40,260 M180,0 L200,260 M420,0 L400,260"/>
+    </g>
+    <path d="M60,190 C170,175 210,95 300,85 S470,50 560,60" stroke="var(--tkc-red)" stroke-width="3" fill="none" stroke-dasharray="6 6"/>
+    <circle cx="60" cy="190" r="7" fill="var(--ink-900)"/>
+    <text x="60" y="212" font-size="11" fill="#3c3c3c" text-anchor="middle" font-weight="700">Denton depot</text>
+    <circle cx="560" cy="60" r="7" fill="var(--tkc-red)"/>
+    <text x="560" y="40" font-size="11" fill="var(--tkc-red-dark)" text-anchor="middle" font-weight="700">Oak Grove</text>
+    <circle cx="${60+(500*pct/100)}" cy="${190-(130*pct/100)}" r="8" fill="#fff" stroke="var(--tkc-red)" stroke-width="3"/>
+  </svg>
+  <div class="map-legend">
+    <div><span class="dot" style="background:var(--ink-900)"></span>Collection depot</div>
+    <div><span class="dot" style="background:var(--tkc-red)"></span>Delivery address</div>
+    <div><span class="dot" style="background:#fff;border:2px solid var(--tkc-red)"></span>Live vehicle position</div>
+  </div>`;
+}
+
+function openDrawer(ref){
+  const back = document.getElementById('drawer-back');
+  const drw = document.getElementById('drawer');
+  back.classList.add('show'); drw.classList.add('show');
+  if(ref !== JOB.ref){
+    drw.innerHTML = `<div class="drawer-head"><div><div class="job-ref">#${ref}</div><div class="job-title" style="font-size:16px;">Other job (demo placeholder)</div></div><button class="drawer-close" onclick="closeDrawer()">✕</button></div>
+    <div class="drawer-body muted">Full detail available in-app — this demo focuses on job #${JOB.ref} to show the complete flow.</div>`;
+    return;
+  }
+  let evts = JOB.events.map(e=>`<div class="evt"><div class="dot2 ${e.done?'done':'warn'}">${e.done?'✓':'!'}</div><div><b>${e.label}</b><span>${e.t}</span></div></div>`).join('');
+  let podSection = '';
+  if(JOB.podComplete){
+    if(JOB.qcFlag){
+      podSection += `<div class="qc-banner"><b>⚠️ Damage flagged on delivery</b>One or more items were flagged by the delivery team. A QC report has been sent to TKC Ops automatically — you don't need to chase this yourself.</div>`;
+    }
+    podSection += `<div class="section-title">Proof of delivery</div>`;
+    podSection += `<div class="pod-photos">${JOB.items.map(it=>`<div title="${it.name}">${it.flagged?'⚠️':'📦'}</div>`).join('')}</div>`;
+    podSection += `<div style="font-size:11.5px;color:var(--ink-500);margin-top:8px;">Signed by site contact · ${fmtNow()}</div>`;
+  }
+  drw.innerHTML = `<div class="drawer-head">
+      <div>
+        <div class="job-ref">#${JOB.ref}</div>
+        <div class="job-title" style="font-size:17px;">${JOB.address}</div>
+        <div class="muted" style="font-size:12px;margin-top:2px;">${JOB.mode==='team'?'Two-man team':'Two-man assist'} · ${JOB.window}</div>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+      ${podSection}
+      <div class="section-title">Activity</div>
+      ${evts}
+      <button class="btn ghost concern-btn" onclick="toast('Concern logged — TKC Ops notified directly, no need to go through your fitter')">🚩 Raise a concern about this delivery</button>
+    </div>`;
+}
+function closeDrawer(){
+  document.getElementById('drawer-back').classList.remove('show');
+  document.getElementById('drawer').classList.remove('show');
+}
+
+renderPortal();
+setInterval(()=>{ document.getElementById('ph-time').textContent = new Date().toTimeString().slice(0,5); },30000);
+</script>
+</body>
+</html>
