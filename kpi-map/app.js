@@ -1,0 +1,517 @@
+/* ============================================================================
+   Profit Cause Map — app.js (v1.0)
+   ----------------------------------------------------------------------------
+   All logic for index.html. No dependencies, no build step, plain ES2020.
+
+   DATA MODEL
+     Node: { id, name, ws, kind, src, note, bench, x, y }
+       ws    workspace: 'core' | 'shopify' | 'tiktok' | 'creators' | 'ops'
+       kind  'outcome' (top-line KPI) | 'driver' | 'cost' | 'health' (ratio + rule)
+       src   where the number comes from:
+             'xero' | 'shopify' | 'tiktok' | 'meta' | 'derived' | 'manual'
+       bench optional benchmark/rule shown on the card (health cards mostly)
+     Link: { id, from, to, sign, label }
+       sign  '+' source pushes target the SAME direction (green solid)
+             '-' source pushes target the OPPOSITE way (red dashed)
+       Colour is direction of effect, NOT good/bad.
+
+   The filled-out example lives in defaultGraph() below — edit it there, or
+   edit live in the UI (autosaves to localStorage under 'kpi-map-v1';
+   "Reset example" restores defaultGraph()).
+
+   EXTENDING (for future AI/dev sessions):
+     - Add a workspace: extend WS + add a filter chip in index.html.
+     - Add a data source: extend SRCS.
+     - Wire live data: give nodes a `value` field and render it in the card
+       (see render()); health cards could compare value vs bench rule.
+   ========================================================================= */
+
+/* ================= data model ================= */
+const WS = {
+  core:{label:'Profit core', color:'var(--core)'},
+  shopify:{label:'Shopify', color:'var(--shopify)'},
+  tiktok:{label:'TikTok', color:'var(--tiktok)'},
+  creators:{label:'Creators & Staff', color:'var(--creators)'},
+  ops:{label:'COGS & Ops', color:'var(--ops)'},
+};
+const KINDS = {outcome:'Outcome KPI', driver:'Driver', cost:'Cost', health:'Health check'};
+const SRCS = {xero:'Xero', shopify:'Shopify API', tiktok:'TikTok Shop API', meta:'Meta API', derived:'Derived (calc)', manual:'Manual'};
+
+const NODE_W = 176;
+function nodeH(n){ return n.bench ? 92 : 62; }
+
+/* ---- the filled-out example map ---- */
+function defaultGraph(){
+  const N = (id,name,ws,kind,src,x,y,note='',bench='') => ({id,name,ws,kind,src,x,y,note,bench});
+  const L = (from,to,sign,label='') => ({id:'l_'+from+'_'+to, from,to,sign,label});
+  return {
+    nodes:[
+      /* ---- profit core ---- */
+      N('net_profit','Net Profit','core','outcome','xero',1050,90,'The one number the whole map exists to explain. Pull monthly from Xero P&L — the bank feed means every cost is captured, including the ones the channel dashboards hide.'),
+      N('net_margin','Net Margin %','core','health','derived',1300,70,'Net profit ÷ revenue. Watch the TREND, not the number: revenue up + margin down = buying growth.','Supplements median op margin ~5%. Flag if falling 2 months running'),
+      N('cash','Cash Position / Runway','core','outcome','xero',1560,90,'Profit ≠ cash. Retainers and inventory are paid up-front; subscription revenue arrives monthly.'),
+      N('revenue','Total Revenue','core','outcome','xero',810,250,'Sum of both channels. Reconcile channel dashboards against Xero — payouts arrive net of fees.'),
+      N('total_costs','Total Costs','core','cost','xero',1290,250,'Every cost line feeds this. If a cost isn’t in Xero it isn’t in this number — which is why the bank feed matters.'),
+      N('channel_mix','Channel Mix %','core','health','derived',1050,420,'Share of revenue per channel. Looking good ≠ stable: growth concentrated in one channel is fragile.','Risk if one channel > 75% of revenue'),
+
+      /* ---- Shopify ---- */
+      N('shopify_rev','Shopify Revenue','shopify','outcome','shopify',330,250,'Subscriptions + one-off orders, net of refunds and discounts.'),
+      N('sub_rev','Subscription Revenue','shopify','driver','shopify',120,400,'The recurring base. Most valuable £ in the business — predictable and compounding.'),
+      N('oneoff_rev','One-off Orders','shopify','driver','shopify',400,400,'First purchases and gift orders. Mostly a feeder for subscriptions.'),
+      N('active_subs','Active Subscribers','shopify','driver','shopify',120,540,'The stock that subscription revenue flows from. New subs fill it; churn drains it.'),
+      N('aov','AOV / Avg Sub Value','shopify','driver','shopify',430,540,'Bundle size, flavour packs, upsells. Raising this lifts LTV without touching CAC.'),
+      N('churn','Subscriber Churn %','shopify','driver','shopify',60,700,'The silent killer of subscription economics. A 2-point churn rise can wipe out a great ad month.','Replenishment norm 5–8%/mo. Flag > 9%'),
+      N('new_subs','New Subscribers / mo','shopify','driver','shopify',300,700,'Mostly Meta-driven. Compare against churn: net subscriber growth is the real number.'),
+      N('discounts','Intro Discounts','shopify','driver','manual',520,780,'Lifts sign-ups but drags first-order margin and can attract deal-seekers who churn fast.'),
+      N('meta_spend','Meta Ad Spend','shopify','cost','meta',300,880,'Biggest discretionary cost on the Shopify side. Meta CPMs up ~89% since 2020 — efficiency, not spend, is the lever.'),
+      N('creative_perf','Creative Performance (CTR × CVR)','shopify','driver','meta',80,880,'Hook rate, CTR, landing CVR. Fatigued creative silently inflates CAC while spend looks flat.'),
+      N('cac','Blended CAC','shopify','health','derived',290,1030,'Total acquisition spend ÷ new customers. Blend Meta + agency + creative costs, not just ad spend.','DTC blended norm £60–120. Flag if rising 2 months running'),
+      N('ltv','Subscriber LTV','shopify','health','derived',60,1030,'Margin per order × orders per subscriber lifetime. Driven by churn and AOV, not by ads.','12-mo LTV consumables £100–240'),
+      N('ltv_cac','LTV : CAC','shopify','health','derived',170,1190,'THE Shopify health number. Below 3:1 you’re buying customers at a loss dressed up as growth.','Good ≥ 3:1 (cross-DTC median 3.4)'),
+      N('payback','CAC Payback (months)','shopify','health','derived',400,1190,'How long until a new subscriber repays their acquisition cost. Governs how fast you can safely scale spend.','Good < 6 months for subscription'),
+
+      /* ---- TikTok ---- */
+      N('tiktok_rev','TikTok Shop GMV','tiktok','outcome','tiktok',1810,250,'Gross merchandise value. Remember payouts arrive net — reconcile against Xero.'),
+      N('views','Views & Engagement','tiktok','driver','tiktok',2070,400,'Reach is rented, not owned. Views convert to GMV only through conversion % below.'),
+      N('tt_conv','Shop Conversion % & AOV','tiktok','driver','tiktok',2070,540,'Video → product page → checkout. Weak conversion means views are vanity.'),
+      N('videos','Videos Posted','tiktok','driver','tiktok',1810,540,'Volume matters on TikTok, but ONLY read this next to Cost per Video — 59 videos +9% is bad news if retainer spend doubled.'),
+      N('tt_fees','TikTok Fees (9% + ~2% txn)','tiktok','cost','tiktok',1570,400,'Flat 9% UK commission on net GMV since Sept 2024, plus transaction fees. Scales automatically with GMV — a cost you never sign off.'),
+      N('smart_promo','Smart Promotions (≤4.5% GMV)','tiktok','cost','tiktok',1570,540,'TikTok’s automated ads programme. Boosts GMV but takes up to 3.5–4.5% of store GMV.'),
+      N('aff_comm','Affiliate Commission Paid (10–20%)','tiktok','cost','tiktok',1930,690,'You set the rate. Higher rates attract more affiliates (good) and eat margin (bad) — the classic tension link.'),
+      N('samples','Product Samples / Gifting','tiktok','cost','xero',2180,690,'Free product to activate creators. Cheap per unit but real COGS — must land in Xero, not vanish.'),
+
+      /* ---- creators & staff ---- */
+      N('active_creators','Active Creators','creators','driver','tiktok',1930,860,'Creators who actually posted this month, not signed roster size.'),
+      N('new_creators','New Creators Recruited / mo','creators','driver','manual',2180,860,'The pipeline. If this stalls, next quarter’s GMV is already decided.'),
+      N('retainers','Creator Retainers (£/mo)','creators','cost','xero',1660,860,'Guaranteed monthly payments for contracted video volume. Fixed cost — it doesn’t flex down when output drops.'),
+      N('staff_cost','Staff Costs (payroll)','creators','cost','xero',1420,860,'Creator managers, ops. More managers → more creators handled well.'),
+      N('cost_per_video','Cost per Video (retainers ÷ videos)','creators','health','derived',1660,1030,'THE expectation metric. "59 videos, up 9%" means nothing alone — if retainer spend rose 100%, that +9% is actually a failure.','UGC norm £25–120/video. Flag if rising while output is flat'),
+      N('delivery','Retainer Delivery %','creators','health','derived',1420,1030,'Videos delivered ÷ videos contracted, per creator. Catches creators being paid for work not done.','Good ≥ 90% of contracted volume'),
+      N('rev_per_creator','GMV per Creator','creators','health','derived',1930,1030,'Sorted descending, this is your commission-vs-retainer decision list: who earns a retainer, who stays commission-only.','Compare vs. creator’s total cost (retainer + commission + samples)'),
+      N('concentration','Top-Creator Concentration','creators','health','derived',2180,1030,'Profit up 100% looks great — but if 80% came from one creator, the business is one falling-out away from a bad quarter. Stability, not just performance.','Risk if top creator > 30% of GMV'),
+      N('mgr_capacity','Creators per Manager','creators','health','derived',1420,1190,'Relationship quality drops when managers are overloaded — shows up later as delivery % and churn of creators.','~25–40 active creators per manager'),
+
+      /* ---- COGS & ops ---- */
+      N('cogs','COGS per Unit','ops','cost','xero',700,960,'Formula, sachets/tub, co-packer fee, inbound freight, duties. Renegotiate at volume tiers.','Contract mfg $3–8/unit typical for £25–60 retail'),
+      N('inventory','Inventory / MOQ Cash Tied Up','ops','cost','xero',480,960,'Co-packer minimum order quantities lock cash in stock. Growth in orders = bigger MOQs = cash squeeze even while profitable.'),
+      N('fulfilment','Pick, Pack & Postage','ops','cost','xero',700,1130,'Per-order cost. Subscription orders batch predictably — cheaper than one-offs.'),
+      N('gross_margin','Gross Margin %','ops','health','derived',940,880,'(Revenue − COGS) ÷ revenue. Table stakes: the game is won or lost further down, at contribution.','Supplements norm 65–80%'),
+      N('contribution','Contribution Margin %','ops','health','derived',950,1060,'Margin after COGS, fulfilment, fees AND acquisition cost. The real "are we making money per order" number.','Healthy 35–60%. Below 30% won’t scale'),
+    ],
+    links:[
+      /* core */
+      L('revenue','net_profit','+'), L('total_costs','net_profit','-'),
+      L('net_profit','net_margin','+'), L('net_profit','cash','+'),
+      L('shopify_rev','revenue','+'), L('tiktok_rev','revenue','+'),
+      L('shopify_rev','channel_mix','+'), L('tiktok_rev','channel_mix','+'),
+      /* shopify chain */
+      L('sub_rev','shopify_rev','+'), L('oneoff_rev','shopify_rev','+'),
+      L('active_subs','sub_rev','+'), L('aov','sub_rev','+'),
+      L('new_subs','active_subs','+'), L('churn','active_subs','-'),
+      L('meta_spend','new_subs','+'), L('meta_spend','total_costs','+'),
+      L('discounts','new_subs','+'), L('discounts','aov','-'),
+      L('meta_spend','cac','+'), L('creative_perf','cac','-'),
+      L('churn','ltv','-'), L('aov','ltv','+'), L('gross_margin','ltv','+'),
+      L('ltv','ltv_cac','+'), L('cac','ltv_cac','-'),
+      L('cac','payback','+'), L('aov','payback','-'),
+      /* tiktok chain */
+      L('videos','views','+'), L('views','tiktok_rev','+'), L('tt_conv','tiktok_rev','+'),
+      L('tiktok_rev','tt_fees','+','scales with GMV'), L('tt_fees','total_costs','+'),
+      L('smart_promo','tiktok_rev','+'), L('smart_promo','total_costs','+'),
+      L('tiktok_rev','aff_comm','+'), L('aff_comm','total_costs','+'),
+      L('aff_comm','active_creators','+','higher rate attracts'),
+      L('samples','active_creators','+'), L('samples','total_costs','+'),
+      /* creators */
+      L('active_creators','videos','+'), L('new_creators','active_creators','+'),
+      L('retainers','videos','+','contracted volume'), L('retainers','total_costs','+'),
+      L('staff_cost','active_creators','+','managed well'), L('staff_cost','total_costs','+'),
+      L('retainers','cost_per_video','+'), L('videos','cost_per_video','-'),
+      L('videos','delivery','+'),
+      L('tiktok_rev','rev_per_creator','+'), L('active_creators','rev_per_creator','-'),
+      L('tiktok_rev','concentration','+','per-creator split'),
+      L('active_creators','mgr_capacity','+'), L('staff_cost','mgr_capacity','-'),
+      L('mgr_capacity','delivery','-','overload hurts'),
+      /* ops */
+      L('cogs','gross_margin','-'), L('aov','gross_margin','+'),
+      L('cogs','total_costs','+'), L('fulfilment','total_costs','+'),
+      L('gross_margin','contribution','+'), L('fulfilment','contribution','-'),
+      L('cac','contribution','-'), L('tt_fees','contribution','-'), L('aff_comm','contribution','-'),
+      L('inventory','cash','-','MOQ ties cash'),
+      L('discounts','gross_margin','-'),
+    ],
+  };
+}
+
+/* ================= state ================= */
+const STORE_KEY = 'kpi-map-v1';
+let state = load();
+let view = {x:0, y:0, s:1};
+let sel = null;            // {type:'node'|'link', id}
+let filter = 'all';
+let linkMode = false, pendingFrom = null;
+let idSeq = Date.now();
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ const g = JSON.parse(raw); if(g.nodes && g.links) return g; }
+  }catch(e){}
+  return defaultGraph();
+}
+let saveT = null;
+function save(){ clearTimeout(saveT); saveT = setTimeout(()=>localStorage.setItem(STORE_KEY, JSON.stringify(state)), 300); }
+function node(id){ return state.nodes.find(n=>n.id===id); }
+function link(id){ return state.links.find(l=>l.id===id); }
+
+/* ================= rendering ================= */
+const svg = document.getElementById('svg');
+const world = document.getElementById('world');
+const edgeLayer = document.getElementById('edgeLayer');
+const nodeLayer = document.getElementById('nodeLayer');
+const wrap = document.getElementById('canvasWrap');
+const NS = 'http://www.w3.org/2000/svg';
+
+function nodeOpacity(n){
+  if(filter==='all') return 1;
+  if(filter==='health') return n.kind==='health' ? 1 : .13;
+  return n.ws===filter ? 1 : .13;
+}
+function applyView(){ world.setAttribute('transform', `translate(${view.x},${view.y}) scale(${view.s})`); }
+
+function borderPoint(n, tx, ty){
+  const w = NODE_W/2 + 6, h = nodeH(n)/2 + 6;
+  const cx = n.x + NODE_W/2, cy = n.y + nodeH(n)/2;
+  let dx = tx - cx, dy = ty - cy;
+  if(dx===0 && dy===0) return {x:cx, y:cy};
+  const k = 1/Math.max(Math.abs(dx)/w, Math.abs(dy)/h);
+  return {x:cx + dx*k, y:cy + dy*k};
+}
+
+function edgePath(a, b){
+  const ca = {x:a.x+NODE_W/2, y:a.y+nodeH(a)/2}, cb = {x:b.x+NODE_W/2, y:b.y+nodeH(b)/2};
+  const p1 = borderPoint(a, cb.x, cb.y), p2 = borderPoint(b, ca.x, ca.y);
+  const dx = p2.x - p1.x, dy = p2.y - p1.y;
+  let c1, c2;
+  if(Math.abs(dx) > Math.abs(dy)){
+    c1 = {x:p1.x + dx*0.45, y:p1.y}; c2 = {x:p2.x - dx*0.45, y:p2.y};
+  }else{
+    c1 = {x:p1.x, y:p1.y + dy*0.45}; c2 = {x:p2.x, y:p2.y - dy*0.45};
+  }
+  const mid = { // bezier point at t=0.5
+    x:(p1.x + 3*c1.x + 3*c2.x + p2.x)/8,
+    y:(p1.y + 3*c1.y + 3*c2.y + p2.y)/8,
+  };
+  return {d:`M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`, mid};
+}
+
+function render(){
+  edgeLayer.innerHTML = '';
+  nodeLayer.innerHTML = '';
+
+  for(const l of state.links){
+    const a = node(l.from), b = node(l.to);
+    if(!a || !b) continue;
+    const {d, mid} = edgePath(a, b);
+    const op = Math.min(nodeOpacity(a), nodeOpacity(b));
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('opacity', op);
+    const hit = document.createElementNS(NS,'path');
+    hit.setAttribute('d', d); hit.setAttribute('class','edgeHit');
+    hit.addEventListener('mousedown', e=>{ e.stopPropagation(); select('link', l.id); });
+    const p = document.createElementNS(NS,'path');
+    p.setAttribute('d', d);
+    p.setAttribute('class', 'edge ' + (l.sign==='+'?'pos':'neg') + (sel && sel.type==='link' && sel.id===l.id ? ' sel':''));
+    p.setAttribute('marker-end', l.sign==='+' ? 'url(#arrowPos)' : 'url(#arrowNeg)');
+    const badge = document.createElementNS(NS,'g');
+    badge.setAttribute('class','signBadge ' + (l.sign==='+'?'pos':'neg'));
+    const c = document.createElementNS(NS,'circle');
+    c.setAttribute('cx',mid.x); c.setAttribute('cy',mid.y); c.setAttribute('r',8.5);
+    const t = document.createElementNS(NS,'text');
+    t.setAttribute('x',mid.x); t.setAttribute('y',mid.y+4); t.textContent = l.sign==='+' ? '+' : '−';
+    badge.append(c,t);
+    g.append(hit,p,badge);
+    if(l.label){
+      const lt = document.createElementNS(NS,'text');
+      lt.setAttribute('class','edgeLabel'); lt.setAttribute('x',mid.x); lt.setAttribute('y',mid.y-13);
+      lt.textContent = l.label; g.append(lt);
+    }
+    edgeLayer.append(g);
+  }
+
+  for(const n of state.nodes){
+    const g = document.createElementNS(NS,'g');
+    g.setAttribute('class','node');
+    g.setAttribute('transform',`translate(${n.x},${n.y})`);
+    g.setAttribute('opacity', nodeOpacity(n));
+    const fo = document.createElementNS(NS,'foreignObject');
+    fo.setAttribute('width', NODE_W); fo.setAttribute('height', nodeH(n));
+    const div = document.createElement('div');
+    div.className = 'nodeCard' + (n.kind==='health'?' health':'')
+      + (sel && sel.type==='node' && sel.id===n.id ? ' sel':'')
+      + (pendingFrom===n.id ? ' pendingFrom':'');
+    div.style.setProperty('--acc', (WS[n.ws]||{color:'#999'}).color);
+    div.style.height = nodeH(n)+'px';
+    div.innerHTML = `<div class="nName">${esc(n.name)}</div>
+      <div class="nMeta"><span class="tag kind-${n.kind}">${n.kind==='health'?'★ health':esc(KINDS[n.kind]||n.kind)}</span><span class="tag src">${esc(SRCS[n.src]||n.src)}</span></div>`
+      + (n.bench ? `<div class="nBench">${esc(n.bench)}</div>` : '');
+    fo.append(div);
+    g.append(fo);
+    attachNodeEvents(g, n);
+    nodeLayer.append(g);
+  }
+  applyView();
+  renderSidebar();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ================= interactions ================= */
+function toWorld(e){
+  const r = wrap.getBoundingClientRect();
+  return {x:(e.clientX - r.left - view.x)/view.s, y:(e.clientY - r.top - view.y)/view.s};
+}
+
+function attachNodeEvents(g, n){
+  g.addEventListener('mousedown', e=>{
+    e.stopPropagation();
+    if(linkMode){
+      if(!pendingFrom){ pendingFrom = n.id; render(); }
+      else if(pendingFrom !== n.id){
+        const exists = state.links.find(l=>l.from===pendingFrom && l.to===n.id);
+        if(exists){ select('link', exists.id); }
+        else{
+          const nl = {id:'l'+(idSeq++), from:pendingFrom, to:n.id, sign:'+', label:''};
+          state.links.push(nl); save(); select('link', nl.id);
+        }
+        pendingFrom = null; render();
+      }
+      return;
+    }
+    select('node', n.id);
+    const start = toWorld(e), ox = n.x, oy = n.y;
+    let moved = false;
+    const mv = ev=>{
+      const p = toWorld(ev);
+      n.x = ox + (p.x - start.x); n.y = oy + (p.y - start.y);
+      moved = true; renderQuietMove();
+    };
+    const up = ()=>{ window.removeEventListener('mousemove',mv); window.removeEventListener('mouseup',up); if(moved) save(); };
+    window.addEventListener('mousemove',mv); window.addEventListener('mouseup',up);
+  });
+}
+let moveT = null;
+function renderQuietMove(){ if(moveT) return; moveT = requestAnimationFrame(()=>{ moveT=null; render(); }); }
+
+/* pan + zoom */
+wrap.addEventListener('mousedown', e=>{
+  if(e.target.closest('.node') || e.target.closest('.docHandle')) return;
+  select(null);
+  const sx = e.clientX, sy = e.clientY, ox = view.x, oy = view.y;
+  const mv = ev=>{ view.x = ox + ev.clientX - sx; view.y = oy + ev.clientY - sy; applyView(); };
+  const up = ()=>{ window.removeEventListener('mousemove',mv); window.removeEventListener('mouseup',up); };
+  window.addEventListener('mousemove',mv); window.addEventListener('mouseup',up);
+});
+wrap.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const r = wrap.getBoundingClientRect();
+  const mx = e.clientX - r.left, my = e.clientY - r.top;
+  const f = e.deltaY < 0 ? 1.12 : 1/1.12;
+  const ns = Math.min(2.2, Math.max(.22, view.s * f));
+  view.x = mx - (mx - view.x) * (ns/view.s);
+  view.y = my - (my - view.y) * (ns/view.s);
+  view.s = ns; applyView();
+}, {passive:false});
+
+wrap.addEventListener('dblclick', e=>{
+  if(e.target.closest('.node') || e.target.closest('.docHandle')) return;
+  const p = toWorld(e);
+  addNode(p.x - NODE_W/2, p.y - 30);
+});
+
+document.addEventListener('keydown', e=>{
+  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  if(e.key==='Escape'){ pendingFrom=null; setLinkMode(false); select(null); }
+  if((e.key==='Delete' || e.key==='Backspace') && sel){ deleteSelection(); }
+});
+
+/* ================= actions ================= */
+function select(type, id){ sel = type ? {type, id} : null; render(); }
+
+function addNode(x, y){
+  const n = {id:'n'+(idSeq++), name:'New metric', ws: filter!=='all' && filter!=='health' ? filter : 'core',
+             kind:'driver', src:'manual', note:'', bench:'', x:Math.round(x), y:Math.round(y)};
+  state.nodes.push(n); save(); select('node', n.id);
+  setTimeout(()=>{ const i = document.getElementById('f_name'); if(i){ i.focus(); i.select(); } }, 30);
+}
+
+function deleteSelection(){
+  if(!sel) return;
+  if(sel.type==='node'){
+    state.links = state.links.filter(l=>l.from!==sel.id && l.to!==sel.id);
+    state.nodes = state.nodes.filter(n=>n.id!==sel.id);
+  }else{
+    state.links = state.links.filter(l=>l.id!==sel.id);
+  }
+  sel = null; save(); render();
+}
+
+function setLinkMode(on){
+  linkMode = on; pendingFrom = null;
+  document.getElementById('linkBtn').classList.toggle('linking', on);
+  document.getElementById('linkBtn').textContent = on ? '⤳ Click source, then target… (Esc)' : '⤳ Link mode';
+  wrap.classList.toggle('linkmode', on);
+  render();
+}
+
+function fitView(){
+  if(!state.nodes.length) return;
+  const xs = state.nodes.map(n=>n.x), ys = state.nodes.map(n=>n.y);
+  const x2 = state.nodes.map(n=>n.x+NODE_W), y2 = state.nodes.map(n=>n.y+nodeH(n));
+  const bx = Math.min(...xs)-40, by = Math.min(...ys)-40;
+  const bw = Math.max(...x2)-bx+40, bh = Math.max(...y2)-by+40;
+  const r = wrap.getBoundingClientRect();
+  view.s = Math.min(r.width/bw, r.height/bh, 1.15);
+  view.x = (r.width - bw*view.s)/2 - bx*view.s;
+  view.y = (r.height - bh*view.s)/2 - by*view.s;
+  applyView();
+}
+
+/* ================= sidebar ================= */
+const sidebar = document.getElementById('sidebar');
+
+function renderSidebar(){
+  if(sel && sel.type==='node'){ renderNodeEditor(node(sel.id)); return; }
+  if(sel && sel.type==='link'){ renderLinkEditor(link(sel.id)); return; }
+  renderHelp();
+}
+
+function renderNodeEditor(n){
+  if(!n){ sel=null; renderHelp(); return; }
+  sidebar.innerHTML = `
+    <h2>Edit metric</h2>
+    <div class="field"><label>Name</label><input id="f_name" value="${esc(n.name)}"></div>
+    <div class="row2">
+      <div class="field"><label>Workspace</label><select id="f_ws">${Object.entries(WS).map(([k,v])=>`<option value="${k}" ${n.ws===k?'selected':''}>${v.label}</option>`).join('')}</select></div>
+      <div class="field"><label>Type</label><select id="f_kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${n.kind===k?'selected':''}>${v}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Data source</label><select id="f_src">${Object.entries(SRCS).map(([k,v])=>`<option value="${k}" ${n.src===k?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Benchmark / rule (shown on card)</label><input id="f_bench" value="${esc(n.bench||'')}" placeholder="e.g. Good ≥ 3:1"></div>
+    <div class="field"><label>Notes</label><textarea id="f_note">${esc(n.note||'')}</textarea></div>
+    <div class="sideBtns">
+      <button class="btn" id="f_linkfrom">⤳ Link from this</button>
+      <button class="btn danger" id="f_del">Delete</button>
+    </div>
+    <h3>Connections</h3>
+    <div class="help" id="f_conns"></div>`;
+  const bind = (id, key)=>{ document.getElementById(id).addEventListener('input', e=>{ n[key]=e.target.value; save();
+    if(id==='f_ws'||id==='f_kind'||id==='f_bench') render(); }); };
+  bind('f_name','name'); bind('f_ws','ws'); bind('f_kind','kind'); bind('f_src','src'); bind('f_bench','bench'); bind('f_note','note');
+  document.getElementById('f_name').addEventListener('change', ()=>render());
+  document.getElementById('f_src').addEventListener('change', ()=>render());
+  document.getElementById('f_linkfrom').onclick = ()=>{ setLinkMode(true); pendingFrom = n.id; render(); };
+  document.getElementById('f_del').onclick = deleteSelection;
+  const ins = state.links.filter(l=>l.to===n.id).map(l=>`<li>${l.sign==='+'?'🟢':'🔴'} ← <b>${esc((node(l.from)||{}).name||'?')}</b></li>`);
+  const outs = state.links.filter(l=>l.from===n.id).map(l=>`<li>${l.sign==='+'?'🟢':'🔴'} → <b>${esc((node(l.to)||{}).name||'?')}</b></li>`);
+  document.getElementById('f_conns').innerHTML =
+    (ins.length? `<ul>${ins.join('')}</ul>`:'<p style="margin-bottom:6px">No inputs.</p>') +
+    (outs.length? `<ul>${outs.join('')}</ul>`:'<p>No outputs.</p>');
+}
+
+function renderLinkEditor(l){
+  if(!l){ sel=null; renderHelp(); return; }
+  const a = node(l.from), b = node(l.to);
+  sidebar.innerHTML = `
+    <h2>Edit link</h2>
+    <div class="fromTo"><b>${esc(a?a.name:'?')}</b><br>↓<br><b>${esc(b?b.name:'?')}</b></div>
+    <div class="field"><label>Effect direction</label>
+      <div class="signToggle">
+        <button id="f_pos" class="pos ${l.sign==='+'?'on':''}">+ same direction</button>
+        <button id="f_neg" class="neg ${l.sign==='-'?'on':''}">− inverse</button>
+      </div>
+    </div>
+    <div class="field"><label>Label (optional)</label><input id="f_label" value="${esc(l.label||'')}" placeholder="e.g. scales with GMV"></div>
+    <div class="sideBtns">
+      <button class="btn" id="f_flip">⇄ Reverse arrow</button>
+      <button class="btn danger" id="f_del">Delete link</button>
+    </div>
+    <div class="help" style="margin-top:14px">🟢 <b>+</b> means the source pushes the target the <b>same way</b> (more spend → more cost). 🔴 <b>−</b> means inverse (more churn → fewer subscribers). Colour is direction, not good/bad.</div>`;
+  document.getElementById('f_pos').onclick = ()=>{ l.sign='+'; save(); render(); };
+  document.getElementById('f_neg').onclick = ()=>{ l.sign='-'; save(); render(); };
+  document.getElementById('f_label').addEventListener('input', e=>{ l.label=e.target.value; save(); });
+  document.getElementById('f_label').addEventListener('change', ()=>render());
+  document.getElementById('f_flip').onclick = ()=>{ const f=l.from; l.from=l.to; l.to=f; save(); render(); };
+  document.getElementById('f_del').onclick = deleteSelection;
+}
+
+function renderHelp(){
+  const counts = {};
+  for(const n of state.nodes) counts[n.src] = (counts[n.src]||0)+1;
+  sidebar.innerHTML = `
+    <h2>How to read this map</h2>
+    <div class="help">
+      Every card is a number the system should track. Arrows show <b>cause</b>:
+      <div style="margin:8px 0">
+        <div class="legendRow"><div class="lineSw"></div> <b>+</b>&nbsp;pushes target the same direction</div>
+        <div class="legendRow"><div class="lineSw neg"></div> <b>−</b>&nbsp;pushes target the opposite way</div>
+      </div>
+      Colour = direction of effect, <b>not</b> good/bad — "Meta spend → Total costs" is green because more spend means more cost.
+    </div>
+    <div class="callout"><b>★ Health checks are the point.</b> Raw counts lie: "59 videos, up 9%" is a failure if retainer spend doubled. Every amber card is a <b>ratio with a rule</b> — a raw metric divided by what it cost or what it depends on. These are what the app should surface first.</div>
+    <h3>Workspaces</h3>
+    ${Object.entries(WS).map(([k,v])=>`<div class="legendRow"><div class="swatch" style="background:${v.color}"></div>${v.label}</div>`).join('')}
+    <h3>Where the data comes from</h3>
+    <div class="srcCounts">${Object.entries(SRCS).map(([k,v])=>`${v}: <b>${counts[k]||0}</b>`).join(' &nbsp;·&nbsp; ')}</div>
+    <div class="help" style="margin-top:6px">This list <i>is</i> the integration spec: connect these sources and every card on the map is computable. Xero is the backbone — the bank feed catches every cost the channel dashboards hide.</div>
+    <h3>Editing</h3>
+    <div class="help"><ul>
+      <li><b>Drag</b> cards to move, drag background to pan, scroll to zoom</li>
+      <li><b>Double-click</b> empty space (or + Node) to add a metric</li>
+      <li><b>⤳ Link mode</b>: click source card, then target card</li>
+      <li>Click a card or arrow to edit it here; <span class="kbd">Del</span> removes it</li>
+      <li>Changes autosave in this browser. <b>Export</b> to share the JSON</li>
+    </ul></div>`;
+}
+
+/* ================= toolbar ================= */
+document.getElementById('addNodeBtn').onclick = ()=>{
+  const r = wrap.getBoundingClientRect();
+  const p = {x:(r.width/2 - view.x)/view.s, y:(r.height/2 - view.y)/view.s};
+  addNode(p.x - NODE_W/2, p.y - 30);
+};
+document.getElementById('linkBtn').onclick = ()=> setLinkMode(!linkMode);
+document.getElementById('fitBtn').onclick = fitView;
+document.getElementById('exportBtn').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = 'profit-cause-map.json'; a.click();
+  URL.revokeObjectURL(a.href);
+};
+document.getElementById('importBtn').onclick = ()=> document.getElementById('importFile').click();
+document.getElementById('importFile').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ()=>{ try{
+      const g = JSON.parse(rd.result);
+      if(!g.nodes || !g.links) throw 0;
+      state = g; sel = null; save(); render(); fitView();
+    }catch(err){ alert('Not a valid map file.'); } };
+  rd.readAsText(f);
+  e.target.value = '';
+});
+document.getElementById('resetBtn').onclick = ()=>{
+  if(!confirm('Replace the current map with the built-in example? Your edits will be lost (Export first if you want to keep them).')) return;
+  state = defaultGraph(); sel = null; save(); render(); fitView();
+};
+document.querySelectorAll('#filterChips .chip').forEach(ch=>{
+  ch.addEventListener('click', ()=>{
+    document.querySelectorAll('#filterChips .chip').forEach(c=>c.classList.remove('on'));
+    ch.classList.add('on');
+    filter = ch.dataset.ws;
+    render();
+  });
+});
+/* document handle → open the help/about panel */
+document.getElementById('docHandle').onclick = ()=> select(null);
+
+/* ================= boot ================= */
+render();
+fitView();

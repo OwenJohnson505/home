@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!--
+  Profit Cause Map — v1.0
+  ─────────────────────────────────────────────────────────────────────────
+  A self-contained, dependency-free KPI cause-mapping tool for an
+  e-commerce brand (Shopify subscriptions + TikTok Shop creators).
+
+  Files:
+    index.html  — markup + styles (this file)
+    app.js      — all logic + the default example map (see defaultGraph())
+    README.md   — how to run it and how to hand it to an AI assistant
+
+  Run it: just open index.html in any modern browser. No build step,
+  no server, no network calls. Edits autosave to localStorage.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profit Cause Map — Electrolyte Brand</title>
+<style>
+  :root{
+    --bg:#f5f5f7; --panel:#ffffff; --ink:#1d1d1f; --ink2:#6e6e73; --line:#e5e5ea;
+    --core:#0f172a; --shopify:#2563eb; --tiktok:#db2777; --creators:#ea580c; --ops:#0891b2;
+    --pos:#16a34a; --neg:#dc2626; --health:#d97706; --health-bg:#fffbeb;
+    --radius:10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%; overflow:hidden;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif; background:var(--bg); color:var(--ink); display:flex; flex-direction:column;}
+
+  /* ---------- header ---------- */
+  header{background:var(--panel); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; z-index:10;}
+  header h1{font-size:15px; font-weight:700; letter-spacing:-.01em; white-space:nowrap;}
+  header h1 span{color:var(--ink2); font-weight:500;}
+  .chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .chip{border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:12px; font-weight:600; padding:5px 11px; border-radius:99px; cursor:pointer; user-select:none; transition:all .12s;}
+  .chip:hover{border-color:#c7c7cc;}
+  .chip.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .chip.on[data-ws="shopify"]{background:var(--shopify); border-color:var(--shopify);}
+  .chip.on[data-ws="tiktok"]{background:var(--tiktok); border-color:var(--tiktok);}
+  .chip.on[data-ws="creators"]{background:var(--creators); border-color:var(--creators);}
+  .chip.on[data-ws="ops"]{background:var(--ops); border-color:var(--ops);}
+  .chip.on[data-ws="health"]{background:var(--health); border-color:var(--health);}
+  .spacer{flex:1;}
+  .btns{display:flex; gap:6px;}
+  .btn{border:1px solid var(--line); background:#fff; font-size:12px; font-weight:600; color:var(--ink); padding:6px 12px; border-radius:8px; cursor:pointer; transition:all .12s; white-space:nowrap;}
+  .btn:hover{background:#f2f2f4;}
+  .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .btn.primary:hover{background:#333;}
+  .btn.linking{background:var(--pos); color:#fff; border-color:var(--pos);}
+
+  /* ---------- layout ---------- */
+  main{flex:1; display:flex; min-height:0;}
+  #canvasWrap{flex:1; position:relative; overflow:hidden; background:
+    radial-gradient(circle at 1px 1px, #d9d9de 1px, transparent 0) 0 0/26px 26px, var(--bg);}
+  #canvasWrap.linkmode{cursor:crosshair;}
+  svg{position:absolute; inset:0; width:100%; height:100%;}
+
+  /* ---------- document handle ---------- */
+  .docHandle{position:absolute; left:12px; bottom:12px; background:#fff; border:1px solid var(--line); border-radius:99px; padding:6px 13px; font-size:11.5px; font-weight:700; color:var(--ink2); box-shadow:0 2px 8px rgba(0,0,0,.08); cursor:pointer; display:flex; gap:7px; align-items:center; user-select:none; z-index:5; transition:all .12s;}
+  .docHandle:hover{color:var(--ink); border-color:#c7c7cc;}
+  .docHandle .dot{width:8px; height:8px; border-radius:50%; background:var(--pos); flex-shrink:0;}
+
+  /* ---------- nodes ---------- */
+  .node{cursor:grab;}
+  .node:active{cursor:grabbing;}
+  .nodeCard{width:176px; background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:8px 10px 7px 12px; box-shadow:0 1px 3px rgba(0,0,0,.07); position:relative; overflow:hidden; font-family:inherit;}
+  .nodeCard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--acc,#999);}
+  .nodeCard.health{background:var(--health-bg); border-color:#fde9c8;}
+  .nodeCard.sel{border-color:var(--ink); box-shadow:0 0 0 2px var(--ink), 0 4px 10px rgba(0,0,0,.15);}
+  .nodeCard.pendingFrom{border-color:var(--pos); box-shadow:0 0 0 2px var(--pos);}
+  .nName{font-size:12px; font-weight:700; line-height:1.25; letter-spacing:-.01em; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+  .nMeta{display:flex; gap:4px; margin-top:5px; align-items:center;}
+  .tag{font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:2px 5px; border-radius:4px; white-space:nowrap;}
+  .tag.kind-outcome{background:#eef0f4; color:var(--core);}
+  .tag.kind-driver{background:#eaf1fe; color:var(--shopify);}
+  .tag.kind-cost{background:#fdeeee; color:var(--neg);}
+  .tag.kind-health{background:#fdf0dc; color:var(--health);}
+  .tag.src{background:#f2f2f4; color:var(--ink2);}
+  .nBench{font-size:10px; color:var(--health); font-weight:600; margin-top:4px; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+
+  /* ---------- edges ---------- */
+  .edgeHit{stroke:transparent; stroke-width:16; fill:none; cursor:pointer;}
+  .edge{fill:none; stroke-width:1.8; pointer-events:none;}
+  .edge.pos{stroke:var(--pos);}
+  .edge.neg{stroke:var(--neg); stroke-dasharray:6 4;}
+  .edge.sel{stroke-width:3.2;}
+  .signBadge{pointer-events:none;}
+  .signBadge circle{fill:#fff; stroke-width:1.5;}
+  .signBadge.pos circle{stroke:var(--pos);}
+  .signBadge.neg circle{stroke:var(--neg);}
+  .signBadge text{font-size:12px; font-weight:800; text-anchor:middle;}
+  .signBadge.pos text{fill:var(--pos);}
+  .signBadge.neg text{fill:var(--neg);}
+  .edgeLabel{font-size:10px; font-weight:600; fill:var(--ink2); text-anchor:middle; pointer-events:none;}
+
+  /* ---------- sidebar ---------- */
+  aside{width:308px; background:var(--panel); border-left:1px solid var(--line); overflow-y:auto; padding:16px; flex-shrink:0;}
+  aside h2{font-size:13px; font-weight:700; margin-bottom:10px;}
+  aside h3{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--ink2); margin:16px 0 6px;}
+  .field{margin-bottom:10px;}
+  .field label{display:block; font-size:11px; font-weight:600; color:var(--ink2); margin-bottom:4px;}
+  .field input, .field select, .field textarea{width:100%; border:1px solid var(--line); border-radius:7px; padding:7px 9px; font-size:12.5px; font-family:inherit; background:#fff; color:var(--ink);}
+  .field textarea{resize:vertical; min-height:64px; line-height:1.4;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--ink);}
+  .row2{display:flex; gap:8px;}
+  .row2 .field{flex:1;}
+  .sideBtns{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;}
+  .btn.danger{color:var(--neg); border-color:#f3caca;}
+  .btn.danger:hover{background:#fdeeee;}
+  .signToggle{display:flex; gap:6px;}
+  .signToggle button{flex:1; padding:8px; border-radius:7px; border:1px solid var(--line); background:#fff; font-size:12px; font-weight:700; cursor:pointer;}
+  .signToggle button.on.pos{background:#e9f7ee; border-color:var(--pos); color:var(--pos);}
+  .signToggle button.on.neg{background:#fdeeee; border-color:var(--neg); color:var(--neg);}
+  .help{font-size:12px; color:var(--ink2); line-height:1.55;}
+  .help b{color:var(--ink);}
+  .help ul{margin:6px 0 10px 16px;}
+  .help li{margin-bottom:4px;}
+  .legendRow{display:flex; align-items:center; gap:8px; font-size:12px; margin-bottom:6px;}
+  .swatch{width:14px; height:14px; border-radius:4px; flex-shrink:0;}
+  .lineSw{width:26px; height:0; border-top:2.5px solid var(--pos); flex-shrink:0;}
+  .lineSw.neg{border-top:2.5px dashed var(--neg);}
+  .srcCounts{font-size:12px; line-height:1.7; color:var(--ink2);}
+  .srcCounts b{color:var(--ink); font-variant-numeric:tabular-nums;}
+  .kbd{background:#f2f2f4; border:1px solid var(--line); border-radius:4px; padding:0 5px; font-size:11px; font-family:inherit;}
+  .callout{background:var(--health-bg); border:1px solid #fde9c8; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.5; margin:10px 0; color:#92600a;}
+  .fromTo{font-size:12.5px; line-height:1.5; background:#f7f7f9; border-radius:8px; padding:10px 12px; margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Profit Cause Map <span>· Electrolyte brand — Shopify + TikTok</span></h1>
+  <div class="chips" id="filterChips">
+    <div class="chip on" data-ws="all">All</div>
+    <div class="chip" data-ws="core">Profit core</div>
+    <div class="chip" data-ws="shopify">Shopify</div>
+    <div class="chip" data-ws="tiktok">TikTok</div>
+    <div class="chip" data-ws="creators">Creators &amp; Staff</div>
+    <div class="chip" data-ws="ops">COGS &amp; Ops</div>
+    <div class="chip" data-ws="health">★ Health checks</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="btns">
+    <button class="btn primary" id="addNodeBtn">+ Node</button>
+    <button class="btn" id="linkBtn">⤳ Link mode</button>
+    <button class="btn" id="fitBtn">Fit</button>
+    <button class="btn" id="exportBtn">Export</button>
+    <button class="btn" id="importBtn">Import</button>
+    <button class="btn" id="resetBtn">Reset example</button>
+    <input type="file" id="importFile" accept=".json" style="display:none">
+  </div>
+</header>
+
+<main>
+  <div id="canvasWrap">
+    <svg id="svg">
+      <defs>
+        <marker id="arrowPos" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#16a34a"/>
+        </marker>
+        <marker id="arrowNeg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#dc2626"/>
+        </marker>
+      </defs>
+      <g id="world">
+        <g id="edgeLayer"></g>
+        <g id="nodeLayer"></g>
+      </g>
+    </svg>
+    <div class="docHandle" id="docHandle" title="About this map"><span class="dot"></span>Profit Cause Map · v1.0</div>
+  </div>
+  <aside id="sidebar"></aside>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>
