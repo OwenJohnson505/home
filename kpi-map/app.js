@@ -1,26 +1,33 @@
 /* ============================================================================
-   Profit Cause Map — app.js (v1.0)
+   Profit Cause Map — app.js (v1.1)
    ----------------------------------------------------------------------------
    All logic for index.html. No dependencies, no build step, plain ES2020.
+
+   TWO VIEWS
+     Map          — the cause-and-effect web (drag, pan, zoom, edit, link)
+     Step by step — the same data read as a linear, plain-English story:
+                    chapters (CHAPTERS below) → cards in teaching order →
+                    each card lists what pushes it up / drags it down.
 
    DATA MODEL
      Node: { id, name, ws, kind, src, note, bench, x, y }
        ws    workspace: 'core' | 'shopify' | 'tiktok' | 'creators' | 'ops'
-       kind  'outcome' (top-line KPI) | 'driver' | 'cost' | 'health' (ratio + rule)
+       kind  'outcome' (a result) | 'driver' (a lever) | 'cost' | 'health'
+             (health = a ratio with a pass/fail rule — the check-ups)
        src   where the number comes from:
              'xero' | 'shopify' | 'tiktok' | 'meta' | 'derived' | 'manual'
-       bench optional benchmark/rule shown on the card (health cards mostly)
+       bench optional plain-English rule shown on the card
      Link: { id, from, to, sign, label }
        sign  '+' source pushes target the SAME direction (green solid)
              '-' source pushes target the OPPOSITE way (red dashed)
        Colour is direction of effect, NOT good/bad.
 
    The filled-out example lives in defaultGraph() below — edit it there, or
-   edit live in the UI (autosaves to localStorage under 'kpi-map-v1';
+   edit live in the UI (autosaves to localStorage under 'kpi-map-v2';
    "Reset example" restores defaultGraph()).
 
    EXTENDING (for future AI/dev sessions):
-     - Add a workspace: extend WS + add a filter chip in index.html.
+     - Add a workspace: extend WS + CHAPTERS + add a filter chip in index.html.
      - Add a data source: extend SRCS.
      - Wire live data: give nodes a `value` field and render it in the card
        (see render()); health cards could compare value vs bench rule.
@@ -28,14 +35,28 @@
 
 /* ================= data model ================= */
 const WS = {
-  core:{label:'Profit core', color:'var(--core)'},
+  core:{label:'Profit', color:'var(--core)'},
   shopify:{label:'Shopify', color:'var(--shopify)'},
   tiktok:{label:'TikTok', color:'var(--tiktok)'},
   creators:{label:'Creators & Staff', color:'var(--creators)'},
-  ops:{label:'COGS & Ops', color:'var(--ops)'},
+  ops:{label:'Product & Post', color:'var(--ops)'},
 };
-const KINDS = {outcome:'Outcome KPI', driver:'Driver', cost:'Cost', health:'Health check'};
-const SRCS = {xero:'Xero', shopify:'Shopify API', tiktok:'TikTok Shop API', meta:'Meta API', derived:'Derived (calc)', manual:'Manual'};
+const KINDS = {outcome:'Result', driver:'Lever', cost:'Cost', health:'Check-up'};
+const SRCS = {xero:'Xero', shopify:'Shopify', tiktok:'TikTok Shop', meta:'Meta Ads', derived:'Calculated', manual:'Manual'};
+
+/* chapter order + intro text for the step-by-step view */
+const CHAPTERS = [
+  {ws:'core', title:'Did we actually make money?',
+   story:'Start here every month, with one question: after every cost, how much did we keep? Everything further down this page exists only to explain this number.'},
+  {ws:'shopify', title:'Shop 1 — the website (Shopify)',
+   story:'Think of subscriptions as a bucket. New subscribers pour in at the top; cancellations leak out of the bottom. Ads fill the bucket — but only make sense if a subscriber ends up worth more than they cost to win.'},
+  {ws:'tiktok', title:'Shop 2 — TikTok',
+   story:'Videos bring views, views bring sales. But TikTok takes a cut of every sale and creators take commission — so £100 of TikTok sales is never £100 in the bank.'},
+  {ws:'creators', title:'The people who make the videos',
+   story:'Creators are paid two ways: a fixed monthly retainer, or commission on what they sell. The trap: retainers get paid whether or not the videos arrive. So never count videos — count what each video really cost.'},
+  {ws:'ops', title:'Making and posting the product',
+   story:'Every tub costs money to make, store and post before anyone sees profit. Margins in this industry are good — the quieter danger is cash locked up in stock.'},
+];
 
 const NODE_W = 176;
 function nodeH(n){ return n.bench ? 92 : 62; }
@@ -47,56 +68,55 @@ function defaultGraph(){
   return {
     nodes:[
       /* ---- profit core ---- */
-      N('net_profit','Net Profit','core','outcome','xero',1050,90,'The one number the whole map exists to explain. Pull monthly from Xero P&L — the bank feed means every cost is captured, including the ones the channel dashboards hide.'),
-      N('net_margin','Net Margin %','core','health','derived',1300,70,'Net profit ÷ revenue. Watch the TREND, not the number: revenue up + margin down = buying growth.','Supplements median op margin ~5%. Flag if falling 2 months running'),
-      N('cash','Cash Position / Runway','core','outcome','xero',1560,90,'Profit ≠ cash. Retainers and inventory are paid up-front; subscription revenue arrives monthly.'),
-      N('revenue','Total Revenue','core','outcome','xero',810,250,'Sum of both channels. Reconcile channel dashboards against Xero — payouts arrive net of fees.'),
-      N('total_costs','Total Costs','core','cost','xero',1290,250,'Every cost line feeds this. If a cost isn’t in Xero it isn’t in this number — which is why the bank feed matters.'),
-      N('channel_mix','Channel Mix %','core','health','derived',1050,420,'Share of revenue per channel. Looking good ≠ stable: growth concentrated in one channel is fragile.','Risk if one channel > 75% of revenue'),
+      N('net_profit','Money we keep (net profit)','core','outcome','xero',1050,90,'Sales minus every cost. This is the number the whole map explains. It comes from Xero, because the bank feed catches every cost — including the ones the Shopify and TikTok dashboards never show.'),
+      N('net_margin','Pence kept per £1 of sales','core','health','derived',1300,70,'Money kept ÷ money in. If sales grow but this shrinks, growth is costing more than it brings in.','Watch the trend: sales up but pence-per-£ down = buying growth'),
+      N('cash','Cash in the bank','core','outcome','xero',1560,90,'Profit and cash are not the same thing. Retainers and stock are paid up front; subscription money arrives bit by bit. You can be profitable on paper and still run out of cash.'),
+      N('revenue','Money in (all sales)','core','outcome','xero',810,250,'Both shops added together. Check it against Xero — the platforms pay out only after taking their cut.'),
+      N('total_costs','Money out (all costs)','core','cost','xero',1290,250,'Every cost line feeds this. If it is not in Xero, it is not counted — which is why the bank feed is the backbone of the whole system.'),
+      N('channel_mix','Are we leaning on one shop?','core','health','derived',1050,420,'A great month that all came from one place is fragile, not strong. Balanced is stable.','Warning if one shop is over 75% of sales'),
 
       /* ---- Shopify ---- */
-      N('shopify_rev','Shopify Revenue','shopify','outcome','shopify',330,250,'Subscriptions + one-off orders, net of refunds and discounts.'),
-      N('sub_rev','Subscription Revenue','shopify','driver','shopify',120,400,'The recurring base. Most valuable £ in the business — predictable and compounding.'),
-      N('oneoff_rev','One-off Orders','shopify','driver','shopify',400,400,'First purchases and gift orders. Mostly a feeder for subscriptions.'),
-      N('active_subs','Active Subscribers','shopify','driver','shopify',120,540,'The stock that subscription revenue flows from. New subs fill it; churn drains it.'),
-      N('aov','AOV / Avg Sub Value','shopify','driver','shopify',430,540,'Bundle size, flavour packs, upsells. Raising this lifts LTV without touching CAC.'),
-      N('churn','Subscriber Churn %','shopify','driver','shopify',60,700,'The silent killer of subscription economics. A 2-point churn rise can wipe out a great ad month.','Replenishment norm 5–8%/mo. Flag > 9%'),
-      N('new_subs','New Subscribers / mo','shopify','driver','shopify',300,700,'Mostly Meta-driven. Compare against churn: net subscriber growth is the real number.'),
-      N('discounts','Intro Discounts','shopify','driver','manual',520,780,'Lifts sign-ups but drags first-order margin and can attract deal-seekers who churn fast.'),
-      N('meta_spend','Meta Ad Spend','shopify','cost','meta',300,880,'Biggest discretionary cost on the Shopify side. Meta CPMs up ~89% since 2020 — efficiency, not spend, is the lever.'),
-      N('creative_perf','Creative Performance (CTR × CVR)','shopify','driver','meta',80,880,'Hook rate, CTR, landing CVR. Fatigued creative silently inflates CAC while spend looks flat.'),
-      N('cac','Blended CAC','shopify','health','derived',290,1030,'Total acquisition spend ÷ new customers. Blend Meta + agency + creative costs, not just ad spend.','DTC blended norm £60–120. Flag if rising 2 months running'),
-      N('ltv','Subscriber LTV','shopify','health','derived',60,1030,'Margin per order × orders per subscriber lifetime. Driven by churn and AOV, not by ads.','12-mo LTV consumables £100–240'),
-      N('ltv_cac','LTV : CAC','shopify','health','derived',170,1190,'THE Shopify health number. Below 3:1 you’re buying customers at a loss dressed up as growth.','Good ≥ 3:1 (cross-DTC median 3.4)'),
-      N('payback','CAC Payback (months)','shopify','health','derived',400,1190,'How long until a new subscriber repays their acquisition cost. Governs how fast you can safely scale spend.','Good < 6 months for subscription'),
+      N('shopify_rev','Shopify sales','shopify','outcome','shopify',330,250,'Subscriptions plus one-off orders, after refunds and discounts.'),
+      N('sub_rev','Subscription sales (repeat)','shopify','driver','shopify',120,400,'The most valuable money in the business — it repeats every month without new ad spend.'),
+      N('oneoff_rev','One-off orders','shopify','driver','shopify',400,400,'First-time and gift orders. Their real job is to turn buyers into subscribers.'),
+      N('active_subs','People currently subscribed','shopify','driver','shopify',120,540,'The water level in the bucket: new subscribers pour in, cancellations leak out.'),
+      N('aov','Average order size (£)','shopify','driver','shopify',430,540,'Bigger bundles and multi-flavour packs raise this. Raising it makes every other number work harder — without spending a penny more on ads.'),
+      N('churn','Cancellations each month (%)','shopify','driver','shopify',60,700,'The quiet killer of subscription businesses. A small rise here can wipe out a great month of ads.','Normal for products like this: 5–8% a month. Worry above 9%'),
+      N('new_subs','New subscribers each month','shopify','driver','shopify',300,700,'Mostly comes from ads. Always read next to cancellations — the real number is subscribers gained minus subscribers lost.'),
+      N('discounts','Intro discounts','shopify','driver','manual',520,780,'Gets more people to try, but cheapens the first order and can attract bargain-hunters who cancel fast.'),
+      N('meta_spend','Facebook & Instagram ad spend','shopify','cost','meta',300,880,'The biggest cost we choose on this side. Ad prices keep rising, so getting better at ads matters more than spending more on them.'),
+      N('creative_perf','Ad quality (do people click & buy?)','shopify','driver','meta',80,880,'When ads go stale, each new customer quietly gets more expensive — even though spend looks the same.'),
+      N('cac','Cost to win one customer','shopify','health','derived',290,1030,'Everything spent on winning customers ÷ customers won. Count agency and content costs too, not just the ads themselves.','Typical: £60–120. Worry if it rises two months running'),
+      N('ltv','What a subscriber is worth (lifetime)','shopify','health','derived',60,1030,'Profit per order × how many orders before they cancel. Cancellations and order size move this — ads do not.','Typical for products like this: £100–240 over a year'),
+      N('ltv_cac','Worth vs cost to win','shopify','health','derived',170,1190,'The single most important ads question. Below 3×, "growth" is really buying customers at a loss.','Healthy: a customer is worth at least 3× what they cost to win'),
+      N('payback','Months to earn the ad money back','shopify','health','derived',400,1190,'How long a new subscriber takes to repay what they cost to win. The shorter this is, the faster you can safely spend more.','Healthy: under 6 months'),
 
       /* ---- TikTok ---- */
-      N('tiktok_rev','TikTok Shop GMV','tiktok','outcome','tiktok',1810,250,'Gross merchandise value. Remember payouts arrive net — reconcile against Xero.'),
-      N('views','Views & Engagement','tiktok','driver','tiktok',2070,400,'Reach is rented, not owned. Views convert to GMV only through conversion % below.'),
-      N('tt_conv','Shop Conversion % & AOV','tiktok','driver','tiktok',2070,540,'Video → product page → checkout. Weak conversion means views are vanity.'),
-      N('videos','Videos Posted','tiktok','driver','tiktok',1810,540,'Volume matters on TikTok, but ONLY read this next to Cost per Video — 59 videos +9% is bad news if retainer spend doubled.'),
-      N('tt_fees','TikTok Fees (9% + ~2% txn)','tiktok','cost','tiktok',1570,400,'Flat 9% UK commission on net GMV since Sept 2024, plus transaction fees. Scales automatically with GMV — a cost you never sign off.'),
-      N('smart_promo','Smart Promotions (≤4.5% GMV)','tiktok','cost','tiktok',1570,540,'TikTok’s automated ads programme. Boosts GMV but takes up to 3.5–4.5% of store GMV.'),
-      N('aff_comm','Affiliate Commission Paid (10–20%)','tiktok','cost','tiktok',1930,690,'You set the rate. Higher rates attract more affiliates (good) and eat margin (bad) — the classic tension link.'),
-      N('samples','Product Samples / Gifting','tiktok','cost','xero',2180,690,'Free product to activate creators. Cheap per unit but real COGS — must land in Xero, not vanish.'),
+      N('tiktok_rev','TikTok Shop sales','tiktok','outcome','tiktok',1810,250,'Sales before TikTok takes its cut. The payout that lands in the bank is smaller — reconcile with Xero.'),
+      N('views','Video views','tiktok','driver','tiktok',2070,400,'Views are rented attention, not owned. They only matter if viewers buy.'),
+      N('tt_conv','Do viewers actually buy? (%)','tiktok','driver','tiktok',2070,540,'Video → product page → checkout. If this is weak, big view numbers are just vanity.'),
+      N('videos','Videos posted','tiktok','driver','tiktok',1810,540,'More videos usually means more sales — but never read this number alone. Read it with "what each video really costs".'),
+      N('tt_fees','TikTok’s cut (~11%)','tiktok','cost','tiktok',1570,400,'9% commission plus card fees on every sale, and optional TikTok ad programmes on top. It grows automatically as sales grow — a cost nobody ever signs off.'),
+      N('aff_comm','Commission paid to creators (10–20%)','tiktok','cost','tiktok',1930,690,'We set the rate. Higher commission attracts more creators (good) and eats margin (bad) — a negative in one place that is a positive in another.'),
+      N('samples','Free product sent to creators','tiktok','cost','xero',2180,690,'Cheap per unit, but it is real product and real money — it must be recorded, not vanish.'),
 
       /* ---- creators & staff ---- */
-      N('active_creators','Active Creators','creators','driver','tiktok',1930,860,'Creators who actually posted this month, not signed roster size.'),
-      N('new_creators','New Creators Recruited / mo','creators','driver','manual',2180,860,'The pipeline. If this stalls, next quarter’s GMV is already decided.'),
-      N('retainers','Creator Retainers (£/mo)','creators','cost','xero',1660,860,'Guaranteed monthly payments for contracted video volume. Fixed cost — it doesn’t flex down when output drops.'),
-      N('staff_cost','Staff Costs (payroll)','creators','cost','xero',1420,860,'Creator managers, ops. More managers → more creators handled well.'),
-      N('cost_per_video','Cost per Video (retainers ÷ videos)','creators','health','derived',1660,1030,'THE expectation metric. "59 videos, up 9%" means nothing alone — if retainer spend rose 100%, that +9% is actually a failure.','UGC norm £25–120/video. Flag if rising while output is flat'),
-      N('delivery','Retainer Delivery %','creators','health','derived',1420,1030,'Videos delivered ÷ videos contracted, per creator. Catches creators being paid for work not done.','Good ≥ 90% of contracted volume'),
-      N('rev_per_creator','GMV per Creator','creators','health','derived',1930,1030,'Sorted descending, this is your commission-vs-retainer decision list: who earns a retainer, who stays commission-only.','Compare vs. creator’s total cost (retainer + commission + samples)'),
-      N('concentration','Top-Creator Concentration','creators','health','derived',2180,1030,'Profit up 100% looks great — but if 80% came from one creator, the business is one falling-out away from a bad quarter. Stability, not just performance.','Risk if top creator > 30% of GMV'),
-      N('mgr_capacity','Creators per Manager','creators','health','derived',1420,1190,'Relationship quality drops when managers are overloaded — shows up later as delivery % and churn of creators.','~25–40 active creators per manager'),
+      N('active_creators','Creators who posted this month','creators','driver','tiktok',1930,860,'Only count creators who actually posted — not everyone we have ever signed.'),
+      N('new_creators','New creators joining','creators','driver','manual',2180,860,'The pipeline. If this dries up now, sales dry up next quarter.'),
+      N('retainers','Monthly retainers paid','creators','cost','xero',1660,860,'Fixed pay for promised videos. The catch: it does not shrink when the videos do not get made.'),
+      N('staff_cost','Staff wages','creators','cost','xero',1420,860,'The people who find and look after creators. More good managers → more creators looked after properly.'),
+      N('cost_per_video','What each video really costs','creators','health','derived',1660,1030,'Retainers ÷ videos posted. "59 videos, up 9%" sounds great — but if retainer spend doubled, each video cost far more than last month. This is the honest version of the video count.','Typical: £25–120 a video. Worry if this rises while videos don’t'),
+      N('delivery','Do we get the videos we pay for? (%)','creators','health','derived',1420,1030,'Videos delivered ÷ videos promised, per creator. Catches paying for work that never arrives.','Healthy: at least 90% of promised videos delivered'),
+      N('rev_per_creator','Sales each creator brings in','creators','health','derived',1930,1030,'Sort highest to lowest: this list decides who earns a retainer and who stays commission-only.','Compare against what that creator costs in total'),
+      N('concentration','How much rests on one creator?','creators','health','derived',2180,1030,'Profit up 100% looks great — but if 80% of it came from one person, one falling-out ruins a quarter. Strong and stable are different things.','Warning if one creator drives over 30% of TikTok sales'),
+      N('mgr_capacity','Creators per staff member','creators','health','derived',1420,1190,'Overloaded managers → neglected creators → missed videos later. This predicts problems before they show up.','Roughly 25–40 creators each is manageable'),
 
-      /* ---- COGS & ops ---- */
-      N('cogs','COGS per Unit','ops','cost','xero',700,960,'Formula, sachets/tub, co-packer fee, inbound freight, duties. Renegotiate at volume tiers.','Contract mfg $3–8/unit typical for £25–60 retail'),
-      N('inventory','Inventory / MOQ Cash Tied Up','ops','cost','xero',480,960,'Co-packer minimum order quantities lock cash in stock. Growth in orders = bigger MOQs = cash squeeze even while profitable.'),
-      N('fulfilment','Pick, Pack & Postage','ops','cost','xero',700,1130,'Per-order cost. Subscription orders batch predictably — cheaper than one-offs.'),
-      N('gross_margin','Gross Margin %','ops','health','derived',940,880,'(Revenue − COGS) ÷ revenue. Table stakes: the game is won or lost further down, at contribution.','Supplements norm 65–80%'),
-      N('contribution','Contribution Margin %','ops','health','derived',950,1060,'Margin after COGS, fulfilment, fees AND acquisition cost. The real "are we making money per order" number.','Healthy 35–60%. Below 30% won’t scale'),
+      /* ---- product & post ---- */
+      N('cogs','Cost to make one unit','ops','cost','xero',700,960,'Powder, sachets or tub, factory fee, shipping it in. Gets cheaper per unit as orders grow — worth renegotiating at volume.','Typical: £3–7 a unit for a £25–60 product'),
+      N('inventory','Cash sitting in stock','ops','cost','xero',480,960,'Factories make you order big batches. Growing sales means bigger batches — cash gets locked in boxes even while the business is profitable.'),
+      N('fulfilment','Cost to pack & post an order','ops','cost','xero',700,1130,'Every order pays this. Subscription orders are predictable, so they are cheaper to handle than one-offs.'),
+      N('gross_margin','Profit after making the product (%)','ops','health','derived',940,880,'What is left after the product itself is paid for. Good in this industry — the real fight is lower down, after ads and fees.','Normal for supplements: 65–80%'),
+      N('contribution','Profit on a typical order, after everything','ops','health','derived',950,1060,'After product, postage, platform fees AND the cost of winning the customer. The truest "are we making money per order" number.','Healthy: 35–60p kept per £1. Under 30p, growth won’t pay'),
     ],
     links:[
       /* core */
@@ -116,39 +136,39 @@ function defaultGraph(){
       L('cac','payback','+'), L('aov','payback','-'),
       /* tiktok chain */
       L('videos','views','+'), L('views','tiktok_rev','+'), L('tt_conv','tiktok_rev','+'),
-      L('tiktok_rev','tt_fees','+','scales with GMV'), L('tt_fees','total_costs','+'),
-      L('smart_promo','tiktok_rev','+'), L('smart_promo','total_costs','+'),
+      L('tiktok_rev','tt_fees','+','grows with sales'), L('tt_fees','total_costs','+'),
       L('tiktok_rev','aff_comm','+'), L('aff_comm','total_costs','+'),
       L('aff_comm','active_creators','+','higher rate attracts'),
       L('samples','active_creators','+'), L('samples','total_costs','+'),
       /* creators */
       L('active_creators','videos','+'), L('new_creators','active_creators','+'),
-      L('retainers','videos','+','contracted volume'), L('retainers','total_costs','+'),
-      L('staff_cost','active_creators','+','managed well'), L('staff_cost','total_costs','+'),
+      L('retainers','videos','+','promised volume'), L('retainers','total_costs','+'),
+      L('staff_cost','active_creators','+','looked after'), L('staff_cost','total_costs','+'),
       L('retainers','cost_per_video','+'), L('videos','cost_per_video','-'),
       L('videos','delivery','+'),
       L('tiktok_rev','rev_per_creator','+'), L('active_creators','rev_per_creator','-'),
-      L('tiktok_rev','concentration','+','per-creator split'),
+      L('tiktok_rev','concentration','+','split per creator'),
       L('active_creators','mgr_capacity','+'), L('staff_cost','mgr_capacity','-'),
       L('mgr_capacity','delivery','-','overload hurts'),
-      /* ops */
+      /* product & post */
       L('cogs','gross_margin','-'), L('aov','gross_margin','+'),
       L('cogs','total_costs','+'), L('fulfilment','total_costs','+'),
       L('gross_margin','contribution','+'), L('fulfilment','contribution','-'),
       L('cac','contribution','-'), L('tt_fees','contribution','-'), L('aff_comm','contribution','-'),
-      L('inventory','cash','-','MOQ ties cash'),
+      L('inventory','cash','-','batches lock cash'),
       L('discounts','gross_margin','-'),
     ],
   };
 }
 
 /* ================= state ================= */
-const STORE_KEY = 'kpi-map-v1';
+const STORE_KEY = 'kpi-map-v2';
 let state = load();
 let view = {x:0, y:0, s:1};
 let sel = null;            // {type:'node'|'link', id}
 let filter = 'all';
 let linkMode = false, pendingFrom = null;
+let viewMode = 'map';      // 'map' | 'linear'
 let idSeq = Date.now();
 
 function load(){
@@ -163,7 +183,7 @@ function save(){ clearTimeout(saveT); saveT = setTimeout(()=>localStorage.setIte
 function node(id){ return state.nodes.find(n=>n.id===id); }
 function link(id){ return state.links.find(l=>l.id===id); }
 
-/* ================= rendering ================= */
+/* ================= rendering (map) ================= */
 const svg = document.getElementById('svg');
 const world = document.getElementById('world');
 const edgeLayer = document.getElementById('edgeLayer');
@@ -252,7 +272,7 @@ function render(){
     div.style.setProperty('--acc', (WS[n.ws]||{color:'#999'}).color);
     div.style.height = nodeH(n)+'px';
     div.innerHTML = `<div class="nName">${esc(n.name)}</div>
-      <div class="nMeta"><span class="tag kind-${n.kind}">${n.kind==='health'?'★ health':esc(KINDS[n.kind]||n.kind)}</span><span class="tag src">${esc(SRCS[n.src]||n.src)}</span></div>`
+      <div class="nMeta"><span class="tag kind-${n.kind}">${n.kind==='health'?'★ check':esc(KINDS[n.kind]||n.kind)}</span><span class="tag src">${esc(SRCS[n.src]||n.src)}</span></div>`
       + (n.bench ? `<div class="nBench">${esc(n.bench)}</div>` : '');
     fo.append(div);
     g.append(fo);
@@ -261,10 +281,106 @@ function render(){
   }
   applyView();
   renderSidebar();
+  if(viewMode==='linear') renderLinear();
 }
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-/* ================= interactions ================= */
+/* ================= rendering (step-by-step) ================= */
+const linearView = document.getElementById('linearView');
+const KIND_ORDER = {outcome:0, driver:1, cost:2, health:3};
+
+function linChips(label, cls, items){
+  if(!items.length) return '';
+  return `<div class="linChips"><span class="cLab ${cls}">${label}</span>`
+    + items.map(n=>`<button class="linkChip" data-jump="${n.id}">${esc(n.name)}</button>`).join('')
+    + `</div>`;
+}
+
+function linCard(n){
+  const ups = state.links.filter(l=>l.to===n.id && l.sign==='+').map(l=>node(l.from)).filter(Boolean);
+  const downs = state.links.filter(l=>l.to===n.id && l.sign==='-').map(l=>node(l.from)).filter(Boolean);
+  const outs = state.links.filter(l=>l.from===n.id).map(l=>node(l.to)).filter(Boolean);
+  return `<div class="linCard${n.kind==='health'?' health':''}" id="lin_${n.id}" style="--acc:${(WS[n.ws]||{color:'#999'}).color}">
+    <div class="linTop">
+      <div class="linName">${esc(n.name)}</div>
+      <div class="linTags"><span class="tag kind-${n.kind}">${n.kind==='health'?'★ check':esc(KINDS[n.kind]||n.kind)}</span><span class="tag src">${esc(SRCS[n.src]||n.src)}</span><button class="mapJump" data-map="${n.id}">Map ↗</button></div>
+    </div>
+    ${n.note ? `<div class="linNote">${esc(n.note)}</div>` : ''}
+    ${n.bench ? `<div class="linBench">Rule of thumb: ${esc(n.bench)}</div>` : ''}
+    ${linChips('⬆ Pushed up by','up',ups)}
+    ${linChips('⬇ Dragged down by','down',downs)}
+    ${linChips('→ Feeds into','out',outs)}
+  </div>`;
+}
+
+function renderLinear(){
+  let html = `<div class="linWrap">
+    <div class="linIntro">
+      <h2>How this business makes (or loses) money</h2>
+      <p>Read top to bottom — one question at a time: did we keep money, where did it come from, what did it cost, and what should we check every month. Each card is one number worth tracking; under it you can see, in words, what pushes it up and what drags it down. Click any name to jump to it, or "Map ↗" to see it in the full picture.</p>
+    </div>`;
+  let chNum = 0;
+  for(const ch of CHAPTERS){
+    const ns = state.nodes.filter(n=>n.ws===ch.ws)
+      .sort((a,b)=>(KIND_ORDER[a.kind]-KIND_ORDER[b.kind]) || (a.y-b.y) || (a.x-b.x));
+    if(!ns.length) continue;
+    chNum++;
+    html += `<div class="chHead"><div class="chNum">${chNum}</div><h2>${esc(ch.title)}</h2></div>
+      <p class="chStory">${esc(ch.story)}</p>`
+      + ns.map(linCard).join('');
+  }
+  /* final recap: every check-up in one place */
+  const checks = [];
+  for(const ch of CHAPTERS){
+    for(const n of state.nodes.filter(n=>n.ws===ch.ws && n.kind==='health')
+      .sort((a,b)=>(a.y-b.y)||(a.x-b.x))) checks.push(n);
+  }
+  if(checks.length){
+    chNum++;
+    html += `<div class="chHead"><div class="chNum">${chNum}</div><h2>The monthly check-up</h2></div>
+      <p class="chStory">All the check questions in one place. Raw numbers brag; these ratios tell the truth. If they all pass, the business isn’t just doing well — it’s stable.</p>`
+      + checks.map(n=>`<button class="checkRow" data-jump="${n.id}"><b>${esc(n.name)}</b><span>${esc(n.bench||'')}</span></button>`).join('');
+  }
+  html += `</div>`;
+  linearView.innerHTML = html;
+
+  linearView.querySelectorAll('[data-jump]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const t = document.getElementById('lin_'+el.dataset.jump);
+      if(!t) return;
+      t.scrollIntoView({behavior:'smooth', block:'center'});
+      t.classList.add('flash');
+      setTimeout(()=>t.classList.remove('flash'), 1200);
+    });
+  });
+  linearView.querySelectorAll('[data-map]').forEach(el=>{
+    el.addEventListener('click', e=>{ e.stopPropagation(); showOnMap(el.dataset.map); });
+  });
+}
+
+/* ================= view switching ================= */
+function setViewMode(mode){
+  viewMode = mode;
+  document.body.classList.toggle('linear', mode==='linear');
+  document.getElementById('viewMapBtn').classList.toggle('on', mode==='map');
+  document.getElementById('viewLinearBtn').classList.toggle('on', mode==='linear');
+  if(mode==='linear'){ setLinkMode(false); renderLinear(); }
+}
+document.getElementById('viewMapBtn').onclick = ()=> setViewMode('map');
+document.getElementById('viewLinearBtn').onclick = ()=> setViewMode('linear');
+
+function showOnMap(id){
+  const n = node(id); if(!n) return;
+  setViewMode('map');
+  sel = {type:'node', id};
+  const r = wrap.getBoundingClientRect();
+  view.s = Math.max(view.s, 0.85);
+  view.x = r.width/2 - (n.x + NODE_W/2)*view.s;
+  view.y = r.height/2 - (n.y + nodeH(n)/2)*view.s;
+  render();
+}
+
+/* ================= interactions (map) ================= */
 function toWorld(e){
   const r = wrap.getBoundingClientRect();
   return {x:(e.clientX - r.left - view.x)/view.s, y:(e.clientY - r.top - view.y)/view.s};
@@ -330,14 +446,14 @@ wrap.addEventListener('dblclick', e=>{
 document.addEventListener('keydown', e=>{
   if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
   if(e.key==='Escape'){ pendingFrom=null; setLinkMode(false); select(null); }
-  if((e.key==='Delete' || e.key==='Backspace') && sel){ deleteSelection(); }
+  if((e.key==='Delete' || e.key==='Backspace') && sel && viewMode==='map'){ deleteSelection(); }
 });
 
 /* ================= actions ================= */
 function select(type, id){ sel = type ? {type, id} : null; render(); }
 
 function addNode(x, y){
-  const n = {id:'n'+(idSeq++), name:'New metric', ws: filter!=='all' && filter!=='health' ? filter : 'core',
+  const n = {id:'n'+(idSeq++), name:'New number', ws: filter!=='all' && filter!=='health' ? filter : 'core',
              kind:'driver', src:'manual', note:'', bench:'', x:Math.round(x), y:Math.round(y)};
   state.nodes.push(n); save(); select('node', n.id);
   setTimeout(()=>{ const i = document.getElementById('f_name'); if(i){ i.focus(); i.select(); } }, 30);
@@ -364,11 +480,12 @@ function setLinkMode(on){
 
 function fitView(){
   if(!state.nodes.length) return;
+  const r = wrap.getBoundingClientRect();
+  if(!r.width || !r.height) return; // canvas hidden (step-by-step view)
   const xs = state.nodes.map(n=>n.x), ys = state.nodes.map(n=>n.y);
   const x2 = state.nodes.map(n=>n.x+NODE_W), y2 = state.nodes.map(n=>n.y+nodeH(n));
   const bx = Math.min(...xs)-40, by = Math.min(...ys)-40;
   const bw = Math.max(...x2)-bx+40, bh = Math.max(...y2)-by+40;
-  const r = wrap.getBoundingClientRect();
   view.s = Math.min(r.width/bw, r.height/bh, 1.15);
   view.x = (r.width - bw*view.s)/2 - bx*view.s;
   view.y = (r.height - bh*view.s)/2 - by*view.s;
@@ -387,14 +504,14 @@ function renderSidebar(){
 function renderNodeEditor(n){
   if(!n){ sel=null; renderHelp(); return; }
   sidebar.innerHTML = `
-    <h2>Edit metric</h2>
+    <h2>Edit this number</h2>
     <div class="field"><label>Name</label><input id="f_name" value="${esc(n.name)}"></div>
     <div class="row2">
-      <div class="field"><label>Workspace</label><select id="f_ws">${Object.entries(WS).map(([k,v])=>`<option value="${k}" ${n.ws===k?'selected':''}>${v.label}</option>`).join('')}</select></div>
+      <div class="field"><label>Group</label><select id="f_ws">${Object.entries(WS).map(([k,v])=>`<option value="${k}" ${n.ws===k?'selected':''}>${v.label}</option>`).join('')}</select></div>
       <div class="field"><label>Type</label><select id="f_kind">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}" ${n.kind===k?'selected':''}>${v}</option>`).join('')}</select></div>
     </div>
-    <div class="field"><label>Data source</label><select id="f_src">${Object.entries(SRCS).map(([k,v])=>`<option value="${k}" ${n.src===k?'selected':''}>${v}</option>`).join('')}</select></div>
-    <div class="field"><label>Benchmark / rule (shown on card)</label><input id="f_bench" value="${esc(n.bench||'')}" placeholder="e.g. Good ≥ 3:1"></div>
+    <div class="field"><label>Where the number comes from</label><select id="f_src">${Object.entries(SRCS).map(([k,v])=>`<option value="${k}" ${n.src===k?'selected':''}>${v}</option>`).join('')}</select></div>
+    <div class="field"><label>Rule of thumb (shown on card)</label><input id="f_bench" value="${esc(n.bench||'')}" placeholder="e.g. Healthy: under 6 months"></div>
     <div class="field"><label>Notes</label><textarea id="f_note">${esc(n.note||'')}</textarea></div>
     <div class="sideBtns">
       <button class="btn" id="f_linkfrom">⤳ Link from this</button>
@@ -412,8 +529,8 @@ function renderNodeEditor(n){
   const ins = state.links.filter(l=>l.to===n.id).map(l=>`<li>${l.sign==='+'?'🟢':'🔴'} ← <b>${esc((node(l.from)||{}).name||'?')}</b></li>`);
   const outs = state.links.filter(l=>l.from===n.id).map(l=>`<li>${l.sign==='+'?'🟢':'🔴'} → <b>${esc((node(l.to)||{}).name||'?')}</b></li>`);
   document.getElementById('f_conns').innerHTML =
-    (ins.length? `<ul>${ins.join('')}</ul>`:'<p style="margin-bottom:6px">No inputs.</p>') +
-    (outs.length? `<ul>${outs.join('')}</ul>`:'<p>No outputs.</p>');
+    (ins.length? `<ul>${ins.join('')}</ul>`:'<p style="margin-bottom:6px">Nothing feeds this yet.</p>') +
+    (outs.length? `<ul>${outs.join('')}</ul>`:'<p>This feeds nothing yet.</p>');
 }
 
 function renderLinkEditor(l){
@@ -422,18 +539,18 @@ function renderLinkEditor(l){
   sidebar.innerHTML = `
     <h2>Edit link</h2>
     <div class="fromTo"><b>${esc(a?a.name:'?')}</b><br>↓<br><b>${esc(b?b.name:'?')}</b></div>
-    <div class="field"><label>Effect direction</label>
+    <div class="field"><label>When the top one goes up…</label>
       <div class="signToggle">
-        <button id="f_pos" class="pos ${l.sign==='+'?'on':''}">+ same direction</button>
-        <button id="f_neg" class="neg ${l.sign==='-'?'on':''}">− inverse</button>
+        <button id="f_pos" class="pos ${l.sign==='+'?'on':''}">…this goes up too</button>
+        <button id="f_neg" class="neg ${l.sign==='-'?'on':''}">…this goes down</button>
       </div>
     </div>
-    <div class="field"><label>Label (optional)</label><input id="f_label" value="${esc(l.label||'')}" placeholder="e.g. scales with GMV"></div>
+    <div class="field"><label>Label (optional)</label><input id="f_label" value="${esc(l.label||'')}" placeholder="e.g. grows with sales"></div>
     <div class="sideBtns">
       <button class="btn" id="f_flip">⇄ Reverse arrow</button>
       <button class="btn danger" id="f_del">Delete link</button>
     </div>
-    <div class="help" style="margin-top:14px">🟢 <b>+</b> means the source pushes the target the <b>same way</b> (more spend → more cost). 🔴 <b>−</b> means inverse (more churn → fewer subscribers). Colour is direction, not good/bad.</div>`;
+    <div class="help" style="margin-top:14px">🟢 solid = they move <b>together</b> (more ad spend → more cost). 🔴 dashed = they move <b>opposite ways</b> (more cancellations → fewer subscribers). Colour shows direction, not good or bad.</div>`;
   document.getElementById('f_pos').onclick = ()=>{ l.sign='+'; save(); render(); };
   document.getElementById('f_neg').onclick = ()=>{ l.sign='-'; save(); render(); };
   document.getElementById('f_label').addEventListener('input', e=>{ l.label=e.target.value; save(); });
@@ -448,26 +565,27 @@ function renderHelp(){
   sidebar.innerHTML = `
     <h2>How to read this map</h2>
     <div class="help">
-      Every card is a number the system should track. Arrows show <b>cause</b>:
+      Every card is a number worth tracking. Arrows show <b>cause</b>:
       <div style="margin:8px 0">
-        <div class="legendRow"><div class="lineSw"></div> <b>+</b>&nbsp;pushes target the same direction</div>
-        <div class="legendRow"><div class="lineSw neg"></div> <b>−</b>&nbsp;pushes target the opposite way</div>
+        <div class="legendRow"><div class="lineSw"></div> they move <b>together</b></div>
+        <div class="legendRow"><div class="lineSw neg"></div> they move <b>opposite ways</b></div>
       </div>
-      Colour = direction of effect, <b>not</b> good/bad — "Meta spend → Total costs" is green because more spend means more cost.
+      Colour shows direction, <b>not</b> good or bad — "ad spend → money out" is green because more spend really does mean more cost.
+      <p style="margin-top:8px">New to this? Switch to <b>☰ Step by step</b> at the top — same content, read like a story.</p>
     </div>
-    <div class="callout"><b>★ Health checks are the point.</b> Raw counts lie: "59 videos, up 9%" is a failure if retainer spend doubled. Every amber card is a <b>ratio with a rule</b> — a raw metric divided by what it cost or what it depends on. These are what the app should surface first.</div>
-    <h3>Workspaces</h3>
+    <div class="callout"><b>★ The check-ups are the point.</b> Raw numbers brag: "59 videos, up 9%" sounds great — until you learn retainer spend doubled. Every amber card divides a raw number by what it cost, and comes with a rule of thumb. These are what the app should show first.</div>
+    <h3>Groups</h3>
     ${Object.entries(WS).map(([k,v])=>`<div class="legendRow"><div class="swatch" style="background:${v.color}"></div>${v.label}</div>`).join('')}
-    <h3>Where the data comes from</h3>
+    <h3>Where the numbers come from</h3>
     <div class="srcCounts">${Object.entries(SRCS).map(([k,v])=>`${v}: <b>${counts[k]||0}</b>`).join(' &nbsp;·&nbsp; ')}</div>
-    <div class="help" style="margin-top:6px">This list <i>is</i> the integration spec: connect these sources and every card on the map is computable. Xero is the backbone — the bank feed catches every cost the channel dashboards hide.</div>
+    <div class="help" style="margin-top:6px">This list <i>is</i> the shopping list for the app: connect these sources and every card becomes a live number. Xero is the backbone — the bank feed catches every cost the platform dashboards hide.</div>
     <h3>Editing</h3>
     <div class="help"><ul>
-      <li><b>Drag</b> cards to move, drag background to pan, scroll to zoom</li>
-      <li><b>Double-click</b> empty space (or + Node) to add a metric</li>
-      <li><b>⤳ Link mode</b>: click source card, then target card</li>
+      <li><b>Drag</b> cards to move, drag the background to pan, scroll to zoom</li>
+      <li><b>Double-click</b> empty space (or + Card) to add a number</li>
+      <li><b>⤳ Link mode</b>: click the cause, then the effect</li>
       <li>Click a card or arrow to edit it here; <span class="kbd">Del</span> removes it</li>
-      <li>Changes autosave in this browser. <b>Export</b> to share the JSON</li>
+      <li>Changes save automatically in this browser. <b>Export</b> to share</li>
     </ul></div>`;
 }
 
@@ -509,7 +627,7 @@ document.querySelectorAll('#filterChips .chip').forEach(ch=>{
     render();
   });
 });
-/* document handle → open the help/about panel */
+/* document handle → open the help/about panel (map view) */
 document.getElementById('docHandle').onclick = ()=> select(null);
 
 /* ================= boot ================= */

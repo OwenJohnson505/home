@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <!--
-  Profit Cause Map — v1.0
+  Profit Cause Map — v1.1
   ─────────────────────────────────────────────────────────────────────────
   A self-contained, dependency-free KPI cause-mapping tool for an
   e-commerce brand (Shopify subscriptions + TikTok Shop creators).
+
+  Two views:
+    Map          — the full cause-and-effect web (drag, link, edit)
+    Step by step — the same content as a linear, plain-English story
 
   Files:
     index.html  — markup + styles (this file)
@@ -33,6 +37,9 @@
   header{background:var(--panel); border-bottom:1px solid var(--line); padding:10px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; z-index:10;}
   header h1{font-size:15px; font-weight:700; letter-spacing:-.01em; white-space:nowrap;}
   header h1 span{color:var(--ink2); font-weight:500;}
+  .viewToggle{display:flex; background:#f2f2f4; border-radius:9px; padding:3px; gap:2px;}
+  .viewToggle button{border:0; background:transparent; font:inherit; font-size:12px; font-weight:600; color:var(--ink2); padding:5px 12px; border-radius:7px; cursor:pointer;}
+  .viewToggle button.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,.12);}
   .chips{display:flex; gap:6px; flex-wrap:wrap;}
   .chip{border:1px solid var(--line); background:#fff; color:var(--ink2); font-size:12px; font-weight:600; padding:5px 11px; border-radius:99px; cursor:pointer; user-select:none; transition:all .12s;}
   .chip:hover{border-color:#c7c7cc;}
@@ -49,6 +56,7 @@
   .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink);}
   .btn.primary:hover{background:#333;}
   .btn.linking{background:var(--pos); color:#fff; border-color:var(--pos);}
+  body.linear .chips, body.linear #addNodeBtn, body.linear #linkBtn, body.linear #fitBtn{display:none;}
 
   /* ---------- layout ---------- */
   main{flex:1; display:flex; min-height:0;}
@@ -56,6 +64,8 @@
     radial-gradient(circle at 1px 1px, #d9d9de 1px, transparent 0) 0 0/26px 26px, var(--bg);}
   #canvasWrap.linkmode{cursor:crosshair;}
   svg{position:absolute; inset:0; width:100%; height:100%;}
+  body.linear #canvasWrap{display:none;}
+  body.linear aside{display:none;}
 
   /* ---------- document handle ---------- */
   .docHandle{position:absolute; left:12px; bottom:12px; background:#fff; border:1px solid var(--line); border-radius:99px; padding:6px 13px; font-size:11.5px; font-weight:700; color:var(--ink2); box-shadow:0 2px 8px rgba(0,0,0,.08); cursor:pointer; display:flex; gap:7px; align-items:center; user-select:none; z-index:5; transition:all .12s;}
@@ -95,6 +105,39 @@
   .signBadge.neg text{fill:var(--neg);}
   .edgeLabel{font-size:10px; font-weight:600; fill:var(--ink2); text-anchor:middle; pointer-events:none;}
 
+  /* ---------- linear (step-by-step) view ---------- */
+  #linearView{flex:1; overflow-y:auto; display:none; background:var(--bg);}
+  body.linear #linearView{display:block;}
+  .linWrap{max-width:740px; margin:0 auto; padding:32px 20px 90px;}
+  .linIntro h2{font-size:20px; letter-spacing:-.02em;}
+  .linIntro p{font-size:13.5px; color:var(--ink2); margin-top:8px; line-height:1.6; max-width:58ch;}
+  .chHead{display:flex; align-items:center; gap:12px; margin:38px 0 6px;}
+  .chNum{width:26px; height:26px; border-radius:50%; background:var(--ink); color:#fff; font-size:13px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .chHead h2{font-size:16px; letter-spacing:-.01em;}
+  .chStory{font-size:13px; color:var(--ink2); line-height:1.6; margin:0 0 14px 38px; max-width:60ch;}
+  .linCard{background:#fff; border:1px solid var(--line); border-radius:10px; padding:13px 16px; margin:0 0 10px 38px; position:relative; overflow:hidden;}
+  .linCard::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--acc,#999);}
+  .linCard.health{background:var(--health-bg); border-color:#fde9c8;}
+  .linCard.flash{box-shadow:0 0 0 3px var(--ink);}
+  .linTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .linName{font-size:13.5px; font-weight:700; letter-spacing:-.01em;}
+  .linTags{display:flex; gap:4px; align-items:center; flex-shrink:0;}
+  .mapJump{border:1px solid var(--line); background:#fff; border-radius:6px; font-size:10px; font-weight:700; color:var(--ink2); padding:3px 7px; cursor:pointer; font-family:inherit;}
+  .mapJump:hover{color:var(--ink); border-color:#c7c7cc;}
+  .linNote{font-size:12.5px; color:var(--ink2); line-height:1.55; margin-top:5px; max-width:62ch;}
+  .linBench{font-size:11.5px; color:var(--health); font-weight:700; margin-top:6px;}
+  .linChips{display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin-top:8px;}
+  .cLab{font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-right:2px;}
+  .cLab.up{color:var(--pos);}
+  .cLab.down{color:var(--neg);}
+  .cLab.out{color:var(--ink2);}
+  .linkChip{border:1px solid var(--line); background:#fafafa; border-radius:99px; font-size:11px; font-weight:600; color:var(--ink); padding:3px 9px; cursor:pointer; font-family:inherit;}
+  .linkChip:hover{border-color:var(--ink);}
+  .checkRow{display:flex; justify-content:space-between; gap:14px; width:100%; text-align:left; background:#fff; border:1px solid var(--line); border-left:4px solid var(--health); border-radius:9px; padding:10px 14px; margin:0 0 8px 38px; font-size:12.5px; align-items:center; cursor:pointer; font-family:inherit;}
+  .checkRow:hover{border-color:var(--health);}
+  .checkRow b{flex-shrink:0;}
+  .checkRow span{color:var(--health); font-weight:600; font-size:11.5px; text-align:right;}
+
   /* ---------- sidebar ---------- */
   aside{width:308px; background:var(--panel); border-left:1px solid var(--line); overflow-y:auto; padding:16px; flex-shrink:0;}
   aside h2{font-size:13px; font-weight:700; margin-bottom:10px;}
@@ -132,18 +175,22 @@
 
 <header>
   <h1>Profit Cause Map <span>· Electrolyte brand — Shopify + TikTok</span></h1>
+  <div class="viewToggle">
+    <button id="viewMapBtn" class="on">🗺 Map</button>
+    <button id="viewLinearBtn">☰ Step by step</button>
+  </div>
   <div class="chips" id="filterChips">
     <div class="chip on" data-ws="all">All</div>
-    <div class="chip" data-ws="core">Profit core</div>
+    <div class="chip" data-ws="core">Profit</div>
     <div class="chip" data-ws="shopify">Shopify</div>
     <div class="chip" data-ws="tiktok">TikTok</div>
     <div class="chip" data-ws="creators">Creators &amp; Staff</div>
-    <div class="chip" data-ws="ops">COGS &amp; Ops</div>
-    <div class="chip" data-ws="health">★ Health checks</div>
+    <div class="chip" data-ws="ops">Product &amp; Post</div>
+    <div class="chip" data-ws="health">★ Check-ups</div>
   </div>
   <div class="spacer"></div>
   <div class="btns">
-    <button class="btn primary" id="addNodeBtn">+ Node</button>
+    <button class="btn primary" id="addNodeBtn">+ Card</button>
     <button class="btn" id="linkBtn">⤳ Link mode</button>
     <button class="btn" id="fitBtn">Fit</button>
     <button class="btn" id="exportBtn">Export</button>
@@ -169,8 +216,9 @@
         <g id="nodeLayer"></g>
       </g>
     </svg>
-    <div class="docHandle" id="docHandle" title="About this map"><span class="dot"></span>Profit Cause Map · v1.0</div>
+    <div class="docHandle" id="docHandle" title="About this map"><span class="dot"></span>Profit Cause Map · v1.1</div>
   </div>
+  <div id="linearView"></div>
   <aside id="sidebar"></aside>
 </main>
 

@@ -1,16 +1,27 @@
-# Profit Cause Map — v1.0
+# Profit Cause Map — v1.1
 
-An interactive cause-and-effect map of an e-commerce brand's KPIs
+An interactive cause-and-effect map of an e-commerce brand's numbers
 (Shopify subscriptions + Meta ads on one side, TikTok Shop + creators on the
 other), built to decide **what a management/monitoring app should track**
-before building it.
+before building it. Written in plain English — jargon only appears where
+it's worth learning.
 
-Every card is a metric with a **data source tag** (Xero / Shopify API /
-TikTok Shop API / Meta API / Derived / Manual). Every arrow is a causal link:
-green **+** pushes the target the same direction, red dashed **−** the
-opposite way. Amber **★ health check** cards are ratios with rules — the
-"expectation" metrics that catch things like *"59 videos, up 9%"* being a
-failure because retainer spend doubled.
+**Two views**, toggled at the top:
+
+- **🗺 Map** — the full cause-and-effect web: drag cards, draw links,
+  filter by group.
+- **☰ Step by step** — the same content as a linear story, for someone
+  seeing it for the first time: *did we make money → shop 1 → shop 2 →
+  the creators → the product → the monthly check-up*. Each card says in
+  words what pushes it up and drags it down, with jump-links and a
+  "Map ↗" button to see that number in the full picture.
+
+Every card has a **source tag** (Xero / Shopify / TikTok Shop / Meta Ads /
+Calculated / Manual). Every arrow is a causal link: green solid = they move
+together, red dashed = they move opposite ways. Amber **★ check-up** cards
+are ratios with a rule of thumb — the "expectation" metrics that catch
+things like *"59 videos, up 9%"* being a failure because retainer spend
+doubled.
 
 ## Run it
 
@@ -51,6 +62,6 @@ Then ask for whatever you want next, e.g.:
   turn them red/green against their benchmark rules"
 - "Turn the health checks into a summary alert panel"
 
-Your map edits live in the browser's localStorage (`kpi-map-v1`), so code
+Your map edits live in the browser's localStorage (`kpi-map-v2`), so code
 changes won't wipe them — but **Export** a JSON backup before big changes,
 and note the default in `defaultGraph()` only shows after **Reset example**.
