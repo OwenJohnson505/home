@@ -65,8 +65,9 @@ h1,h2,h3,h4,.dsp{font-family:'Sora',system-ui,sans-serif;letter-spacing:-.02em;l
 .tcard h4{color:#fff;font-size:18px;margin-bottom:9px}
 .tcard p{color:#aeb7c8;font-size:14px;line-height:1.55}
 
-.quote{border-left:4px solid var(--o2);padding:4px 0 4px 20px;font-family:'Sora';font-weight:600;
+.quote{position:relative;padding:26px 0 4px 0;font-family:'Sora';font-weight:600;
  font-size:20px;color:var(--navy);line-height:1.4}
+.quote::before{content:"\201C";position:absolute;top:-8px;left:-4px;font-family:Georgia,serif;font-weight:700;font-size:64px;line-height:1;color:var(--o2);opacity:.9}
 .page.dark .quote{color:#fff}
 .qby{font-family:'Figtree';font-weight:600;font-size:13.5px;color:var(--muted);margin-top:10px}
 
