@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cal | Same-Day Courier & Dedicated Logistics — Teched-Up, Service-Led</title>
+<meta name="description" content="Cal is a 24/7 same-day courier and dedicated logistics partner with a live customer portal, custom integrations and approval workflows. Same day, two-man white glove, international and haulage across the UK.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --ink:#0b0e15;--ink-2:#11151f;--slate:#39435a;--muted:#6b7488;--text:#1c2333;--line:#e9ecf2;--mist:#f6f7fa;--paper:#fff;
+ --o1:#ffc24b;--o2:#ff8a1e;--o3:#f0531c;
+ --grad:linear-gradient(103deg,var(--o1),var(--o2) 46%,var(--o3));
+ --grad-soft:linear-gradient(103deg,#fff4e2,#ffe8d0);
+ --radius:22px;--maxw:1200px;
+ --sh1:0 1px 2px rgba(11,14,21,.06),0 8px 20px -8px rgba(11,14,21,.18);
+ --sh2:0 2px 4px rgba(11,14,21,.05),0 24px 60px -22px rgba(11,14,21,.4);
+ --glow:0 18px 50px -14px rgba(240,83,28,.55);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--text);background:var(--paper);line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:hidden}
+h1,h2,h3,h4{font-family:'Sora',system-ui,sans-serif;line-height:1.08;letter-spacing:-.025em;text-wrap:balance;color:var(--ink)}
+p{text-wrap:pretty}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'Sora';font-weight:600;font-size:.8rem;letter-spacing:.02em;padding:7px 14px;border-radius:100px;background:var(--grad-soft);color:var(--o3);border:1px solid rgba(240,83,28,.16)}
+.eyebrow.dark{background:rgba(255,255,255,.06);color:var(--o1);border-color:rgba(255,180,80,.22)}
+.eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--o2);box-shadow:0 0 0 4px rgba(255,138,30,.2)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.55em;font-family:'Sora';font-weight:600;font-size:.98rem;padding:.9em 1.6em;border-radius:100px;border:1.5px solid transparent;cursor:pointer;transition:transform .12s cubic-bezier(.2,0,0,1),box-shadow .25s,background .25s,color .2s,border-color .2s}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:var(--grad);color:#fff;box-shadow:var(--glow)}
+.btn-primary:hover{box-shadow:0 22px 60px -12px rgba(240,83,28,.7);transform:translateY(-2px)}
+.btn-primary:active{transform:scale(.96)}
+.btn-dark{background:var(--ink);color:#fff}
+.btn-dark:hover{background:#1b2231;transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.2);color:#fff}
+.btn-ghost:hover{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.1)}
+.btn-light{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn-light:hover{border-color:var(--o2);color:var(--o3);transform:translateY(-2px)}
+
+/* NAV */
+.topbar{background:var(--ink);color:#aeb8ca;font-size:.82rem}
+.topbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:8px 24px;flex-wrap:wrap}
+.topbar a{color:#e7ecf3}.topbar a:hover{color:var(--o1)}.topbar .dot{opacity:.4;margin:0 9px}
+.topbar .live{display:inline-flex;align-items:center;gap:8px}
+.pulse{width:8px;height:8px;border-radius:50%;background:#3ad98a;animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(58,217,138,.5)}70%{box-shadow:0 0 0 9px rgba(58,217,138,0)}100%{box-shadow:0 0 0 0 rgba(58,217,138,0)}}
+header.nav{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.78);backdrop-filter:blur(16px) saturate(1.4);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 24px}
+.brandlogo img{height:46px;width:auto}
+nav.links{display:flex;align-items:center;gap:28px}
+nav.links a{font-weight:600;font-size:.95rem;color:var(--slate);transition:color .2s;position:relative}
+nav.links a:hover{color:var(--o3)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.burger{display:none;background:none;border:0;cursor:pointer;padding:8px;min-width:40px;min-height:40px}
+.burger span{display:block;width:24px;height:2.4px;background:var(--ink);border-radius:2px;margin:5px auto;transition:.25s}
+
+/* HERO */
+.hero{position:relative;background:var(--ink);color:#fff;overflow:hidden;isolation:isolate}
+.hero .aurora{position:absolute;inset:-20% -10% auto;height:900px;z-index:-1;filter:blur(60px);opacity:.9}
+.hero .b1{position:absolute;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(255,138,30,.65),transparent 62%);top:-160px;right:-60px;animation:float1 14s ease-in-out infinite}
+.hero .b2{position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(240,83,28,.55),transparent 60%);top:60px;left:-120px;animation:float2 18s ease-in-out infinite}
+.hero .b3{position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,194,75,.45),transparent 60%);top:-60px;left:44%;animation:float1 16s ease-in-out infinite reverse}
+@keyframes float1{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
+@keyframes float2{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,30px)}}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0);background-size:36px 36px;mask:linear-gradient(#000,transparent 80%)}
+.hero .wrap{display:grid;grid-template-columns:1.03fr .97fr;gap:52px;align-items:center;padding:70px 24px 96px}
+.hero h1{font-size:clamp(2.6rem,5.4vw,4.3rem);font-weight:800;color:#fff}
+.hero p.lead{font-size:1.18rem;color:#c3ccdd;max-width:34em;margin:22px 0 30px}
+.hero .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:28px}
+.hero .assured{display:flex;gap:20px;flex-wrap:wrap;color:#93a0b6;font-size:.9rem}
+.hero .assured .s{display:flex;align-items:center;gap:8px}
+.hero .assured svg{width:18px;height:18px;color:var(--o1)}
+
+/* portal mockup (pure CSS) */
+.mock{position:relative;border-radius:24px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));padding:10px;border:1px solid rgba(255,255,255,.14);box-shadow:var(--sh2);backdrop-filter:blur(6px)}
+.mock .win{background:#0e1320;border-radius:16px;overflow:hidden;outline:1px solid rgba(255,255,255,.06)}
+.mock .bar{display:flex;align-items:center;gap:7px;padding:12px 14px;background:#131a2a;border-bottom:1px solid rgba(255,255,255,.06)}
+.mock .bar i{width:11px;height:11px;border-radius:50%;background:#33405c;display:block}
+.mock .bar .t{margin-left:10px;font-size:.78rem;color:#8b97ad;font-family:'Sora'}
+.mock .bar .badge{margin-left:auto;font-size:.68rem;font-weight:700;color:#0b0e15;background:var(--o1);padding:3px 9px;border-radius:100px;font-family:'Sora';display:inline-flex;align-items:center;gap:5px}.mock .bar .badge::before{content:"";width:6px;height:6px;border-radius:50%;background:#0b0e15}
+.mock .body{padding:16px}
+.mock .row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);margin-bottom:9px;border:1px solid rgba(255,255,255,.05)}
+.mock .row .ico{width:34px;height:34px;border-radius:9px;background:var(--grad);display:grid;place-items:center;flex:none}
+.mock .row .ico svg{width:18px;height:18px;color:#fff}
+.mock .row .meta{flex:1;min-width:0}
+.mock .row .meta b{display:block;color:#eef2f8;font-size:.86rem;font-family:'Sora';font-weight:600}
+.mock .row .meta span{color:#8b97ad;font-size:.74rem}
+.mock .tag{font-size:.68rem;font-weight:700;padding:4px 10px;border-radius:100px;font-family:'Sora';white-space:nowrap;font-variant-numeric:tabular-nums}
+.tag.green{color:#3ad98a;background:rgba(58,217,138,.13)}
+.tag.amber{color:var(--o1);background:rgba(255,180,80,.14)}
+.tag.blue{color:#5aa9ff;background:rgba(90,169,255,.14)}
+.mock .qbar{display:flex;align-items:center;gap:10px;margin-top:4px;padding:12px;border-radius:12px;background:var(--grad)}
+.mock .qbar svg{width:18px;height:18px;color:#fff;flex:none}
+.mock .qbar b{color:#fff;font-family:'Sora';font-size:.86rem}
+.mock .qbar span{margin-left:auto;color:#fff;font-weight:700;font-family:'Sora';font-variant-numeric:tabular-nums}
+.mock .float{position:absolute;background:#fff;color:var(--ink);border-radius:14px;padding:11px 14px;box-shadow:var(--sh2);display:flex;align-items:center;gap:10px;font-size:.82rem;font-weight:600;font-family:'Sora'}
+.mock .float svg{width:20px;height:20px}
+.mock .f-approve{right:-18px;top:32%;animation:float1 9s ease-in-out infinite}
+.mock .f-eta{left:-22px;bottom:16%;animation:float2 11s ease-in-out infinite}
+
+/* MARQUEE */
+.marquee{background:var(--ink-2);color:#fff;padding:26px 0;overflow:hidden;border-top:1px solid rgba(255,255,255,.06);border-bottom:1px solid rgba(255,255,255,.06)}
+.marquee .lab{text-align:center;color:#7a869c;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;margin-bottom:18px}
+.mtrack{display:flex;gap:56px;width:max-content;animation:scroll 26s linear infinite;align-items:center}
+.mtrack:hover{animation-play-state:paused}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.mtrack span{font-family:'Sora';font-weight:700;font-size:1.15rem;color:#aeb8ca;white-space:nowrap;opacity:.7}
+.mtrack .sep{color:var(--o2);opacity:.9}
+
+/* SECTIONS */
+section{padding:92px 0}
+.sec-head{max-width:660px;margin:0 auto 52px;text-align:center}
+.sec-head h2{font-size:clamp(2rem,3.8vw,2.9rem);font-weight:800;margin-top:14px}
+.sec-head p{color:var(--muted);font-size:1.08rem;margin-top:16px}
+.sec-head.left{margin-left:0;text-align:left}
+
+/* DATA POINTS */
+.data{background:var(--mist)}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:22px}
+.stat{background:#fff;border-radius:var(--radius);padding:30px 26px;box-shadow:var(--sh1);position:relative;overflow:hidden}
+
+.stat .n{font-family:'Sora';font-weight:800;font-size:3rem;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.stat p{color:var(--slate);font-size:.95rem;margin-top:12px}
+.stat .src{color:#9aa4b6;font-size:.72rem;margin-top:10px}
+.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.proof{display:flex;gap:16px;align-items:flex-start;background:var(--ink);color:#fff;border-radius:var(--radius);padding:26px}
+.proof .ic{width:46px;height:46px;border-radius:12px;background:var(--grad);display:grid;place-items:center;flex:none}
+.proof .ic svg{width:24px;height:24px;color:#fff}
+.proof b{font-family:'Sora';font-size:1.05rem;display:block;margin-bottom:4px}
+.proof span{color:#a9b3c6;font-size:.9rem}
+.src-note{text-align:center;color:#9aa4b6;font-size:.78rem;margin-top:26px}
+
+/* BENTO SERVICES */
+.bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:200px;gap:18px}
+.tile{position:relative;border-radius:var(--radius);padding:28px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:var(--sh1);transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s;display:flex;flex-direction:column;justify-content:flex-end}
+.tile:hover{transform:translateY(-6px);box-shadow:var(--sh2)}
+.tile .ic{width:52px;height:52px;border-radius:14px;background:var(--grad-soft);display:grid;place-items:center;margin-bottom:auto;transition:background .3s}
+.tile:hover .ic{background:var(--grad)}
+.tile .ic svg{width:26px;height:26px;color:var(--o3);transition:color .3s}
+.tile:hover .ic svg{color:#fff}
+.tile h3{font-size:1.25rem;margin-bottom:6px}
+.tile p{color:var(--muted);font-size:.93rem}
+.tile.big{grid-column:span 2;grid-row:span 2;color:#fff;background:var(--ink);border:none}
+.tile.big::before{content:"";position:absolute;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,138,30,.5),transparent 62%);right:-120px;top:-120px;filter:blur(30px)}
+.tile.big .ic{background:rgba(255,255,255,.08)}.tile.big:hover .ic{background:var(--grad)}
+.tile.big .ic svg{color:var(--o1)}.tile.big:hover .ic svg{color:#fff}
+.tile.big h3{font-size:1.8rem;color:#fff}.tile.big p{color:#b4bdcf;font-size:1rem;max-width:26em}
+.tile.wide{grid-column:span 2}
+.tile .more{color:var(--o3);font-family:'Sora';font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:6px;margin-top:12px}
+.tile.big .more{color:var(--o1)}
+.tile .more svg{width:15px;height:15px;transition:transform .2s}.tile:hover .more svg{transform:translateX(4px)}
+
+/* TECH */
+.tech{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.tech::before{content:"";position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(240,83,28,.28),transparent 62%);left:-160px;bottom:-160px;filter:blur(50px)}
+.tech .sec-head h2{color:#fff}.tech .sec-head p{color:#a9b3c6}
+.tech-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:40px}
+.tcard{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.09);border-radius:var(--radius);padding:28px;transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s}
+.tcard:hover{transform:translateY(-5px);border-color:rgba(255,180,80,.4)}
+.tcard .ic{width:48px;height:48px;border-radius:12px;background:var(--grad);display:grid;place-items:center;margin-bottom:18px}
+.tcard .ic svg{width:24px;height:24px;color:#fff}
+.tcard h3{color:#fff;font-size:1.18rem;margin-bottom:8px}
+.tcard p{color:#a9b3c6;font-size:.93rem}
+.flow{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:30px}
+.flow .flab{font-family:'Sora';font-weight:600;color:#fff;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.flow .flab .eyebrow{margin:0}
+.flow-steps{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fstep{flex:1;min-width:130px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;text-align:center;position:relative}
+.fstep .num{width:30px;height:30px;border-radius:50%;background:var(--grad);color:#fff;font-family:'Sora';font-weight:700;font-size:.85rem;display:grid;place-items:center;margin:0 auto 10px}
+.fstep b{color:#fff;font-size:.92rem;font-family:'Sora';display:block}
+.fstep span{color:#8b97ad;font-size:.76rem}
+.farrow{color:var(--o2);flex:none}.farrow svg{width:22px;height:22px}
+.integrations{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:36px}
+.ipill{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:10px 18px;font-family:'Sora';font-weight:600;font-size:.9rem;color:#dfe5ef;transition:border-color .2s,transform .2s}
+.ipill:hover{border-color:rgba(255,180,80,.5);transform:translateY(-2px)}
+.ipill .d{width:8px;height:8px;border-radius:50%;background:var(--o2)}
+
+/* COMPARE */
+.cmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:0 auto}
+.cmp{border-radius:var(--radius);padding:32px}
+.cmp.us{background:var(--grad);color:#fff;box-shadow:var(--glow)}
+.cmp.them{background:#fff;border:1px solid var(--line);box-shadow:var(--sh1)}
+.cmp h3{font-size:1.2rem;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+.cmp.us h3{color:#fff}.cmp .tag2{font-size:.78rem;font-weight:600;display:block;margin-bottom:20px}
+.cmp.us .tag2{color:rgba(255,255,255,.85)}.cmp.them .tag2{color:var(--muted)}
+.cmp ul{list-style:none}
+.cmp li{display:flex;align-items:center;gap:12px;padding:12px 0;font-size:.98rem}
+.cmp.us li{border-top:1px solid rgba(255,255,255,.22);color:#fff}
+.cmp.them li{border-top:1px solid var(--line);color:var(--slate)}
+.cmp li:first-of-type{border-top:0}
+.cmp .m{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none}
+.cmp.us .m{background:rgba(255,255,255,.25)}.cmp.us .m svg{width:14px;height:14px;color:#fff}
+.cmp.them .m{background:var(--mist)}.cmp.them .m svg{width:13px;height:13px;color:#a2acbd}
+
+/* ANSWERS / AEO */
+.answers{background:var(--mist)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:44px}
+.chip{background:#fff;border:1px solid var(--line);border-radius:100px;padding:9px 16px;font-size:.86rem;color:var(--slate);font-weight:500;display:inline-flex;align-items:center;gap:7px;box-shadow:var(--sh1)}
+.chip svg{width:14px;height:14px;color:var(--o2)}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:960px;margin:0 auto}
+.qa{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:26px;box-shadow:var(--sh1);transition:transform .25s,box-shadow .25s}
+.qa:hover{transform:translateY(-4px);box-shadow:var(--sh2)}
+.qa h3{font-size:1.08rem;margin-bottom:8px;display:flex;gap:10px}
+.qa h3 .q{color:var(--o3);font-family:'Sora'}
+.qa p{color:var(--muted);font-size:.94rem}
+
+/* TEAM */
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.person{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--sh1);transition:transform .3s,box-shadow .3s}
+.person:hover{transform:translateY(-5px);box-shadow:var(--sh2)}
+.person .ph{aspect-ratio:1/1;overflow:hidden;background:var(--grad);outline:1px solid rgba(0,0,0,.05);outline-offset:-1px}
+.person .ph img{width:100%;height:100%;object-fit:cover}
+.person .body{padding:18px 20px}
+.person h4{font-size:1.05rem}
+.person .role{color:var(--o3);font-weight:600;font-size:.84rem;font-family:'Sora'}
+.person .fact{margin-top:10px;display:inline-flex;align-items:center;gap:6px;font-size:.76rem;color:var(--muted);background:var(--mist);border:1px solid var(--line);padding:4px 10px;border-radius:100px}
+.person .fact svg{width:13px;height:13px;color:var(--o2)}
+
+/* PEOPLE */
+.people{background:#fff}
+.people-top{display:grid;grid-template-columns:1.08fr .92fr;gap:48px;align-items:center;margin-bottom:46px}
+.people-copy h2{font-size:clamp(2rem,3.8vw,2.9rem);margin:14px 0 18px}
+.people-copy p{color:var(--muted);font-size:1.07rem;margin-bottom:16px}
+.people-copy .ppromise{color:var(--slate)}
+.people-copy .btn{margin-top:8px}
+.people-photo .frame{position:relative;border-radius:24px;overflow:hidden;max-width:430px;margin-left:auto;box-shadow:var(--sh2);outline:1px solid rgba(0,0,0,.06);outline-offset:-1px}
+.people-photo .frame img{width:100%;display:block}
+.people-photo .frame::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 52%,rgba(11,14,21,.34))}
+.callcard{position:absolute;left:16px;right:16px;bottom:16px;z-index:2;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-radius:15px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh1)}
+.callcard .ic{width:42px;height:42px;border-radius:12px;background:var(--grad);display:grid;place-items:center;flex:none}
+.callcard .ic svg{width:21px;height:21px;color:#fff}
+.callcard b{font-family:'Sora';color:var(--ink);font-size:.96rem;display:block;line-height:1.2}
+.callcard span{color:var(--muted);font-size:.8rem}
+.callcard .on{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:#16a34a;font-size:.76rem;font-weight:700;font-family:'Sora'}
+.callcard .on i{width:7px;height:7px;border-radius:50%;background:#16a34a}
+.human-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.hcard{background:var(--mist);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s,background .3s}
+.hcard:hover{transform:translateY(-5px);box-shadow:var(--sh1);background:#fff}
+.hcard .ic{width:48px;height:48px;border-radius:12px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;margin-bottom:16px;transition:background .3s,border-color .3s}
+.hcard:hover .ic{background:var(--grad);border-color:transparent}
+.hcard .ic svg{width:24px;height:24px;color:var(--o3);transition:color .3s}
+.hcard:hover .ic svg{color:#fff}
+.hcard h3{font-size:1.06rem;margin-bottom:6px}
+.hcard p{color:var(--muted);font-size:.92rem}
+/* human strip inside portal mockup */
+.mock .mteam{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.mock .mteam .ava{width:30px;height:30px;border-radius:50%;background:var(--grad);color:#fff;font-family:'Sora';font-weight:700;font-size:.7rem;display:grid;place-items:center;flex:none}
+.mock .mteam b{color:#eef2f8;font-size:.82rem;font-family:'Sora';display:block;line-height:1.2}
+.mock .mteam span{color:#8b97ad;font-size:.72rem}
+.mock .mteam .on{margin-left:auto;display:inline-flex;align-items:center;gap:6px;color:#3ad98a;font-size:.72rem;font-weight:600;font-family:'Sora'}
+.mock .mteam .on i{width:7px;height:7px;border-radius:50%;background:#3ad98a}
+.tech .anychannel{text-align:center;color:#a9b3c6;font-size:.9rem;margin-top:18px}
+.tech .anychannel b{color:#fff;font-weight:600}
+
+/* VALUES / HOW-TO-BOOK shared */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.stepnum{width:44px;height:44px;border-radius:13px;background:var(--grad);color:#fff;font-family:'Sora';font-weight:800;font-size:1.1rem;display:grid;place-items:center;margin-bottom:16px}
+.hcard .vfact{margin-top:12px;display:inline-block;font-size:.78rem;font-weight:600;color:var(--o3);font-family:'Sora'}
+/* COMMUNITY mini cards */
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.mini{border-radius:var(--radius);overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:var(--sh1);transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
+.mini:hover{transform:translateY(-5px);box-shadow:var(--sh2)}
+.mini .ph{aspect-ratio:16/10;overflow:hidden;background:var(--grad)}
+.mini .ph img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.mini:hover .ph img{transform:scale(1.04)}
+.mini .b{padding:22px}
+.mini h3{font-size:1.12rem;margin-bottom:6px}
+.mini p{color:var(--muted);font-size:.92rem}
+.mini .b .tagline{display:inline-block;margin-top:12px;font-family:'Sora';font-weight:700;color:var(--o3);font-size:.86rem}
+/* CAREERS */
+.careers{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.careers::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(240,83,28,.24),transparent 62%);right:-140px;top:-120px;filter:blur(50px)}
+.careers .sec-head h2{color:#fff}.careers .sec-head p{color:#a9b3c6}
+.career-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:960px;margin:0 auto}
+.ccard{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.1);border-radius:var(--radius);padding:32px;transition:transform .3s cubic-bezier(.2,.7,.2,1),border-color .3s}
+.ccard:hover{transform:translateY(-5px);border-color:rgba(255,180,80,.4)}
+.ccard .ic{width:52px;height:52px;border-radius:13px;background:var(--grad);display:grid;place-items:center;margin-bottom:18px}
+.ccard .ic svg{width:26px;height:26px;color:#fff}
+.ccard h3{color:#fff;font-size:1.3rem;margin-bottom:8px}
+.ccard p{color:#a9b3c6;margin-bottom:14px}
+.ccard .qz{border-top:1px solid rgba(255,255,255,.1);padding-top:14px;color:#c7cfdc;font-size:.92rem;font-style:italic}
+.ccard .more{color:var(--o1);font-family:'Sora';font-weight:600;display:inline-flex;gap:6px;align-items:center;margin-top:14px}
+.ccard .more svg{width:15px;height:15px}
+/* GET IN TOUCH / DEPOTS */
+.depot-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:960px;margin:0 auto}
+.depot{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:30px;box-shadow:var(--sh1);transition:transform .3s,box-shadow .3s}
+.depot:hover{transform:translateY(-4px);box-shadow:var(--sh2)}
+.depot .pin{display:inline-flex;align-items:center;gap:11px;font-family:'Sora';font-weight:700;font-size:1.3rem;color:var(--ink);margin-bottom:14px}
+.depot .pin .b{width:38px;height:38px;border-radius:11px;background:var(--grad-soft);display:grid;place-items:center}
+.depot .pin .b svg{width:20px;height:20px;color:var(--o3)}
+.depot .line{display:flex;align-items:center;gap:12px;padding:9px 0;color:var(--slate);font-size:.98rem}
+.depot .line svg{width:18px;height:18px;color:var(--o2);flex:none}
+.depot .line a{font-weight:600;color:var(--ink)}.depot .line a:hover{color:var(--o3)}
+.hours-wrap{text-align:center;margin-top:30px}
+.hours{display:inline-flex;align-items:center;gap:10px;color:var(--slate);font-weight:600;font-family:'Sora';background:var(--grad-soft);border:1px solid rgba(240,83,28,.18);padding:11px 22px;border-radius:100px}
+.hours .pulse{background:#16a34a}
+/* CTA addresses */
+.cta .addr{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:30px;position:relative}
+.cta .addr .a{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:16px 22px;text-align:left;min-width:250px}
+.cta .addr .a b{font-family:'Sora';color:#fff;display:block;font-size:1rem}
+.cta .addr .a span{color:rgba(255,255,255,.9);font-size:.86rem;display:block;margin-top:3px}
+.cta .addr .a a{color:#fff;font-weight:600}
+
+/* CTA */
+.cta-band{padding:0 0 96px}
+.cta{position:relative;overflow:hidden;background:var(--grad);color:#fff;border-radius:32px;padding:70px 32px;text-align:center;box-shadow:var(--glow)}
+.cta::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(255,255,255,.16) 1px,transparent 0);background-size:26px 26px;opacity:.5}
+.cta h2{color:#fff;font-size:clamp(2rem,3.8vw,3rem);position:relative}
+.cta p{color:rgba(255,255,255,.94);font-size:1.14rem;max-width:36em;margin:16px auto 28px;position:relative}
+.cta .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative}
+.cta .btn-light{background:#fff;color:var(--o3)}
+.cta .btn-outline{background:transparent;border-color:rgba(255,255,255,.6);color:#fff}
+.cta .btn-outline:hover{background:rgba(255,255,255,.14);border-color:#fff}
+
+/* FOOTER */
+footer{background:var(--ink);color:#96a1b5;padding:70px 0 30px;font-size:.92rem}
+.foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:40px;padding-bottom:44px;border-bottom:1px solid rgba(255,255,255,.08)}
+footer .brandlogo img{height:52px;margin-bottom:16px}
+footer .about{max-width:27em;color:#8894a8}
+footer h5{color:#fff;font-family:'Sora';font-weight:600;font-size:.95rem;margin-bottom:16px}
+footer ul{list-style:none}footer li{margin-bottom:11px}footer a:hover{color:var(--o1)}
+.foot-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;padding-top:26px;flex-wrap:wrap;font-size:.84rem;color:#78849a}
+.foot-bottom .soc a{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;transition:background .2s}
+.foot-bottom .soc a:hover{background:var(--grad)}.foot-bottom .soc svg{width:17px;height:17px;color:#cfd6e0}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* tech hierarchy */
+.tcard.lead{grid-column:span 2;display:flex;flex-direction:column}
+.tcard.lead .flow-steps{margin-top:auto;padding-top:18px}
+.tcard.connect{grid-column:1/-1;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.tcard.connect .cbody{flex:1 1 300px}
+.tcard.connect .cbody p{margin-bottom:0}
+.tcard.connect .integrations{margin:0;justify-content:flex-start;flex:2 1 400px}
+.fstep{padding:12px 10px;min-width:100px}
+.fstep .num{width:26px;height:26px;font-size:.78rem;margin-bottom:8px}
+/* browser surfaces + accessibility floor */
+::selection{background:rgba(255,138,30,.3)}
+:focus-visible{outline:3px solid var(--o2);outline-offset:2px;border-radius:6px}
+.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--ink);color:#fff;padding:10px 18px;border-radius:0 0 12px 0;font-family:'Sora';font-weight:600}
+.skip:focus{left:0}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+ html{scroll-behavior:auto}
+ .reveal{opacity:1;transform:none}
+}
+@media(max-width:960px){
+ .hero .wrap{grid-template-columns:1fr;gap:44px;padding-top:48px;padding-bottom:64px}
+ .stat-grid{grid-template-columns:1fr 1fr}.proof-grid{grid-template-columns:1fr}
+ .bento{grid-template-columns:1fr 1fr;grid-auto-rows:190px}.tile.big{grid-column:span 2}.tile.wide{grid-column:span 2}
+ .tech-grid,.qa-grid,.cmp-grid{grid-template-columns:1fr}.tcard.lead,.tcard.connect{grid-column:auto}
+ .team-grid{grid-template-columns:1fr 1fr}
+ .people-top{grid-template-columns:1fr;gap:32px}.people-photo .frame{margin:0 auto}.human-grid{grid-template-columns:1fr 1fr}
+ .grid3,.mini-grid,.career-grid,.depot-grid{grid-template-columns:1fr}
+ nav.links{display:none}.burger{display:block}
+ nav.links.open{display:flex;position:absolute;top:100%;left:0;right:0;flex-direction:column;background:#fff;padding:20px 24px;gap:18px;border-bottom:1px solid var(--line);box-shadow:var(--sh2)}
+ .foot-grid{grid-template-columns:1fr 1fr}
+ .flow-steps{flex-direction:column}.farrow{transform:rotate(90deg)}
+}
+@media(max-width:560px){.stat-grid,.bento,.team-grid,.foot-grid{grid-template-columns:1fr}.tile.big,.tile.wide{grid-column:span 1}section{padding:64px 0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#data">Skip to content</a>
+
+<div class="topbar"><div class="wrap">
+ <div class="live"><span class="pulse"></span> Live 24/7/365 — someone always answers</div>
+ <div><span>North <a href="tel:01616604749">0161 660 4749</a></span><span class="dot">•</span><span>South <a href="tel:03330342116">0333 034 2116</a></span></div>
+</div></div>
+
+<header class="nav"><div class="wrap">
+ <a href="#" class="brandlogo"><img src="https://static.wixstatic.com/media/209af5_0df586942e8e41a9ade716c3b71a519c~mv2.png/v1/fit/w_460,h_268,al_c,q_90,enc_auto/file.png" alt="Cal — Courier and Logistics"></a>
+ <nav class="links" id="links">
+  <a href="#services">Services</a><a href="#data">Why Cal</a><a href="#tech">Technology</a><a href="#answers">Answers</a><a href="#team">Our team</a>
+ </nav>
+ <div class="nav-cta">
+  <a href="#contact" class="btn btn-primary">Get a quote</a>
+  <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+ </div>
+</div></header>
+
+<!-- HERO -->
+<section class="hero">
+ <div class="b1"></div><div class="b2"></div><div class="b3"></div>
+ <div class="wrap">
+  <div>
+   <h1 class="reveal" style="margin-top:20px">Powerful logistics.<br><span class="grad-text">Personal service.</span></h1>
+   <p class="lead reveal">Ring us and you get straight through to the same people who know your account — no switchboards, no queue numbers, no tickets to raise. Behind them: a live portal, custom integrations and approval workflows, there whenever you want them.</p>
+   <div class="cta-row reveal">
+    <a href="#contact" class="btn btn-primary">Get a quote <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a href="#tech" class="btn btn-ghost">See the tech</a>
+   </div>
+   <div class="assured reveal">
+    <span class="s"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Straight through to a person</span>
+    <span class="s"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>No queues, no tickets</span>
+    <span class="s"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>45-min avg. collection</span>
+   </div>
+  </div>
+
+  <!-- Portal mockup -->
+  <div class="mock reveal">
+   <div class="win">
+    <div class="bar"><i></i><i></i><i></i><span class="t">Cal Portal — Live jobs</span><span class="badge">LIVE</span></div>
+    <div class="body">
+     <div class="row"><div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M2 15V7h12v8M14 10h4l3 3v2h-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/></svg></div><div class="meta"><b>COU-48213 · Manchester → Leeds</b><span>Same Day · Sprinter</span></div><span class="tag green">Delivered</span></div>
+     <div class="row"><div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.7"/></svg></div><div class="meta"><b>COU-48219 · Birmingham → Dublin</b><span>International · On-board courier</span></div><span class="tag blue">In transit</span></div>
+     <div class="row"><div class="ico"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16v9H4z" stroke="currentColor" stroke-width="1.8"/><path d="M8 8V6h8v2" stroke="currentColor" stroke-width="1.8"/></svg></div><div class="meta"><b>COU-48224 · White glove install</b><span>Awaiting approval · £420</span></div><span class="tag amber">Approve</span></div>
+     <div class="qbar"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><b>Instant quote</b><span>WA3 → LS1 · £68</span></div>
+     <div class="mteam"><span class="ava">JF</span><div><b>Jodie Finnegan</b><span>Your account manager — not a call centre</span></div><span class="on"><i></i>online</span></div>
+    </div>
+   </div>
+   <div class="float f-approve"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="#16a34a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Approved</div>
+   <div class="float f-eta"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#f0531c" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="#f0531c" stroke-width="1.8" stroke-linecap="round"/></svg>ETA 14 min</div>
+  </div>
+ </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee">
+ <div class="lab">Moving what matters for teams in</div>
+ <div class="mtrack">
+  <span>Healthcare &amp; Pharma</span><span class="sep">◆</span><span>Supply Chain &amp; Fulfilment</span><span class="sep">◆</span><span>Telecoms</span><span class="sep">◆</span><span>Utilities</span><span class="sep">◆</span><span>Retail &amp; eCommerce</span><span class="sep">◆</span><span>Aerospace &amp; Defence</span><span class="sep">◆</span><span>Manufacturing</span><span class="sep">◆</span>
+  <span>Healthcare &amp; Pharma</span><span class="sep">◆</span><span>Supply Chain &amp; Fulfilment</span><span class="sep">◆</span><span>Telecoms</span><span class="sep">◆</span><span>Utilities</span><span class="sep">◆</span><span>Retail &amp; eCommerce</span><span class="sep">◆</span><span>Aerospace &amp; Defence</span><span class="sep">◆</span><span>Manufacturing</span><span class="sep">◆</span>
+ </div>
+</div>
+
+<!-- DATA POINTS -->
+<section id="data" class="data">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>When the delivery <span>is the business.</span></h2>
+   <p>Our clients don't ship parcels — they move what can't be late, lost or mishandled. Dedicated capacity for time-critical, specialist and high-value freight, at the scale to back it up.</p>
+  </div>
+  <div class="stat-grid">
+   <div class="stat reveal"><div class="n"><span class="cu" data-to="45">0</span> min</div><p>average collection time — a rapid response, day or night.</p></div>
+   <div class="stat reveal"><div class="n"><span class="cu" data-to="10000">0</span>+</div><p>registered couriers &amp; vehicles, on demand nationwide.</p></div>
+   <div class="stat reveal"><div class="n"><span class="cu" data-to="29">0</span>+</div><p>vehicle types — from small van to 40ft artic.</p></div>
+   <div class="stat reveal"><div class="n"><span class="cu" data-to="365">0</span></div><p>days a year — open 24/7, always answered in person.</p></div>
+  </div>
+  <div class="proof-grid">
+   <div class="proof reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M2 15V7h12v8M14 10h4l3 3v2h-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/></svg></div><div><b>Dedicated, never consolidated</b><span>Your goods travel alone on one vehicle, collection to delivery — no depots, no sortation, no handovers.</span></div></div>
+   <div class="proof reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l3 8 4-16 3 8h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><b>Beats the pallet network on direct jobs</b><span>For local, direct and time-critical loads, one dedicated vehicle often works out cheaper than a pallet network.</span></div></div>
+   <div class="proof reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6l-9-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><b>Built for critical &amp; high-value freight</b><span>Medical, pharma, aerospace, telecoms and supply-chain goods — handled with specialist care and a full audit trail.</span></div></div>
+  </div>
+ </div>
+</section>
+
+<!-- BENTO SERVICES -->
+<section id="services">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>One partner, every urgent job</h2>
+   <p>From a single urgent parcel to a full white-glove installation — the right solution, built around your delivery.</p>
+  </div>
+  <div class="bento">
+   <div class="tile big reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h3>Same Day</h3>
+    <p>On-demand 24/7/365. 10,000+ couriers and 29+ vehicle types cater for any delivery, to and from anywhere — average collection in just 45 minutes, on the same vehicle throughout.</p>
+    <a href="#contact" class="more">Get a same-day quote <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+   </div>
+   <div class="tile wide reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8h16v9H4z" stroke="currentColor" stroke-width="1.8"/><path d="M8 8V6h8v2M9 12h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+    <h3>Two Man White Glove</h3>
+    <p>Extra manpower, care and equipment — site surveys, delicate handling and delivery to the room of choice.</p>
+   </div>
+   <div class="tile reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18" stroke="currentColor" stroke-width="1.6"/></svg></div>
+    <h3>International</h3>
+    <p>Door-to-door by road, sea and air — on-board couriers and direct drives into Ireland and Europe.</p>
+   </div>
+   <div class="tile reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M2 15V7h12v8M14 10h4l3 3v2h-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/></svg></div>
+    <h3>Haulage</h3>
+    <p>7.5t to 40ft trailers — tail-lift, curtainside, HIABs and Moffetts for palletised or oversized loads.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- PEOPLE -->
+<section id="people" class="people">
+ <div class="wrap">
+  <div class="people-top">
+   <div class="people-copy">
+    <h2>The tech is the edge. Our <span>people are the point.</span></h2>
+    <p>Ring us and you get straight through to a real person — the same team who know you and your account. No switchboards, no hold music, no queue number, no ticket to raise. If something needs sorting, someone's already on it, and you'll know it's handled.</p>
+    <p class="ppromise">Send us work however suits you — phone, email, WhatsApp, a spreadsheet or the portal. We fit around you, not the other way around. And we go the extra mile, with a smile — because service means everything.</p>
+    <a href="#contact" class="btn btn-primary">Talk to a real person <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+   </div>
+   <div class="people-photo reveal">
+    <div class="frame">
+     <img src="https://static.wixstatic.com/media/209af5_26eb093e26d74cb7a6118ebb3bebbbea~mv2.jpg/v1/fill/w_760,h_900,al_c,q_85,enc_auto/file.jpg" alt="A member of the Cal team">
+     <div class="callcard">
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l2-4-5-2-2 2c-3-1-6-4-7-7l2-2-2-5-4 2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+      <div><b>Straight through to your team</b><span>No queue · No ticket · Just help</span></div>
+      <span class="on"><i></i>Now</span>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="human-grid">
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l2-4-5-2-2 2c-3-1-6-4-7-7l2-2-2-5-4 2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><h3>Straight through to a person</h3><p>A direct line to the same people who know your account — no switchboards, no hold music, no queue numbers.</p></div>
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6l-9-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Never just a ticket number</h3><p>If there's a problem, a real person is already on it. You'll always know you're being dealt with — not left chasing an update.</p></div>
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.7"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.7"/></svg></div><h3>Send it however you like</h3><p>Phone, email, WhatsApp, a spreadsheet or the portal — we take your jobs the way that suits you, not a form we force on you.</p></div>
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><h3>Above and beyond, with a smile</h3><p>We flex to your world and go the extra mile. Dependable, responsive, dynamic and personal — every single time.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- TECHNOLOGY -->
+<section id="tech" class="tech">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>Technology that <span>serves the service</span></h2>
+   <p>Our tech never gets in the way of the person looking after you — it just means we quote faster, update you sooner and never drop the ball. Use as much or as little of it as you like.</p>
+  </div>
+  <div class="tech-grid">
+   <div class="tcard lead reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h3>Approval workflows</h3>
+    <p>Route bookings through your own sign-off, with budget controls and a full audit trail. The whole journey, approval built in:</p>
+    <div class="flow-steps">
+     <div class="fstep"><div class="num">1</div><b>Request</b><span>Portal, email or API</span></div>
+     <div class="farrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+     <div class="fstep"><div class="num">2</div><b>Approve</b><span>Sign-off &amp; budget check</span></div>
+     <div class="farrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+     <div class="fstep"><div class="num">3</div><b>Dispatch</b><span>Right vehicle, right driver</span></div>
+     <div class="farrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+     <div class="fstep"><div class="num">4</div><b>Live track</b><span>Real-time updates</span></div>
+     <div class="farrow"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+     <div class="fstep"><div class="num">5</div><b>POD</b><span>Instant proof &amp; paperwork</span></div>
+    </div>
+   </div>
+   <div class="tcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M8 21h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div><h3>Live customer portal</h3><p>Instant quotes and bookings, live job status, POD and paperwork in one place, and multiple users per account.</p></div>
+   <div class="tcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h3>Full visibility, end to end</h3><p>Every job, driver and vehicle tracked from booking to delivery, so you always know exactly where your goods are.</p></div>
+   <div class="tcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.4" stroke="currentColor" stroke-width="1.8"/></svg></div><h3>AI does the admin, people do the caring</h3><p>Smart automation reads and sorts every request behind the scenes, so a real person gets straight to helping you.</p></div>
+   <div class="tcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.7"/><path d="m8 12 3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Automatic proof of delivery</h3><p>Photos, signatures and paperwork captured on delivery and sent to you automatically. Never chase a POD again.</p></div>
+   <div class="tcard connect reveal">
+    <div class="cbody"><h3>Custom integrations &amp; API</h3><p>Connect Cal to your WMS, ERP or other systems via REST API, webhooks and Zapier &mdash; as much or as little as you need.</p></div>
+    <div class="integrations"><span class="ipill"><span class="d"></span>REST API</span><span class="ipill"><span class="d"></span>Webhooks</span><span class="ipill"><span class="d"></span>Zapier</span><span class="ipill"><span class="d"></span>Your WMS</span><span class="ipill"><span class="d"></span>Your ERP</span><span class="ipill"><span class="d"></span>CSV &amp; email imports</span><span class="ipill"><span class="d"></span>Custom portal</span></div>
+   </div>
+  </div>
+  <p class="anychannel">Prefer to just <b>call, email or WhatsApp</b>? Always fine. The tech is there if you want it — never a hoop you have to jump through.</p>
+ </div>
+</section>
+
+<!-- VALUES -->
+<section class="data">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>Four values, <span>since day one</span></h2>
+   <p>They've been our founding principles from the very start — and they run through every interaction, every job, every time.</p>
+  </div>
+  <div class="human-grid">
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6l-9-4Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Be Dependable</h3><p>Trustworthy and reliable. You can always count on us to never let you down.</p></div>
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2 3 14h7l-1 8 11-14h-7l1-6Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div><h3>Be Responsive</h3><p>We react quickly and positively, acting with a sense of urgency to serve you.</p></div>
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3.4" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v3m0 14v3M4 12H1m22 0h-3M6 6 4 4m16 2 2-2M6 18l-2 2m16-2 2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div><h3>Be Dynamic</h3><p>Positive in energy and full of ideas — always bringing you options and solutions.</p></div>
+   <div class="hcard reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div><h3>Be Personal</h3><p>Warmth, friendliness and care — building real working relationships that last.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- COMPARE -->
+<section>
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>The difference is who answers the phone</h2>
+   <p>A genuinely responsive service — not a switchboard and a ticket number.</p>
+  </div>
+  <div class="cmp-grid">
+   <div class="cmp us reveal"><h3>With Cal</h3><span class="tag2">Service means everything</span><ul>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>No call queuing — a direct 24/7 line</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Dedicated account teams who know you</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Live job updates + POD in the portal</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Consistent, clear rates — no surcharges</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="m5 13 4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Integrations, API &amp; approval workflows</li>
+   </ul></div>
+   <div class="cmp them reveal"><h3>Elsewhere</h3><span class="tag2">The industry standard</span><ul>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>Call queues and long wait times</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>Centralised switchboards</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>Chasing for job updates</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>Annual rate hikes &amp; fuel surcharges</li>
+    <li><span class="m"><svg viewBox="0 0 24 24" fill="none"><path d="M7 7l10 10M17 7 7 17" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></span>No systems to plug into</li>
+   </ul></div>
+  </div>
+ </div>
+</section>
+
+<!-- HOW TO BOOK -->
+<section id="book">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>Three simple ways to <span>get moving</span></h2>
+   <p>Book however suits you — quick, simple and on your terms.</p>
+  </div>
+  <div class="grid3">
+   <div class="hcard reveal"><div class="stepnum">1</div><h3>Phone</h3><p>Speak directly with your booking team on our 24/7 line — no call queues, no switchboards. Someone's always ready to help.</p></div>
+   <div class="hcard reveal"><div class="stepnum">2</div><h3>Email</h3><p>Send it over and it's treated with urgency. You'll get a confirmation with your job details repeated back, so nothing's lost.</p></div>
+   <div class="hcard reveal"><div class="stepnum">3</div><h3>Customer Portal</h3><p>Instant quotes and bookings, live job status, POD and paperwork, and multiple users per account — online, any time.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- ANSWERS / AEO -->
+<section id="answers" class="answers">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>Straight answers to what you're searching</h2>
+   <p>The questions teams (and AI assistants) ask us most — answered simply.</p>
+  </div>
+  <div class="chips">
+   <span class="chip"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>same day courier UK</span>
+   <span class="chip"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>urgent pallet delivery</span>
+   <span class="chip"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>white glove delivery</span>
+   <span class="chip"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>medical courier same day</span>
+   <span class="chip"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>pallet network alternative</span>
+   <span class="chip"><svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>same day delivery API</span>
+  </div>
+  <div class="qa-grid">
+   <div class="qa reveal"><h3><span class="q">Q.</span> Will I get a real person, or a bot and a portal?</h3><p>A real person, every time. The portal and API are there if you want them — but you never have to use them. Call, email or message us however you like and you'll get straight through to the same team who know you.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> What happens if something goes wrong with a delivery?</h3><p>A named person is already on it and keeps you updated directly — no ticket queue, no chasing, no hold music. You'll always know it's being handled.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> Is there a same-day courier near me?</h3><p>Yes — Cal runs a nationwide network of 10,000+ couriers with hubs in the North (Birchwood) and South (Devizes), and a 45-minute average collection time, 24/7/365.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> Can you deliver urgent pallets or freight same-day?</h3><p>Yes. Our haulage network runs 7.5t to 40ft trailers with tail-lift, curtainside, HIAB and Moffett options for palletised, loose or oversized loads.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> Do you handle white-glove, two-person installs?</h3><p>Yes — with site surveys, specialist equipment, delivery to the room of choice, and installation or waste removal where needed.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> Can Cal integrate with my systems or give me an API?</h3><p>Yes. Book through a live portal, our REST API or webhooks, and connect Cal to your WMS, ERP, HubSpot, Xero or Zapier — with approval workflows on top.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> Is same-day cheaper than the pallet network?</h3><p>For local, direct and time-critical jobs, often yes — one dedicated vehicle with no depots or sortation frequently beats pallet-network rates.</p></div>
+   <div class="qa reveal"><h3><span class="q">Q.</span> Do you carry medical, pharma and high-value goods?</h3><p>Yes — we move sensitive, high-value and regulated goods for healthcare, pharma, supply-chain and telecoms clients, on dedicated vehicles with full audit trails.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>The people you'll actually speak to</h2>
+   <p>Not a rotating call centre — a dedicated team who know you, your account and your delivery.</p>
+  </div>
+  <div class="team-grid">
+   <div class="person reveal"><div class="ph"><img src="https://static.wixstatic.com/media/209af5_26eb093e26d74cb7a6118ebb3bebbbea~mv2.jpg/v1/fill/w_500,h_500,al_c,q_85,enc_auto/file.jpg" alt="Jamie Ashcroft"></div><div class="body"><h4>Jamie Ashcroft</h4><div class="role">General Manager</div><span class="fact"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.5 7h7l-5.5 4 2 7-6-4.5-6 4.5 2-7L2.5 9h7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Chelsea FC Fan</span></div></div>
+   <div class="person reveal"><div class="ph"><img src="https://static.wixstatic.com/media/209af5_3c4fc64bdbe74db2843edf67a97e3ab2~mv2.jpg/v1/fill/w_500,h_500,al_c,q_85,enc_auto/file.jpg" alt="Jodie Finnegan"></div><div class="body"><h4>Jodie Finnegan</h4><div class="role">Head of Sales</div><span class="fact"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Family Focused</span></div></div>
+   <div class="person reveal"><div class="ph"><img src="https://static.wixstatic.com/media/209af5_6d7ce675082744528308b6d3096a8d7e~mv2.jpg/v1/fill/w_500,h_500,al_c,q_85,enc_auto/file.jpg" alt="Jamie Chambers"></div><div class="body"><h4>Jamie Chambers</h4><div class="role">Major Account Manager</div><span class="fact"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.3"/></svg>Liverpool FC Fan</span></div></div>
+   <div class="person reveal"><div class="ph"><img src="https://static.wixstatic.com/media/209af5_67f84ceb05144a3b9533c40c3f0fd569~mv2.jpg/v1/fill/w_500,h_500,al_c,q_85,enc_auto/file.jpg" alt="Sophie Blakeley"></div><div class="body"><h4>Sophie Blakeley</h4><div class="role">Customer Service</div><span class="fact"><svg viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="1.5"/></svg>Dedicated Dancer</span></div></div>
+  </div>
+ </div>
+</section>
+
+<!-- COMMUNITY -->
+<section id="community" class="data">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>We give back to the <span>communities we serve</span></h2>
+   <p>Proud sponsors of grassroots and professional sport — and we reward the customers who move with us.</p>
+  </div>
+  <div class="mini-grid">
+   <div class="mini reveal"><div class="ph"><img loading="lazy" src="https://static.wixstatic.com/media/209af5_fbbe0e75a48c4e9da28545217f880ed7~mv2.jpg/v1/fill/w_800,h_500,al_c,q_85,enc_avif,quality_auto/warrington-town-2-0-rushall-olympic-257_54374224045_o.jpg" alt="Community sponsorship"></div><div class="b"><h3>Community sponsorships</h3><p>From Leigh Leopards to Warrington Town FC — now playing at The Cal.delivery Stadium — we back local clubs at every level.</p></div></div>
+   <div class="mini reveal"><div class="ph"><img loading="lazy" src="https://static.wixstatic.com/media/209af5_f494a7dbc2a340f2a92499693d9afb67~mv2.jpg/v1/fill/w_800,h_500,al_c,q_85,enc_avif,quality_auto/Populous_Co-op_Live_PantlingStudio_104-1200x800-c-center.jpg" alt="Weekly giveaways"></div><div class="b"><h3>Weekly giveaways</h3><p>Win concert and sporting tickets at the Co-op Live Arena, plus high-street vouchers — every week, just for booking with us.</p></div></div>
+   <div class="mini reveal"><div class="ph"><img loading="lazy" src="https://static.wixstatic.com/media/209af5_1a198608a3a14aae919f68f3b8258b31~mv2.png/v1/fill/w_800,h_500,al_c,q_85,enc_avif,quality_auto/hsv-vouchers-and-gift-cards.png" alt="Cal Club rewards"></div><div class="b"><h3>Cal Club rewards</h3><p>Earn points on every booking and redeem each quarter for invoice credits, vouchers or a charity donation — up to £500 a year.</p><span class="tagline">Ask us to join Cal Club →</span></div></div>
+  </div>
+ </div>
+</section>
+
+<!-- CAREERS -->
+<section id="careers" class="careers">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>Join an ever-growing team</h2>
+   <p>Whether you're on the road or here at HQ, discover what it means to work for Cal.</p>
+  </div>
+  <div class="career-grid">
+   <div class="ccard reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M2 15V7h12v8M14 10h4l3 3v2h-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="17" r="1.8" stroke="currentColor" stroke-width="1.8"/></svg></div>
+    <h3>Drive for Cal</h3>
+    <p>Quality loads, consistent work across the UK, flexible hours and prompt self-billed payment — with a friendly team that treats you right.</p>
+    <div class="qz">"They always pay on time and the self-billing takes away that extra admin." — Daniel Dungey, Courier Driver</div>
+    <a href="#contact" class="more">Become a driver <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+   </div>
+   <div class="ccard reveal">
+    <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 21V9l9-6 9 6v12" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 21v-6h6v6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+    <h3>Work at HQ</h3>
+    <p>Take the next step in your career with a supportive team, room to grow, and a culture built on our four values — dependable, responsive, dynamic and personal.</p>
+    <div class="qz">"Supportive team, opportunities to grow, and a culture that makes coming to work something I actually enjoy." — Jamie Ashcroft, General Manager</div>
+    <a href="#contact" class="more">Explore office roles <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- GET IN TOUCH -->
+<section id="contact">
+ <div class="wrap">
+  <div class="sec-head">
+   <h2>Two hubs. One <span>standard of service</span></h2>
+   <p>Our phones are monitored around the clock — call, email or drop in, and you'll always get a real person.</p>
+  </div>
+  <div class="depot-grid">
+   <div class="depot reveal">
+    <div class="pin"><span class="b"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.7"/></svg></span>Cal North</div>
+    <div class="line"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11Z" stroke="currentColor" stroke-width="1.7"/></svg>Genesis Centre, Birchwood, WA3 7BH</div>
+    <div class="line"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l2-4-5-2-2 2c-3-1-6-4-7-7l2-2-2-5-4 2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><a href="tel:01616604749">0161 660 4749</a></div>
+    <div class="line"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6"/></svg><a href="mailto:bookings@cal.delivery">bookings@cal.delivery</a></div>
+   </div>
+   <div class="depot reveal">
+    <div class="pin"><span class="b"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.7"/></svg></span>Cal South</div>
+    <div class="line"><svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.4 7-11a7 7 0 1 0-14 0c0 4.6 7 11 7 11Z" stroke="currentColor" stroke-width="1.7"/></svg>New Park St, Devizes, SN10 1DT</div>
+    <div class="line"><svg viewBox="0 0 24 24" fill="none"><path d="M4 5c0 8 7 15 15 15l2-4-5-2-2 2c-3-1-6-4-7-7l2-2-2-5-4 2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg><a href="tel:03330342116">0333 034 2116</a></div>
+    <div class="line"><svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16v12H4z" stroke="currentColor" stroke-width="1.6"/><path d="m4 7 8 6 8-6" stroke="currentColor" stroke-width="1.6"/></svg><a href="mailto:southbookings@cal.delivery">southbookings@cal.delivery</a></div>
+   </div>
+  </div>
+  <div class="hours-wrap"><span class="hours"><span class="pulse"></span> Open 24 hours a day, 7 days a week, 365 days a year</span></div>
+ </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-band"><div class="wrap"><div class="cta reveal">
+ <h2>Ready to move what matters?</h2>
+ <p>Get a fast quote, or ask us anything. Our lines are monitored 24/7 — someone from the team is always working and will get straight back to you.</p>
+ <div class="cta-row"><a href="tel:01616604749" class="btn btn-light">Call North · 0161 660 4749</a><a href="tel:03330342116" class="btn btn-outline">Call South · 0333 034 2116</a></div>
+ <div class="addr">
+  <div class="a"><b>Cal North</b><span>Genesis Centre, Birchwood, WA3 7BH</span><span><a href="mailto:bookings@cal.delivery">bookings@cal.delivery</a></span></div>
+  <div class="a"><b>Cal South</b><span>New Park St, Devizes, SN10 1DT</span><span><a href="mailto:southbookings@cal.delivery">southbookings@cal.delivery</a></span></div>
+ </div>
+</div></div></div>
+
+<!-- FOOTER -->
+<footer><div class="wrap">
+ <div class="foot-grid">
+  <div><a href="#" class="brandlogo"><img src="https://static.wixstatic.com/media/209af5_0df586942e8e41a9ade716c3b71a519c~mv2.png/v1/fit/w_460,h_268,al_c,q_90,enc_auto/file.png" alt="Cal"></a>
+   <p class="about">Same-day courier and dedicated logistics, run like software. Dependable, responsive, dynamic and personal — because service means everything.</p></div>
+  <div><h5>Services</h5><ul><li><a href="#services">Same Day</a></li><li><a href="#services">Two Man White Glove</a></li><li><a href="#services">International</a></li><li><a href="#services">Haulage</a></li></ul></div>
+  <div><h5>Platform</h5><ul><li><a href="#tech">Customer portal</a></li><li><a href="#tech">Integrations &amp; API</a></li><li><a href="#tech">Approval workflows</a></li><li><a href="#answers">Answers</a></li></ul></div>
+  <div><h5>Get in touch</h5><ul><li><a href="tel:01616604749">North · 0161 660 4749</a></li><li><a href="tel:03330342116">South · 0333 034 2116</a></li><li><a href="mailto:bookings@cal.delivery">bookings@cal.delivery</a></li><li>Open 24/7/365</li></ul></div>
+ </div>
+ <div class="foot-bottom"><div>© 2026 Cal — Courier &amp; Logistics. All rights reserved.</div>
+  <div class="soc"><a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5ZM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.3 0-2.95-1.8-2.95s-2.07 1.4-2.07 2.85V21H9z"/></svg></a></div>
+ </div>
+</div></footer>
+
+<script>
+// staggered reveal
+var io=new IntersectionObserver(function(es){es.forEach(function(en,i){if(en.isIntersecting){var el=en.target;var sibs=[].slice.call(el.parentNode.children).filter(function(c){return c.classList.contains('reveal');});var idx=sibs.indexOf(el);setTimeout(function(){el.classList.add('in');},Math.min(idx,6)*90);io.unobserve(el);}});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+// count-up
+function countUp(el){var to=+el.dataset.to,start=null,dur=1300;function step(t){if(!start)start=t;var p=Math.min((t-start)/dur,1);el.textContent=Math.round((1-Math.pow(1-p,3))*to).toLocaleString('en-GB');if(p<1)requestAnimationFrame(step);}requestAnimationFrame(step);}
+var cio=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){countUp(en.target);cio.unobserve(en.target);}});},{threshold:.5});
+document.querySelectorAll('.cu').forEach(function(el){cio.observe(el);});
+// mobile nav
+var b=document.getElementById('burger'),l=document.getElementById('links');
+b.addEventListener('click',function(){l.classList.toggle('open');});
+l.addEventListener('click',function(e){if(e.target.tagName==='A')l.classList.remove('open');});
+</script>
+</body>
+</html>
