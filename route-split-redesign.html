@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cal vs DX — Route Split</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B7A47'/%3E%3Ccircle cx='11' cy='16' r='4' fill='%23fff'/%3E%3Ccircle cx='22' cy='16' r='2.5' fill='%23F2B24C'/%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --paper:#F3F5F2;         /* page — cool, faintly green-tinted */
+  --surface:#FFFFFF;
+  --wash:#F7F9F6;          /* row hover / group rows */
+  --ink:#16211A;
+  --ink-2:#49564D;         /* muted, same hue family */
+  --ink-3:#7A867D;         /* faint */
+  --line:#DBE2DB;
+  --line-soft:#E8EDE7;
+  --cal:#0B7A47;           /* Cal green — the single interactive accent */
+  --cal-deep:#085C36;
+  --cal-wash:#E9F4EC;
+  --dx:#A85F09;            /* DX burnt amber — carrier coding only */
+  --dx-wash:#F9F0E1;
+  --danger:#BC392E;
+  --danger-wash:#FBEBE9;
+  --depot:#5E6B62;
+  --ring:0 0 0 3px rgba(11,122,71,.22);
+  --r-lg:14px; --r-md:10px; --r-sm:7px;
+  --shadow:0 1px 2px rgba(22,33,26,.05),0 10px 28px rgba(22,33,26,.06);
+  --mono:"Fira Code",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --cond:"Barlow Semi Condensed","Barlow",sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 "Barlow",-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;caret-color:var(--cal)}
+::selection{background:rgba(11,122,71,.18)}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:var(--r-sm)}
+a{color:var(--cal);text-underline-offset:3px;text-decoration-thickness:1px}
+.wrap{max-width:1120px;margin:0 auto;padding:30px 24px 90px}
+@media(max-width:640px){.wrap{padding:20px 14px 70px}}
+
+/* ---------- masthead: identity + the three controls that drive everything ---------- */
+.mast{display:flex;justify-content:space-between;align-items:flex-end;gap:22px;flex-wrap:wrap;padding-bottom:18px;border-bottom:2px solid var(--ink)}
+h1{font-family:var(--cond);font-size:30px;font-weight:700;letter-spacing:-.01em;line-height:1.1;margin:0;text-wrap:balance}
+h1 .accent{color:var(--cal)}
+.sub{color:var(--ink-2);font-size:14px;margin:6px 0 0;max-width:58ch;text-wrap:pretty}
+.mast-controls{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.mast-controls .field{margin:0}
+.mast-controls label{white-space:nowrap}
+.mast-controls input{width:110px}
+.mast-controls select{min-width:230px}
+.rates-note{color:var(--ink-3);font-size:12px;margin:8px 0 0;text-align:right;flex-basis:100%}
+@media(max-width:900px){.rates-note{text-align:left}}
+
+h2{font-family:var(--cond);font-size:19px;font-weight:600;letter-spacing:0;margin:0}
+section{margin-top:34px}
+.sec-hd{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sec-hd .aside{color:var(--ink-3);font-size:13px}
+
+label{display:block;font-size:12.5px;color:var(--ink-2);margin:0 0 5px;font-weight:500}
+input,select,textarea{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:var(--r-sm);padding:8px 11px;font:inherit;outline:none;transition:border-color .16s,box-shadow .16s}
+input:hover,select:hover,textarea:hover{border-color:#BFCabf}
+input:focus,select:focus,textarea:focus{border-color:var(--cal);box-shadow:var(--ring)}
+textarea{resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.7}
+select{cursor:pointer}
+
+button{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r-sm);padding:8px 15px;cursor:pointer;transition:background .16s,border-color .16s,transform .07s}
+button:hover{background:var(--wash);border-color:#BFCABF}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--cal);border-color:var(--cal);color:#fff}
+button.primary:hover{background:var(--cal-deep)}
+button.ghost{background:transparent}
+button.sm{padding:5px 11px;font-size:13px}
+.btnrow{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+
+/* ---------- jobs input ---------- */
+.jobs{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(220px,1fr);gap:26px;align-items:start}
+@media(max-width:760px){.jobs{grid-template-columns:1fr}}
+.explain{border-top:3px solid var(--cal);padding-top:12px;font-size:13.5px;color:var(--ink-2);line-height:1.6}
+.explain strong{color:var(--ink);font-weight:600}
+.status{font-size:13px;color:var(--ink-2);min-height:18px}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--cal);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- the verdict: headline + load-split strip (signature) ---------- */
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:26px 28px 24px}
+@media(max-width:640px){.verdict{padding:20px 16px}}
+.saving{font-family:var(--cond);font-weight:600;font-size:clamp(22px,3.4vw,34px);line-height:1.2;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.saving b{color:var(--cal);font-weight:700;font-variant-numeric:tabular-nums}
+.saving .aside-line{display:block;font-family:"Barlow",sans-serif;font-size:14px;font-weight:400;color:var(--ink-2);margin-top:6px;letter-spacing:0}
+.strip{display:flex;height:34px;border-radius:var(--r-sm);overflow:hidden;margin-top:18px;border:1px solid var(--line)}
+.strip>div{display:flex;align-items:center;min-width:0;transition:flex-grow .6s cubic-bezier(.22,1,.36,1)}
+.strip .s-cal{background:var(--cal)}
+.strip .s-dx{background:var(--dx)}
+.strip span{font-family:var(--mono);font-size:11.5px;font-weight:500;color:#fff;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:9px;font-size:12.5px;color:var(--ink-2)}
+.strip-legend .num{font-family:var(--mono);font-size:12px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
+@media(max-width:640px){.compare{grid-template-columns:1fr}}
+.big{border:1px solid var(--line-soft);border-radius:var(--r-md);padding:13px 16px;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.big.cal{background:var(--cal-wash);border-color:#CDE5D4}
+.big.dx{background:var(--dx-wash);border-color:#EBD9B8}
+.big .k{font-size:13px;font-weight:600;color:var(--ink-2)}
+.big.cal .k{color:var(--cal-deep)} .big.dx .k{color:var(--dx)}
+.big .v{font-family:var(--mono);font-size:21px;font-weight:600;letter-spacing:-.02em}
+.big.cal .v{color:var(--cal-deep)} .big.dx .v{color:var(--dx)}
+.big .n{font-size:12.5px;color:var(--ink-2);flex-basis:100%}
+.vs{display:none}
+.warnnote{background:var(--dx-wash);border:1px solid #EBD9B8;border-radius:var(--r-md);padding:9px 13px;font-size:12.5px;color:var(--dx);margin-top:14px}
+
+/* ---------- panels (map, tables) ---------- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow)}
+.panel .hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line-soft)}
+.panel .hd .lead{display:flex;align-items:baseline;gap:10px}
+.panel .bd{padding:16px 18px}
+.panel .bd.flush{padding:6px 8px}
+#map{height:430px;border-radius:var(--r-md);border:1px solid var(--line-soft);background:#EDF0EC}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
+
+/* ---------- tables ---------- */
+.tblwrap{overflow:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.tblwrap::-webkit-scrollbar{height:8px}
+.tblwrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:600;white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.num{font-family:var(--mono);font-size:12.5px}
+tr.grp td{background:var(--wash);font-weight:600;border-top:1px solid var(--line)}
+tr.grp td.num{font-weight:500}
+tbody tr:not(.grp):hover td{background:var(--wash)}
+tr.clickrow{cursor:pointer}
+tr.clickrow:hover td{background:var(--cal-wash)}
+.plate{display:inline-block;font-family:var(--cond);font-weight:700;font-size:12.5px;letter-spacing:.04em;background:var(--ink);color:#fff;border-radius:4px;padding:1px 8px;margin-right:8px;vertical-align:1px}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:5px}
+.pill.dx{background:var(--dx-wash);color:var(--dx)}
+.pill.err{background:var(--danger-wash);color:var(--danger)}
+.flag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--danger);margin-left:5px}
+.muted{color:var(--ink-2)} .faint{color:var(--ink-3)}
+td.stopcell{padding-left:24px;color:var(--ink-2)}
+.gm{font-size:12.5px;text-decoration:none;white-space:nowrap;font-weight:500}
+.gm svg{vertical-align:-2px;margin-right:3px}
+.gm:hover{text-decoration:underline}
+.edited{font-size:11px;color:var(--dx);margin-left:6px;font-weight:500}
+select.mini{width:auto;display:inline-block;padding:3px 7px;font-size:12px;color:var(--ink-2)}
+.hint{color:var(--ink-3);font-size:12.5px;margin:10px 2px 0}
+
+/* ---------- overview KPIs: a quiet ruled row, not stat tiles ---------- */
+.kpirow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-block:1px solid var(--line);margin-bottom:6px}
+@media(max-width:820px){.kpirow{grid-template-columns:repeat(2,1fr)}}
+.kpi2{padding:14px 18px 14px 0;border-right:1px solid var(--line-soft)}
+.kpi2:last-child{border-right:0}
+.kpi2+.kpi2{padding-left:18px}
+@media(max-width:820px){.kpi2:nth-child(2n){border-right:0}.kpi2:nth-child(n+3){border-top:1px solid var(--line-soft)}}
+.kpi2 .k{font-size:12.5px;color:var(--ink-2);font-weight:500}
+.kpi2 .v{font-family:var(--mono);font-size:23px;font-weight:600;margin-top:3px;letter-spacing:-.02em}
+.kpi2 .n{font-size:12px;color:var(--ink-3);margin-top:2px}
+.kpi2.good .v{color:var(--cal-deep)} .kpi2.warn .v{color:var(--dx)}
+
+details.help{margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+details.help summary{cursor:pointer;color:var(--ink-2);font-size:13.5px;font-weight:500;list-style-position:outside}
+details.help summary:hover{color:var(--cal)}
+details.help .bd2{font-size:13.5px;color:var(--ink-2);padding:10px 2px;line-height:1.7;max-width:75ch}
+details.help b{color:var(--ink)}
+.foot{color:var(--ink-3);font-size:12px;margin-top:16px}
+.hidden{display:none!important}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1>Cal <span class="accent">vs</span> DX — route split</h1>
+      <p class="sub">Load a day's jobs, group them into Cal routes using real road mileage, and compare the cost against sending them with DX.</p>
+    </div>
+    <div class="mast-controls">
+      <div class="field"><label for="sampleDay">May 2026 sample</label><select id="sampleDay"></select></div>
+      <div class="field"><label for="dxRate">DX £ / parcel</label><input id="dxRate" type="number" step="0.01" value="3.00"></div>
+      <div class="field"><label for="depot">Depot</label><input id="depot" type="text" value="NG9 3JR"></div>
+    </div>
+    <p class="rates-note">Cal's rates, drop charge and the 8-hour day are pre-set in the back office.</p>
+  </header>
+
+  <!-- JOBS -->
+  <section>
+    <div class="sec-hd"><h2>Today's jobs</h2>
+      <label style="margin:0"><input type="file" id="file" accept=".xlsx,.xls,.csv" class="hidden"><button class="sm ghost" onclick="document.getElementById('file').click()">Upload xlsx / csv</button></label>
+    </div>
+    <div class="jobs">
+      <div>
+        <label for="paste">Pick a day above, or paste your own — one job per line: <span class="faint">POSTCODE, PARCELS</span></label>
+        <textarea id="paste" rows="7" placeholder="CV6 3BH, 40&#10;LN1 2PQ, 17&#10;S60 3NW, 30"></textarea>
+        <div class="btnrow" style="margin-top:9px">
+          <button class="ghost sm" id="clearBtn">Clear</button>
+          <span class="status" id="parseStatus">Results update automatically as you choose a day or edit the list.</span>
+        </div>
+      </div>
+      <div class="explain"><strong>What it does.</strong> It packs nearby jobs into Cal routes that fit an 8-hour driver day, keeping a job only while it's worth more than DX would charge. Routes that overrun the day split onto another vehicle, and low-value stops get handed to DX so the big drops still get made.</div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <div id="results" class="hidden">
+
+    <!-- OVERVIEW (all days) -->
+    <section id="overviewView" class="hidden">
+      <div class="sec-hd"><h2>Overview — all days</h2><button class="sm ghost" id="exportOverview">Export CSV</button></div>
+      <div class="kpirow" id="ovKpis"></div>
+      <div class="panel" style="margin-top:14px"><div class="bd tblwrap"><div id="ovWrap"></div></div></div>
+      <p class="hint">Click any day to open its full routing. Savings are Cal's route cost vs what DX would charge for the same parcels.</p>
+    </section>
+
+    <!-- ONE DAY -->
+    <div id="dayView">
+      <section>
+        <div class="verdict">
+          <p class="saving" id="savingLine"></p>
+          <div class="strip" id="splitStrip" aria-hidden="true">
+            <div class="s-cal" id="stripCal"><span id="stripCalLbl"></span></div>
+            <div class="s-dx" id="stripDx"><span id="stripDxLbl"></span></div>
+          </div>
+          <div class="strip-legend" id="stripLegend"></div>
+          <div class="compare">
+            <div class="big cal"><span class="k">Cal — as routes</span><span class="v" id="calCostV">£0</span><span class="n" id="calCostN"></span></div>
+            <div class="vs"></div>
+            <div class="big dx"><span class="k">DX — same jobs</span><span class="v" id="dxCostV">£0</span><span class="n" id="dxCostN"></span></div>
+          </div>
+          <div class="warnnote hidden" id="mileWarn"></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="panel">
+          <div class="hd"><div class="lead"><h2>Map</h2><span class="faint" id="dayLabel" style="font-size:12.5px"></span></div>
+            <div class="legend"><span><span class="dot" style="background:var(--cal)"></span>Cal route</span><span><span class="dot" style="background:var(--dx)"></span>Send via DX</span><span><span class="dot" style="background:var(--depot)"></span>Depot</span></div>
+          </div>
+          <div class="bd"><div id="map"></div></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="panel">
+          <div class="hd"><div class="lead"><h2>Cal routes</h2></div><button class="sm ghost" id="exportBtn">Export CSV</button></div>
+          <div class="bd tblwrap"><div id="calWrap"></div></div>
+        </div>
+      </section>
+
+      <section>
+        <div class="panel">
+          <div class="hd"><div class="lead"><h2>Send via DX</h2><span class="faint" style="font-size:12.5px">not worth a Cal route</span></div></div>
+          <div class="bd tblwrap"><div id="dxWrap"></div></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <details class="help">
+    <summary>How the mileage &amp; grouping work</summary>
+    <div class="bd2">
+    Distances are computed instantly, offline: road miles ≈ straight-line × 1.3 (a standard UK approximation), drive time ≈ 32 mph average — so nothing depends on a live map server that could hang. The May sample's locations are built in; your own uploads are geocoded with <b>postcodes.io</b>. Each vehicle's stop order is optimised for the <b>fewest miles</b> as an open path — depot out to the last drop, no return leg (you don't drive back to base) — using 2-opt and Or-opt. To decide the split, the tool runs <b>several different grouping strategies against each other</b> — nearest-first, farthest-first, biggest-margin-first, biggest-drop-first, and a savings/merge method — then polishes each with a local search that shuffles stops between vehicles and DX and rescues profitable clusters. Whichever strategy yields the biggest saving vs DX wins that day; different days are won by different strategies. Every route kept is cheaper than DX and fits the working day.
+    </div>
+  </details>
+  <p class="foot">Depot NG9 3JR · distances estimated as straight-line × 1.3 (instant, offline) · map © OpenStreetMap</p>
+</div>
+
+<script>
+const SAMPLE = {"01/05/2026":[{"postcode":"LN9 5EW","boxes":4}],"05/05/2026":[{"postcode":"CV6 3BH","boxes":40},{"postcode":"DD2 2QF","boxes":14},{"postcode":"DE55 6LD","boxes":3},{"postcode":"DE7 8AW","boxes":7},{"postcode":"DN14 5HY","boxes":15},{"postcode":"HU3 3PB","boxes":24},{"postcode":"HX3 6AW","boxes":21},{"postcode":"LN1 2PQ","boxes":17},{"postcode":"LN11 0FS","boxes":5},{"postcode":"M46 9AF","boxes":20},{"postcode":"NG31 9LH","boxes":18},{"postcode":"NG9 4DP","boxes":14},{"postcode":"PE21 7NT","boxes":4},{"postcode":"PE21 9EG","boxes":10},{"postcode":"PH12 8SE","boxes":3},{"postcode":"PR2 9SX","boxes":15},{"postcode":"PR3 2DB","boxes":16},{"postcode":"S60 3NW","boxes":30},{"postcode":"WF2 0QU","boxes":26},{"postcode":"YO30 5RA","boxes":6}],"06/05/2026":[{"postcode":"B37 6QZ","boxes":10},{"postcode":"B61 0EP","boxes":6},{"postcode":"DE7 8AW","boxes":1},{"postcode":"HU8 9LS","boxes":20},{"postcode":"NG22 9JX","boxes":7},{"postcode":"S13 7PR","boxes":26},{"postcode":"S81 8SY","boxes":12},{"postcode":"WF9 5EA","boxes":15},{"postcode":"YO15 2DS","boxes":12}],"07/05/2026":[{"postcode":"DN16 2TN","boxes":11},{"postcode":"DN8 5AQ","boxes":30},{"postcode":"LN1 1EW","boxes":4},{"postcode":"PE11 2UA","boxes":4},{"postcode":"S8 7LN","boxes":4},{"postcode":"YO11 2AT","boxes":29},{"postcode":"YO25 6NN","boxes":17}],"08/05/2026":[{"postcode":"DD3 0NY","boxes":10},{"postcode":"DN36 4HS","boxes":11},{"postcode":"S60 3NW","boxes":1}],"11/05/2026":[{"postcode":"BD16 1UN","boxes":8},{"postcode":"CV6 3BH","boxes":33},{"postcode":"DD2 2QF","boxes":21},{"postcode":"HU10 7LN","boxes":23},{"postcode":"LE67 8LR","boxes":9},{"postcode":"LN11 0FS","boxes":4},{"postcode":"LN9 5EW","boxes":4},{"postcode":"NG34 7DZ","boxes":4},{"postcode":"NG9 4DP","boxes":4},{"postcode":"PE21 7NT","boxes":4},{"postcode":"PR3 2DB","boxes":16},{"postcode":"S13 7PR","boxes":35},{"postcode":"YO30 5RA","boxes":6}],"12/05/2026":[{"postcode":"B37 6QZ","boxes":9},{"postcode":"CV6 3BH","boxes":5},{"postcode":"DE7 8AW","boxes":6},{"postcode":"HU18 1RA","boxes":40},{"postcode":"HX3 6AW","boxes":66},{"postcode":"LN1 2PQ","boxes":6},{"postcode":"LN4 4SJ","boxes":4},{"postcode":"M46 9AF","boxes":18},{"postcode":"NG2 6UJ","boxes":6},{"postcode":"NG22 9JX","boxes":7},{"postcode":"PE21 7HB","boxes":7},{"postcode":"PR2 9SX","boxes":31},{"postcode":"S8 7LN","boxes":1},{"postcode":"ST11 9JG","boxes":6},{"postcode":"WF2 0QU","boxes":36}],"13/05/2026":[{"postcode":"B37 6QZ","boxes":2},{"postcode":"CV6 3BH","boxes":1},{"postcode":"DD3 0NY","boxes":2},{"postcode":"DN36 4HS","boxes":13},{"postcode":"M41 7GG","boxes":8},{"postcode":"PE21 9EG","boxes":15},{"postcode":"WF9 5EA","boxes":17},{"postcode":"YO25 6NN","boxes":9}],"14/05/2026":[{"postcode":"DN15 8UP","boxes":8},{"postcode":"DN8 5AQ","boxes":26},{"postcode":"NG6 8BL","boxes":15},{"postcode":"PH12 8SE","boxes":11},{"postcode":"S26 6UY","boxes":8},{"postcode":"S8 7LN","boxes":16}],"15/05/2026":[{"postcode":"HX3 6AW","boxes":18},{"postcode":"LN11 0FS","boxes":4},{"postcode":"NG2 6UJ","boxes":4},{"postcode":"YO15 3JR","boxes":29}],"18/05/2026":[{"postcode":"CV6 3BH","boxes":33},{"postcode":"DN14 5HY","boxes":29},{"postcode":"LE2 2RJ","boxes":5},{"postcode":"NG34 7DZ","boxes":3},{"postcode":"PE12 7NJ","boxes":4},{"postcode":"PE21 7NT","boxes":4},{"postcode":"S60 3NW","boxes":21},{"postcode":"YO30 5RA","boxes":9}],"19/05/2026":[{"postcode":"DE7 8AW","boxes":6},{"postcode":"DN16 2TN","boxes":7},{"postcode":"DN36 4ZB","boxes":4},{"postcode":"HU10 7LN","boxes":16},{"postcode":"LN1 1EW","boxes":4},{"postcode":"NG22 9JX","boxes":15},{"postcode":"NG9 1EP","boxes":4},{"postcode":"NG9 4DP","boxes":13},{"postcode":"PE21 7HB","boxes":3},{"postcode":"PR2 9SX","boxes":43},{"postcode":"PR3 2DB","boxes":2},{"postcode":"WF2 0QU","boxes":16},{"postcode":"WF9 5EA","boxes":12},{"postcode":"YO15 3LD","boxes":19},{"postcode":"YO25 6NN","boxes":14}],"20/05/2026":[{"postcode":"BD16 1UN","boxes":14},{"postcode":"DN14 5HY","boxes":1},{"postcode":"LE67 8LR","boxes":11},{"postcode":"PE21 9EG","boxes":12},{"postcode":"S13 7PR","boxes":32},{"postcode":"YO14 9QX","boxes":42}],"21/05/2026":[{"postcode":"B37 6QZ","boxes":20},{"postcode":"L39 3LU","boxes":10},{"postcode":"LN1 2PQ","boxes":16},{"postcode":"M41 7GG","boxes":6},{"postcode":"M46 9AF","boxes":12},{"postcode":"NG22 9JX","boxes":2},{"postcode":"PE11 2UA","boxes":4},{"postcode":"PR2 9SX","boxes":11}],"22/05/2026":[{"postcode":"HU3 3PB","boxes":8},{"postcode":"HX3 6AW","boxes":25},{"postcode":"LN11 0FS","boxes":3},{"postcode":"LN9 5EW","boxes":6},{"postcode":"S8 7LN","boxes":6},{"postcode":"YO30 5RA","boxes":3}],"26/05/2026":[{"postcode":"AB52 6JA","boxes":55},{"postcode":"CV6 3BH","boxes":41},{"postcode":"DE7 8AW","boxes":11},{"postcode":"DN14 5HY","boxes":12},{"postcode":"HX3 6AW","boxes":6},{"postcode":"LN4 4SJ","boxes":3},{"postcode":"NG34 7DZ","boxes":8},{"postcode":"NG5 1AH","boxes":3},{"postcode":"PE11 2UA","boxes":5},{"postcode":"PE21 7HB","boxes":7},{"postcode":"PR2 9SX","boxes":14},{"postcode":"PR3 2DB","boxes":10},{"postcode":"ST11 9JG","boxes":7},{"postcode":"WF9 5EA","boxes":23},{"postcode":"YO25 6NN","boxes":9}],"27/05/2026":[{"postcode":"DD3 0NY","boxes":20},{"postcode":"DN36 4HS","boxes":11},{"postcode":"DN36 4ZB","boxes":4},{"postcode":"HU3 3PB","boxes":8},{"postcode":"HU8 9LS","boxes":2},{"postcode":"NG21 0TT","boxes":10},{"postcode":"PE21 9EG","boxes":13},{"postcode":"PH12 8SE","boxes":13},{"postcode":"S60 3NW","boxes":27},{"postcode":"YO25 6NN","boxes":5}],"28/05/2026":[{"postcode":"DN16 2TN","boxes":8},{"postcode":"DN8 5AQ","boxes":21},{"postcode":"LN1 1EW","boxes":4},{"postcode":"NG2 6UJ","boxes":6},{"postcode":"S81 8SY","boxes":4},{"postcode":"WF2 0QU","boxes":36}],"29/05/2026":[{"postcode":"LN1 2PQ","boxes":6},{"postcode":"PE21 7NT","boxes":4},{"postcode":"PR3 2DB","boxes":3},{"postcode":"S13 7PR","boxes":17},{"postcode":"S8 7LN","boxes":8}]};
+// Baked-in coordinates for the depot + every postcode in the May sample, so the sample
+// needs ZERO network (no geocoding, no distance server) and loads instantly.
+const BAKED = {"NG93JR":[52.92,-1.2],"AB526JA":[57.28,-2.37],"B376QZ":[52.48,-1.72],"B610EP":[52.34,-2.05],"BD161UN":[53.85,-1.84],"CV63BH":[52.44,-1.51],"DD22QF":[56.47,-3.03],"DD30NY":[56.49,-2.99],"DE556LD":[53.1,-1.38],"DE78AW":[52.97,-1.3],"DN145HY":[53.7,-0.87],"DN158UP":[53.59,-0.65],"DN162TN":[53.55,-0.63],"DN364HS":[53.52,-0.03],"DN364ZB":[53.52,-0.02],"DN85AQ":[53.61,-0.96],"HU107LN":[53.75,-0.47],"HU181RA":[53.91,-0.17],"HU33PB":[53.75,-0.38],"HU89LS":[53.77,-0.31],"HX36AW":[53.73,-1.84],"L393LU":[53.57,-2.88],"LE22RJ":[52.61,-1.13],"LE678LR":[52.72,-1.37],"LN11EW":[53.23,-0.54],"LN12PQ":[53.24,-0.55],"LN110FS":[53.37,0],"LN44SJ":[53.14,-0.35],"LN95EW":[53.21,-0.11],"M417GG":[53.45,-2.35],"M469AF":[53.52,-2.49],"NG26UJ":[52.93,-1.13],"NG210TT":[53.13,-1.11],"NG229JX":[53.2,-0.98],"NG319LH":[52.91,-0.64],"NG347DZ":[53,-0.41],"NG51AH":[52.99,-1.15],"NG68BL":[53,-1.2],"NG91EP":[52.93,-1.21],"NG94DP":[52.92,-1.21],"PE112UA":[52.79,-0.15],"PE127NJ":[52.8,0.02],"PE217HB":[52.97,-0.02],"PE217NT":[52.97,-0.02],"PE219EG":[52.98,0],"PH128SE":[56.4,-3.3],"PR29SX":[53.79,-2.7],"PR32DB":[53.85,-2.7],"S137PR":[53.37,-1.38],"S266UY":[53.34,-1.24],"S603NW":[53.41,-1.36],"S87LN":[53.34,-1.48],"S818SY":[53.3,-1.12],"ST119JG":[52.96,-2.06],"WF20QU":[53.67,-1.51],"WF95EA":[53.61,-1.35],"YO112AT":[54.28,-0.4],"YO149QX":[54.21,-0.29],"YO152DS":[54.09,-0.2],"YO153JR":[54.08,-0.19],"YO153LD":[54.08,-0.18],"YO256NN":[54,-0.44],"YO305RA":[53.99,-1.11]};
+const $ = id => document.getElementById(id);
+const norm = p => (p||'').toUpperCase().replace(/\s+/g,'').trim();
+const disp = p => { p=norm(p); return p.length>3 ? p.slice(0,-3)+' '+p.slice(-3) : p; };
+const gbp = n => '£'+n.toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2});
+const gbp0 = n => '£'+Math.round(n).toLocaleString('en-GB');
+const M_PER_MILE = 1609.344;
+let geoCache={}, lastResult=null, lastOverview=null, map=null, layer=null, usedFallback=false;
+Object.entries(BAKED).forEach(([k,v])=>{ geoCache[k]={lat:v[0],lng:v[1]}; });   // seed sample coords — no geocoding needed
+
+/* ---------- helpers ---------- */
+function hav(a,b){ const R=3958.8,r=Math.PI/180;
+  const dLa=(b.lat-a.lat)*r,dLo=(b.lng-a.lng)*r,la1=a.lat*r,la2=b.lat*r;
+  const h=Math.sin(dLa/2)**2+Math.cos(la1)*Math.cos(la2)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h)); }
+function setStatus(id,html){ $(id).innerHTML=html; }
+
+/* ---------- geocoding ---------- */
+async function geocode(list){
+  const need=[...new Set(list.map(norm))].filter(p=>p && !(p in geoCache));
+  for(let i=0;i<need.length;i+=95){
+    const chunk=need.slice(i,i+95);
+    setStatus('parseStatus',`<span class="spin"></span>Looking up ${i+chunk.length}/${need.length} postcodes…`);
+    let ok=false;
+    try{ const r=await fetch('https://api.postcodes.io/postcodes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({postcodes:chunk})});
+      if(r.ok){ const j=await r.json(); (j.result||[]).forEach(it=>{ geoCache[norm(it.query)]=it.result?{lat:it.result.latitude,lng:it.result.longitude}:null; }); ok=true; }
+    }catch(e){}
+    if(!ok){ for(const pc of chunk){ if(pc in geoCache) continue;
+      try{ const r=await fetch('https://api.postcodes.io/postcodes/'+encodeURIComponent(pc)); const j=await r.json();
+        geoCache[pc]=(j.status===200&&j.result)?{lat:j.result.latitude,lng:j.result.longitude}:null;
+      }catch(e){ geoCache[pc]=null; } } }
+  }
+}
+
+/* ---------- distance (miles) + drive time (mins), computed locally, no network ----------
+   Road distance ≈ straight-line × 1.3 (a standard UK approximation); time ≈ 32 mph average.
+   This is instant and offline — nothing to hang on. points[0] = depot. */
+const ROAD_FACTOR=1.3, AVG_MPH=32;
+async function drivingMatrix(points){
+  usedFallback=false;
+  const dist=points.map(a=>points.map(b=>hav(a,b)*ROAD_FACTOR));
+  return { dist, time:dist.map(row=>row.map(mi=>mi/AVG_MPH*60)) };
+}
+function fmtHM(mins){ const h=Math.floor(mins/60), m=Math.round(mins%60); return h?`${h}h ${m}m`:`${m}m`; }
+
+/* ---------- route ordering: OPEN path depot -> stops (NO return to depot) ---------- */
+function tourMiles(order,D){ let t=0; for(let i=0;i<order.length-1;i++) t+=D[order[i]][order[i+1]]; return t; }
+// returns {miles, order[]} for an OPEN path 0 -> s1 -> ... -> sk (depot fixed at start, no return leg)
+function optimise(stopIdx,D){
+  if(!stopIdx.length) return {miles:0,order:[0]};
+  // nearest-neighbour open path from depot
+  let un=stopIdx.slice(), order=[0], cur=0;
+  while(un.length){ let bi=0,bd=Infinity; for(let i=0;i<un.length;i++){ const d=D[cur][un[i]]; if(d<bd){bd=d;bi=i;} }
+    cur=un[bi]; order.push(cur); un.splice(bi,1); }
+  // local search: 2-opt (reverse a segment) + Or-opt (relocate 1-3 stops), depot pinned at index 0
+  let improved=true;
+  while(improved){ improved=false; const n=order.length;
+    // 2-opt for an OPEN path — the edge after k only exists when k isn't the last node
+    for(let i=1;i<n;i++) for(let k=i+1;k<n;k++){
+      const a=order[i-1], b=order[i], c=order[k], hasD=(k+1<n), d=hasD?order[k+1]:-1;
+      const before=D[a][b]+(hasD?D[c][d]:0);
+      const after =D[a][c]+(hasD?D[b][d]:0);
+      if(after<before-1e-9){ let lo=i,hi=k; while(lo<hi){ [order[lo],order[hi]]=[order[hi],order[lo]]; lo++;hi--; } improved=true; }
+    }
+    // Or-opt: try moving each run of 1..3 consecutive stops to the cheapest position (either orientation)
+    const base=tourMiles(order,D);
+    for(let L=1;L<=3 && L<n-1;L++){
+      let done=false;
+      for(let i=1;i+L<=n && !done;i++){
+        const seg=order.slice(i,i+L), rest=order.slice(0,i).concat(order.slice(i+L));
+        let bestGain=1e-9,bestArr=null;
+        for(let j=1;j<=rest.length;j++) for(const s of [seg,seg.slice().reverse()]){
+          const cand=rest.slice(0,j).concat(s,rest.slice(j));
+          const gain=base-tourMiles(cand,D);
+          if(gain>bestGain){ bestGain=gain; bestArr=cand; }
+        }
+        if(bestArr){ order=bestArr; improved=true; done=true; }
+      }
+      if(done) break;
+    }
+  }
+  return {miles:tourMiles(order,D),order};
+}
+
+/* ---------- cost + time model ----------
+   Cal's charges and working day are HARDCODED here (back office). Only the DX price
+   per parcel and the depot are exposed for editing in the UI. */
+const CAL = {
+  minCharge: 40,     // £ minimum charge per route
+  minMiles:  20,     // miles included in the minimum charge
+  perMile:   1.50,   // £ per mile beyond the minimum
+  perDrop:   8,      // £ drop charge per delivery address
+  loadMins:  30,     // minutes loading at the depot
+  stopMins:  7,      // minutes per stop
+  dayHours:  8       // length of the working day
+};
+function P(){ return {dxRate:+$('dxRate').value, minCharge:CAL.minCharge, minMiles:CAL.minMiles,
+  perMile:CAL.perMile, perDrop:CAL.perDrop, loadMins:CAL.loadMins, stopMins:CAL.stopMins, dayMins:CAL.dayHours*60}; }
+function calCost(miles,drops,p){ return p.minCharge + p.perMile*Math.max(0,miles-p.minMiles) + p.perDrop*drops; }
+// working time along the open path depot -> ... -> last delivery (no return). opt.order = [0,...stops]
+function routeTime(opt,drops,Dt,p){
+  const o=opt.order; let drive=0;
+  for(let i=0;i<o.length-1;i++) drive+=Dt[o[i]][o[i+1]];   // depot -> ... -> last stop
+  return p.loadMins + p.stopMins*drops + drive;
+}
+
+/* ---------- cheap insertion helpers (used during grouping — no full re-optimise) ---------- */
+// cheapest position to insert stop c into an open path `order` (depot pinned at 0)
+function bestInsert(order,c,D){
+  let best=Infinity,pos=order.length;
+  for(let pp=1;pp<=order.length;pp++){
+    const prev=order[pp-1];
+    const d=(pp<order.length) ? (D[prev][c]+D[c][order[pp]]-D[prev][order[pp]]) : D[prev][c];
+    if(d<best){ best=d; pos=pp; }
+  }
+  return {pos,delta:best};
+}
+function legDelta(order,c,pos,D){ // change to a path metric (miles or time) from inserting c at pos
+  const prev=order[pos-1];
+  return (pos<order.length) ? (D[prev][c]+D[c][order[pos]]-D[prev][order[pos]]) : D[prev][c];
+}
+
+/* ================= SOLVER PORTFOLIO =================
+   Rather than trust one heuristic, we run several different "logics" (below) on every
+   day, polish each with a shared local-search + cluster-rescue improver, and keep
+   whichever produces the biggest saving vs DX. Different days are won by different
+   logics — they compete, and the best answer wins. */
+
+// remove the worst-value stops until a route is cheaper than DX (shared by constructors)
+function trimToProfit(members,opt,dxPile,Dd,p){
+  while(members.length){
+    const parcels=members.reduce((s,d)=>s+d.parcels,0);
+    if(calCost(opt.miles,members.length,p)<=parcels*p.dxRate) break;
+    const ord=opt.order; let wi=-1,wNet=-Infinity;
+    for(let i=0;i<members.length;i++){
+      const pos=ord.indexOf(members[i].idx), prev=ord[pos-1], next=(pos+1<ord.length)?ord[pos+1]:-1;
+      const saved=(next>=0)?(Dd[prev][members[i].idx]+Dd[members[i].idx][next]-Dd[prev][next]):Dd[prev][members[i].idx];
+      const net=p.perMile*saved-members[i].parcels*p.dxRate;
+      if(net>wNet){ wNet=net; wi=i; }
+    }
+    members[wi].reason='cheaper via DX'; dxPile.push(members[wi]);
+    members.splice(wi,1); opt=optimise(members.map(d=>d.idx),Dd);
+  }
+  return opt;
+}
+
+// LOGIC 1-4: greedy construction, parameterised by how we pick the seed and how we grow
+function constructGreedy(drops,Dd,Dt,p,opts){
+  const seedBy=opts.seed||'near', growBy=opts.grow||'density';
+  let unassigned=drops.slice(), routes=[], dxPile=[];
+  while(unassigned.length){
+    let si=0, sv=(seedBy==='near')?Infinity:-Infinity;
+    for(let i=0;i<unassigned.length;i++){
+      const v = seedBy==='parcels' ? unassigned[i].parcels : Dd[0][unassigned[i].idx];
+      if(seedBy==='near' ? v<sv : v>sv){ sv=v; si=i; }
+    }
+    const seed=unassigned.splice(si,1)[0];
+    let order=[0,seed.idx], members=[seed], miles=Dd[0][seed.idx], drive=Dt[0][seed.idx];
+    if(p.loadMins+p.stopMins+drive>p.dayMins){ seed.reason='beyond a working day from depot'; dxPile.push(seed); continue; }
+    while(unassigned.length){
+      let best=-1,bestKey=-Infinity,bestPos=0,bestMi=0,bestTm=0;
+      const costNow=calCost(miles,members.length,p), timeNow=p.loadMins+p.stopMins*members.length+drive;
+      for(let i=0;i<unassigned.length;i++){
+        const c=unassigned[i].idx, ins=bestInsert(order,c,Dd), tmDelta=legDelta(order,c,ins.pos,Dt);
+        const newMiles=miles+ins.delta, newDrive=drive+tmDelta;
+        const newTime=p.loadMins+p.stopMins*(members.length+1)+newDrive;
+        if(newTime>p.dayMins) continue;
+        const marginal=calCost(newMiles,members.length+1,p)-costNow;
+        if(marginal>unassigned[i].parcels*p.dxRate) continue;
+        let key;
+        if(growBy==='surplus') key=unassigned[i].parcels*p.dxRate-marginal;      // most £ margin
+        else if(growBy==='insertion') key=-ins.delta;                            // fewest added miles
+        else key=unassigned[i].parcels/Math.max(1,newTime-timeNow);              // parcels per minute
+        if(key>bestKey){ bestKey=key; best=i; bestPos=ins.pos; bestMi=ins.delta; bestTm=tmDelta; }
+      }
+      if(best<0) break;
+      order.splice(bestPos,0,unassigned[best].idx); miles+=bestMi; drive+=bestTm;
+      members.push(unassigned[best]); unassigned.splice(best,1);
+    }
+    let opt=trimToProfit(members,optimise(members.map(d=>d.idx),Dd),dxPile,Dd,p);
+    if(members.length) routes.push(mkRoute(members,opt,calCost(opt.miles,members.length,p),members.reduce((s,d)=>s+d.parcels,0)*p.dxRate,Dt,p));
+  }
+  return {routes,dxPile};
+}
+
+// LOGIC 5: savings/merge — start every stop as its own route, repeatedly merge the pair
+// that saves the most (sharing one minimum charge + trunk mileage), then trim to profit
+function constructSavings(drops,Dd,Dt,p){
+  let live=[], dxPile=[];
+  drops.forEach(d=>{
+    if(p.loadMins+p.stopMins+Dt[0][d.idx]>p.dayMins){ d.reason='beyond a working day from depot'; dxPile.push(d); }
+    else live.push({members:[d],opt:optimise([d.idx],Dd)});
+  });
+  const rc=r=>calCost(r.opt.miles,r.members.length,p);
+  let improved=true;
+  while(improved){ improved=false;
+    let bg=1e-6,bi=-1,bj=-1,bm=null,bo=null;
+    for(let i=0;i<live.length;i++) for(let j=i+1;j<live.length;j++){
+      const merged=live[i].members.concat(live[j].members);
+      if(merged.length>14) continue;
+      const opt=optimise(merged.map(d=>d.idx),Dd);
+      if(routeTime(opt,merged.length,Dt,p)>p.dayMins) continue;
+      const gain=rc(live[i])+rc(live[j])-calCost(opt.miles,merged.length,p);
+      if(gain>bg){ bg=gain; bi=i; bj=j; bm=merged; bo=opt; }
+    }
+    if(bi>=0){ live[bi]={members:bm,opt:bo}; live.splice(bj,1); improved=true; }
+  }
+  const routes=[];
+  live.forEach(r=>{
+    let members=r.members.slice();
+    const opt=trimToProfit(members,r.opt,dxPile,Dd,p);
+    if(members.length) routes.push(mkRoute(members,opt,calCost(opt.miles,members.length,p),members.reduce((s,d)=>s+d.parcels,0)*p.dxRate,Dt,p));
+  });
+  return {routes,dxPile};
+}
+
+// shared improver: alternate cluster-rescue (batch) with a relocate hill-climb until stable
+function totalSaving(routes){ return routes.reduce((s,r)=>s+r.saving,0); }
+function improve(sol,Dd,Dt,p){
+  let rounds=0, changed=true;
+  while(changed && rounds++<8){
+    changed=false;
+    rescueClusters(sol.routes,sol.dxPile,Dd,Dt,p);        // pull profitable clusters back (batch)
+    let g=0, moved=true;
+    while(moved && g++<300){                              // relocate a single stop to DX or another route
+      moved=false;
+      let bestDelta=1e-6, mv=null;
+      for(let a=0;a<sol.routes.length;a++){
+        const A=sol.routes[a];
+        for(let k=0;k<A.stops.length;k++){
+          const s=A.stops[k];
+          const Aw=A.stops.filter((_,i)=>i!==k);
+          const nA=Aw.length? finalizeRoute(Aw,Dd,Dt,p) : {saving:0,stops:[],_empty:true};
+          const dxDelta=nA.saving - A.saving;              // send s to DX (drops a net-drag stop)
+          if(dxDelta>bestDelta){ bestDelta=dxDelta; mv={type:'dx',a,k,nA}; }
+          for(let b=0;b<sol.routes.length;b++){ if(b===a) continue;   // move s to another route
+            const B=sol.routes[b], nB=finalizeRoute(B.stops.concat([s]),Dd,Dt,p);
+            if(nB.cost>nB.dx+1e-9 || nB.time>p.dayMins+0.5) continue;
+            const delta=(nA.saving+nB.saving)-(A.saving+B.saving);
+            if(delta>bestDelta){ bestDelta=delta; mv={type:'move',a,b,k,nA,nB}; }
+          }
+        }
+      }
+      if(!mv) break;
+      const A=sol.routes[mv.a], s=A.stops[mv.k];
+      if(mv.type==='move') Object.assign(sol.routes[mv.b], mv.nB);
+      else { s.reason='cheaper via DX'; sol.dxPile.push(s); }
+      if(mv.nA._empty) A.stops=[]; else Object.assign(A, mv.nA);
+      sol.routes=sol.routes.filter(r=>r.stops.length>0);
+      moved=true; changed=true;
+    }
+  }
+  return sol;
+}
+
+// entry point: run every logic, keep the best raw, polish the strongest few, take the winner
+function buildRoutes(drops,Dd,Dt,p){
+  const strategies=[
+    s=>constructGreedy(s,Dd,Dt,p,{seed:'near',grow:'density'}),
+    s=>constructGreedy(s,Dd,Dt,p,{seed:'far',grow:'density'}),
+    s=>constructGreedy(s,Dd,Dt,p,{seed:'near',grow:'surplus'}),
+    s=>constructGreedy(s,Dd,Dt,p,{seed:'parcels',grow:'insertion'}),
+  ];
+  if(drops.length<=32) strategies.push(s=>constructSavings(s,Dd,Dt,p));   // savings is pricier — skip for huge days
+  const cands=strategies.map(run=>{
+    const fresh=drops.map(d=>({idx:d.idx,postcode:d.postcode,parcels:d.parcels,c:d.c}));
+    const sol=run(fresh); return {sol, raw:totalSaving(sol.routes)};
+  }).sort((a,b)=>b.raw-a.raw);
+  const K=Math.min(drops.length>35?2:3, cands.length);     // polish fewer candidates on very large days
+  let best=null, bestScore=-Infinity;
+  for(let i=0;i<K;i++){
+    const sol=improve(cands[i].sol,Dd,Dt,p);
+    const sc=totalSaving(sol.routes);
+    if(sc>bestScore+1e-9){ bestScore=sc; best=sol; }
+  }
+  best.routes.sort((a,b)=>b.parcels-a.parcels); best.routes.forEach((r,i)=>r.n=i+1);
+  return best;
+}
+
+/* Cluster rescue: the greedy build tests stops one at a time, so a group of stops that
+   individually can't beat DX but SHARE a trunk leg (e.g. a whole region reached off the
+   far end of a route) gets wrongly dumped to DX. This pass looks for chains of DX stops
+   whose COMBINED extra cost is still under their combined DX price, and moves them back. */
+function finalizeRoute(stops,Dd,Dt,p){
+  const opt=optimise(stops.map(d=>d.idx),Dd);
+  const byIdx={}; stops.forEach(d=>byIdx[d.idx]=d);
+  const ordered=opt.order.slice(1).map(ix=>byIdx[ix]).filter(Boolean);
+  const parcels=ordered.reduce((s,d)=>s+d.parcels,0), cost=calCost(opt.miles,ordered.length,p);
+  return {stops:ordered, parcels, miles:opt.miles, drops:ordered.length,
+    time:routeTime(opt,ordered.length,Dt,p), cost, dx:parcels*p.dxRate, saving:parcels*p.dxRate-cost};
+}
+// best chain of pool stops to append to a base stop-set: maximises (their DX worth − extra Cal cost)
+function bestChain(baseIdxs,pool,Dd,Dt,p){
+  const baseCost = baseIdxs.length ? calCost(optimise(baseIdxs,Dd).miles, baseIdxs.length, p) : 0;
+  let curIdxs=baseIdxs.slice(), curCost=baseCost, cumDx=0, chain=[], left=pool.slice();
+  let best={surplus:1e-9, stops:[]};
+  while(left.length){
+    let bi=-1,biCost=Infinity,biOpt=null;
+    for(let k=0;k<left.length;k++){                     // add the cheapest-to-reach stop next
+      const trial=optimise([...curIdxs,left[k].idx],Dd);
+      const c=calCost(trial.miles,curIdxs.length+1,p);
+      if(c<biCost){ biCost=c; bi=k; biOpt=trial; }
+    }
+    if(bi<0) break;
+    if(routeTime(biOpt,curIdxs.length+1,Dt,p)>p.dayMins) break;   // day full
+    const s=left[bi]; curIdxs.push(s.idx); curCost=biCost; chain.push(s); cumDx+=s.parcels*p.dxRate; left.splice(bi,1);
+    const surplus=cumDx-(curCost-baseCost);             // combined DX worth − combined extra cost
+    if(surplus>best.surplus) best={surplus, stops:chain.slice()};
+  }
+  return best.stops.length ? best : null;
+}
+function rescueClusters(routes,dxPile,Dd,Dt,p){
+  const isPool=d=>d.idx!=null && !d.bad;
+  let changed=true, guard=0;
+  while(changed && guard++<60){
+    changed=false;
+    for(const r of routes){                             // extend existing routes with a profitable chain
+      const pool=dxPile.filter(isPool); if(!pool.length) break;
+      const best=bestChain(r.stops.map(s=>s.idx),pool,Dd,Dt,p);
+      if(best){
+        best.stops.forEach(s=>{ const i=dxPile.indexOf(s); if(i>=0) dxPile.splice(i,1); delete s.reason; r.stops.push(s); });
+        Object.assign(r, finalizeRoute(r.stops,Dd,Dt,p)); changed=true;
+      }
+    }
+    if(changed) continue;
+    const pool=dxPile.filter(isPool);                   // or form a brand-new profitable route from a cluster
+    if(pool.length){
+      const best=bestChain([],pool,Dd,Dt,p);
+      if(best){
+        best.stops.forEach(s=>{ const i=dxPile.indexOf(s); if(i>=0) dxPile.splice(i,1); delete s.reason; });
+        routes.push(finalizeRoute(best.stops,Dd,Dt,p)); changed=true;
+      }
+    }
+  }
+}
+function mkRoute(run,opt,cost,dx,Dt,p){
+  const byIdx={}; run.forEach(d=>byIdx[d.idx]=d);
+  const stops=opt.order.slice(1).map(ix=>byIdx[ix]).filter(Boolean);
+  return {stops, parcels:run.reduce((s,d)=>s+d.parcels,0), miles:opt.miles, drops:run.length,
+    time:routeTime(opt,run.length,Dt,p), cost, dx, saving:dx-cost};
+}
+
+/* ---------- parse ---------- */
+function parsePaste(txt){
+  const pcRe=/([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})/i, rows={};
+  txt.split(/\n/).forEach(line=>{ line=line.trim(); if(!line) return;
+    const m=line.match(pcRe); if(!m) return; const pc=m[1];
+    const rest=line.replace(pc,'').replace(/[,\t;]/g,' '); const nm=rest.match(/\d+(\.\d+)?/); const parcels=nm?parseFloat(nm[0]):1;
+    const k=norm(pc); if(rows[k]) rows[k].parcels+=parcels; else rows[k]={postcode:pc,parcels}; });
+  return Object.values(rows);
+}
+
+/* ---------- file upload ---------- */
+$('file').addEventListener('change', async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]];
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,blankrows:false}); if(!rows.length){ setStatus('parseStatus','Couldn’t read that file.'); return; }
+  const pcRe=/^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;
+  let hdr=(rows[0]||[]).map(x=>String(x||'').toLowerCase());
+  let pcCol=hdr.findIndex(h=>/post\s*code|postcode/.test(h));
+  let boxCol=hdr.findIndex(h=>/count|box|item|qty|quantit|parcel/.test(h));
+  let start=1;
+  if(pcCol<0){ start=0; for(let c=0;c<(rows[0]||[]).length;c++){ if(rows.slice(0,20).some(r=>pcRe.test(String(r[c]||'')))){pcCol=c;break;} } }
+  const agg={};
+  if(pcCol>=0&&boxCol>=0){ for(let i=start;i<rows.length;i++){ const pc=String(rows[i][pcCol]||''); const b=parseFloat(String(rows[i][boxCol]).replace(/[^\d.]/g,'')); if(pcRe.test(pc)&&!isNaN(b)){ agg[norm(pc)]=(agg[norm(pc)]||0)+b; } } }
+  else if(pcCol>=0){ for(let i=start;i<rows.length;i++){ const pc=String(rows[i][pcCol]||''); if(pcRe.test(pc)) agg[norm(pc)]=(agg[norm(pc)]||0)+1; } }
+  else { setStatus('parseStatus','No postcode column found.'); return; }
+  const list=Object.entries(agg).map(([k,v])=>`${disp(k)}, ${v}`);
+  $('paste').value=list.join('\n'); delete $('paste').dataset.day;
+  setStatus('parseStatus',`Loaded ${list.length} postcodes from ${f.name}.`);
+  runCompute();
+});
+
+/* ---------- sample dropdown (populated on load, incl. an Overview option) ---------- */
+function populateSample(){
+  const sel=$('sampleDay'); sel.innerHTML='';
+  const ov=document.createElement('option'); ov.value='__overview__'; ov.textContent='Overview — all days'; sel.appendChild(ov);
+  Object.keys(SAMPLE).forEach(d=>{ const t=SAMPLE[d].reduce((a,b)=>a+b.boxes,0); const o=document.createElement('option'); o.value=d; o.textContent=`${d} · ${SAMPLE[d].length} stops, ${t} parcels`; sel.appendChild(o); });
+  sel.value='__overview__';
+}
+$('sampleDay').addEventListener('change',e=>{
+  const v=e.target.value;
+  if(v==='__overview__'){ delete $('paste').dataset.day; runOverview(); }
+  else { loadDay(v); runCompute(); }
+});
+function loadDay(d){ $('paste').value=SAMPLE[d].map(r=>`${r.postcode}, ${r.boxes}`).join('\n'); $('paste').dataset.day=d; }
+
+/* ---------- one-day compute (auto-run) ---------- */
+let running=false;
+async function runCompute(){
+  const jobs=parsePaste($('paste').value);
+  if(!jobs.length){ setStatus('parseStatus','Add some jobs (postcode, parcels) or pick a day above.'); return; }
+  if(running) return; running=true;
+  try{
+    const p=P();
+    await geocode([$('depot').value, ...jobs.map(j=>j.postcode)]);
+    const depot=geoCache[norm($('depot').value)];
+    if(!depot){ setStatus('parseStatus','Couldn’t geocode the depot postcode.'); return; }
+    const resolved=[], badPc=[];
+    jobs.forEach(j=>{ const g=geoCache[norm(j.postcode)]; if(g){ j.c=g; resolved.push(j); } else { j.reason='postcode not found'; j.bad=true; badPc.push(j); } });
+    const points=[depot, ...resolved.map(j=>j.c)];
+    const D=await drivingMatrix(points);
+    resolved.forEach((j,i)=>j.idx=i+1);
+    setStatus('parseStatus',`<span class="spin"></span>Working out the best split for ${resolved.length} stops…`);
+    await new Promise(r=>setTimeout(r,0));               // repaint the spinner before the solve
+    const {routes,dxPile}=buildRoutes(resolved,D.dist,D.time,p);
+    badPc.forEach(b=>dxPile.push(b));
+    routes.sort((a,b)=>b.parcels-a.parcels); routes.forEach((r,i)=>r.n=i+1);
+    lastResult={depot,depotPc:$('depot').value,routes,dxPile,p,day:$('paste').dataset.day||'',Dd:D.dist,Dt:D.time};
+    setStatus('parseStatus',`Done · ${resolved.length} stops routed.${usedFallback?' (estimated mileage)':''}`);
+    showView('day'); render(lastResult);
+  } finally { running=false; }
+}
+const debouncedCompute = (()=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(runCompute,700); }; })();
+
+/* ---------- overview: every day summarised (one combined distance matrix) ---------- */
+async function runOverview(){
+  if(running) return; running=true;
+  try{
+    const p=P();
+    const uniq=[...new Set(Object.values(SAMPLE).flat().map(r=>norm(r.postcode)))];
+    setStatus('parseStatus',`<span class="spin"></span>Geocoding ${uniq.length} postcodes…`);
+    await geocode([$('depot').value, ...uniq]);
+    const depot=geoCache[norm($('depot').value)];
+    if(!depot){ setStatus('parseStatus','Couldn’t geocode the depot postcode.'); return; }
+    const resolvedUniq=uniq.filter(k=>geoCache[k]);
+    const gIndex={}; resolvedUniq.forEach((k,i)=>gIndex[k]=i+1);   // depot is 0
+    await new Promise(r=>setTimeout(r,0));
+    const D=await drivingMatrix([depot, ...resolvedUniq.map(k=>geoCache[k])]);
+    // Cost each day one at a time, yielding to the browser between days so the page
+    // stays responsive (never blocks long enough to trigger the "unresponsive" dialog).
+    const days=Object.keys(SAMPLE), out=[];
+    for(let di=0; di<days.length; di++){
+      const day=days[di];
+      setStatus('parseStatus',`<span class="spin"></span>Costing day ${di+1} of ${days.length} (${day})…`);
+      await new Promise(r=>setTimeout(r,0));            // let the UI breathe / repaint
+      const jobs=SAMPLE[day];
+      const totParcels=jobs.reduce((s,j)=>s+j.boxes,0);
+      const drops=jobs.filter(j=>geoCache[norm(j.postcode)]).map(j=>({idx:gIndex[norm(j.postcode)],postcode:j.postcode,parcels:j.boxes,c:geoCache[norm(j.postcode)]}));
+      if(!drops.length){ out.push({day,totParcels,calParcels:0,routes:0,calCost:0,dxForCal:0,saving:0}); continue; }
+      const {routes}=buildRoutes(drops,D.dist,D.time,p);
+      const calParcels=routes.reduce((s,r)=>s+r.parcels,0);
+      const calCost=routes.reduce((s,r)=>s+r.cost,0);
+      const dxForCal=routes.reduce((s,r)=>s+r.dx,0);
+      out.push({day,totParcels,calParcels,routes:routes.length,calCost,dxForCal,saving:dxForCal-calCost});
+    }
+    setStatus('parseStatus',`Overview ready · ${out.length} days.${usedFallback?' (mileage estimated)':''}`);
+    showView('overview'); renderOverview(out,p);
+  } finally { running=false; }
+}
+
+$('clearBtn').addEventListener('click',()=>{ $('paste').value=''; setStatus('parseStatus',''); delete $('paste').dataset.day; $('results').classList.add('hidden'); });
+$('paste').addEventListener('input',()=>{ delete $('paste').dataset.day; debouncedCompute(); });
+$('dxRate').addEventListener('change',()=>{ if($('sampleDay').value==='__overview__') runOverview(); else if(parsePaste($('paste').value).length) runCompute(); });
+$('depot').addEventListener('change',()=>{ if($('sampleDay').value==='__overview__') runOverview(); else if(parsePaste($('paste').value).length) runCompute(); });
+
+/* ---------- manual editing ---------- */
+function gmapsUrl(r){
+  const enc=s=>encodeURIComponent(s), dep=lastResult.depotPc||'';
+  const pts=[dep, ...r.stops.map(s=>disp(s.postcode))];   // depot -> stops, NO return to depot
+  const way=pts.slice(1,-1).map(enc).join('%7C');
+  const wp=way?`&waypoints=${way}`:'';
+  return `https://www.google.com/maps/dir/?api=1&origin=${enc(pts[0])}&destination=${enc(pts[pts.length-1])}${wp}&travelmode=driving`;
+}
+function recalcRoute(r){
+  const L=lastResult,p=L.p; if(!r.stops.length){ r.parcels=0;r.miles=0;r.drops=0;r.time=0;r.cost=0;r.dx=0;r.saving=0; return; }
+  const opt=optimise(r.stops.map(d=>d.idx),L.Dd);
+  const byIdx={}; r.stops.forEach(d=>byIdx[d.idx]=d);
+  r.stops=opt.order.slice(1).map(ix=>byIdx[ix]).filter(Boolean);
+  r.miles=opt.miles; r.drops=r.stops.length; r.parcels=r.stops.reduce((s,d)=>s+d.parcels,0);
+  r.time=routeTime(opt,r.stops.length,L.Dt,p); r.cost=calCost(opt.miles,r.stops.length,p);
+  r.dx=r.parcels*p.dxRate; r.saving=r.dx-r.cost; r.edited=true;
+}
+function findDrop(idx){
+  const L=lastResult;
+  for(const r of L.routes){ const i=r.stops.findIndex(s=>s.idx===idx); if(i>=0){ const d=r.stops.splice(i,1)[0]; return {d,route:r}; } }
+  const j=L.dxPile.findIndex(s=>s.idx===idx); if(j>=0) return {d:L.dxPile.splice(j,1)[0],route:null};
+  return null;
+}
+function editMove(idx,target){
+  if(target==='') return; const L=lastResult; const f=findDrop(+idx); if(!f) return; const d=f.d;
+  if(f.route) recalcRoute(f.route);
+  if(target==='dx'){ d.reason='moved to DX (manual)'; L.dxPile.push(d); }
+  else if(target==='new'){ const r={stops:[d]}; recalcRoute(r); L.routes.push(r); }
+  else { let r=L.routes.find(x=>x.n==target); if(!r){ r={stops:[]}; L.routes.push(r);} r.stops.push(d); recalcRoute(r); }
+  L.routes=L.routes.filter(r=>r.stops.length>0);
+  L.routes.sort((a,b)=>b.parcels-a.parcels); L.routes.forEach((r,i)=>r.n=i+1);
+  render(L);
+}
+
+/* ---------- views: overview vs one day ---------- */
+function showView(mode){
+  $('results').classList.remove('hidden');
+  $('overviewView').classList.toggle('hidden', mode!=='overview');
+  $('dayView').classList.toggle('hidden', mode!=='day');
+}
+function kpi2(k,v,n,cls){ return `<div class="kpi2 ${cls}"><div class="k">${k}</div><div class="v">${v}</div><div class="n">${n}</div></div>`; }
+function renderOverview(rows,p){
+  lastOverview=rows;
+  const T=rows.reduce((a,r)=>({tp:a.tp+r.totParcels,cp:a.cp+r.calParcels,cc:a.cc+r.calCost,dx:a.dx+r.dxForCal,sv:a.sv+r.saving}),{tp:0,cp:0,cc:0,dx:0,sv:0});
+  const calPct=T.tp?T.cp/T.tp*100:0, savePct=T.dx?T.sv/T.dx*100:0;
+  $('ovKpis').innerHTML =
+    kpi2('Parcels to Cal', T.cp.toLocaleString('en-GB'), `${calPct.toFixed(0)}% of ${T.tp.toLocaleString('en-GB')} total`,'good')+
+    kpi2('Saving vs DX', gbp0(T.sv), `${savePct.toFixed(0)}% across the month`,'good')+
+    kpi2('Cal cost', gbp0(T.cc), 'for the Cal work','')+
+    kpi2('DX would charge', gbp0(T.dx), 'for those same parcels','warn');
+  let body='';
+  rows.forEach(r=>{
+    const dxP=r.totParcels-r.calParcels, sp=r.dxForCal?r.saving/r.dxForCal*100:0, has=r.calParcels>0;
+    body+=`<tr class="clickrow" onclick="openDay('${r.day}')"><td>${r.day}</td><td class="num">${r.totParcels}</td><td class="num" style="color:var(--cal)">${r.calParcels}</td><td class="num" style="color:var(--dx)">${dxP}</td><td class="num">${r.routes||'—'}</td><td class="num">${has?gbp0(r.calCost):'—'}</td><td class="num">${has?gbp0(r.dxForCal):'—'}</td><td class="num" style="color:var(--cal)">${has?gbp0(r.saving):'—'}</td><td class="num">${has?sp.toFixed(0)+'%':'—'}</td></tr>`;
+  });
+  body+=`<tr class="grp"><td>Month total</td><td class="num">${T.tp}</td><td class="num">${T.cp}</td><td class="num">${T.tp-T.cp}</td><td></td><td class="num">${gbp0(T.cc)}</td><td class="num">${gbp0(T.dx)}</td><td class="num" style="color:var(--cal)">${gbp0(T.sv)}</td><td class="num">${savePct.toFixed(0)}%</td></tr>`;
+  $('ovWrap').innerHTML=`<table><thead><tr><th>Date</th><th class="num">Parcels</th><th class="num">With Cal</th><th class="num">Via DX</th><th class="num">Vehicles</th><th class="num">Cal cost</th><th class="num">DX cost</th><th class="num">Saving</th><th class="num">Saving %</th></tr></thead><tbody>${body}</tbody></table>`;
+}
+function openDay(d){ $('sampleDay').value=d; loadDay(d); runCompute(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+/* ---------- render (one day) ---------- */
+function render(res){
+  $('results').classList.remove('hidden');
+  const {routes,dxPile,p}=res;
+  const calCostTot=routes.reduce((s,r)=>s+r.cost,0);
+  const calParcels=routes.reduce((s,r)=>s+r.parcels,0);
+  const calMiles=routes.reduce((s,r)=>s+r.miles,0);
+  const dxForCal=routes.reduce((s,r)=>s+r.dx,0);           // DX cost for the SAME jobs Cal covers
+  const dxPileParcels=dxPile.reduce((s,d)=>s+(d.parcels||0),0);
+  const saving=dxForCal-calCostTot;
+  const savePct=dxForCal>0?saving/dxForCal*100:0;
+
+  const totTime=routes.reduce((s,r)=>s+r.time,0);
+  $('dayLabel').textContent = res.day?('Day: '+res.day):'';
+  $('calCostV').textContent = gbp0(calCostTot);
+  $('calCostN').textContent = `${routes.length} vehicle${routes.length!==1?'s':''} · ${calParcels} parcels · ${Math.round(calMiles)} mi · ${fmtHM(totTime)} driver time`;
+  $('dxCostV').textContent = gbp0(dxForCal);
+  $('dxCostN').textContent = `${calParcels} parcels × ${gbp(p.dxRate)}`;
+  $('savingLine').innerHTML = routes.length
+    ? `Running these with Cal saves <b>${gbp0(saving)}</b> today (${savePct.toFixed(0)}% under DX).`
+    : `No Cal route beats DX with these rates. Send everything via DX, or check the rates.`;
+
+  // load-split strip: today's parcels divided between the two carriers
+  const totalParcels=calParcels+dxPileParcels;
+  if(totalParcels>0){
+    $('splitStrip').classList.remove('hidden');
+    const calShare=calParcels/totalParcels, dxShare=dxPileParcels/totalParcels;
+    $('stripCal').style.flexGrow=Math.max(calShare,0.001);
+    $('stripDx').style.flexGrow=Math.max(dxShare,0.001);
+    $('stripDx').style.display=dxPileParcels?'flex':'none';
+    $('stripCalLbl').textContent=calParcels?`CAL ${calParcels}`:'';
+    $('stripDxLbl').textContent=dxPileParcels?`DX ${dxPileParcels}`:'';
+    $('stripLegend').innerHTML=
+      `<span><span class="dot" style="background:var(--cal)"></span>Cal vans: <span class="num">${calParcels}</span> parcels on <span class="num">${routes.length}</span> vehicle${routes.length!==1?'s':''}</span>`+
+      (dxPile.length?`<span><span class="dot" style="background:var(--dx)"></span>Via DX: <span class="num">${dxPileParcels}</span> parcels across <span class="num">${dxPile.length}</span> job${dxPile.length!==1?'s':''}</span>`:'');
+  } else { $('splitStrip').classList.add('hidden'); $('stripLegend').innerHTML=''; }
+
+  $('mileWarn').classList.toggle('hidden', !usedFallback);
+  if(usedFallback) $('mileWarn').innerHTML='OSRM road-distance service was unreachable, so distances are straight-line × 1.3 estimates. Re-run when online for exact road mileage.';
+
+  $('calWrap').innerHTML = routes.length ? calTable(routes,p) : '<p class="muted">No viable Cal routes.</p>';
+  $('dxWrap').innerHTML = dxPile.length ? dxTable(dxPile,p) : '<p class="muted">Nothing for DX — Cal covers the whole day.</p>';
+  drawMap(res);
+}
+function moveSelect(idx,curN,routes){
+  let opts='<option value="">move / remove…</option>';
+  routes.forEach(r=>{ if(r.n!==curN) opts+=`<option value="${r.n}">→ Vehicle ${r.n}</option>`; });
+  opts+='<option value="new">→ new vehicle</option><option value="dx">→ DX</option>';
+  return `<select class="mini" onchange="editMove(${idx},this.value)">${opts}</select>`;
+}
+function addSelect(idx,routes){
+  if(idx==null) return '<span class="faint" style="font-size:11px">no location</span>';
+  let opts='<option value="">add to…</option>';
+  routes.forEach(r=>opts+=`<option value="${r.n}">→ Vehicle ${r.n}</option>`);
+  opts+='<option value="new">→ new vehicle</option>';
+  return `<select class="mini" onchange="editMove(${idx},this.value)">${opts}</select>`;
+}
+const GM_ICON='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>';
+function calTable(routes,p){
+  let rows='';
+  routes.forEach(r=>{
+    const over=r.time>p.dayMins+0.5;
+    const gm=`<a class="gm" href="${gmapsUrl(r)}" target="_blank" rel="noopener">${GM_ICON}Maps</a>`;
+    rows+=`<tr class="grp"><td><span class="plate">V${r.n}</span>${r.edited?'<span class="edited">edited</span>':''}</td><td>${gm}</td><td class="num">${r.parcels}</td><td class="num">${r.drops}</td><td class="num">${Math.round(r.miles)}</td><td class="num" style="${over?'color:var(--danger)':''}">${fmtHM(r.time)}${over?'<span class="flag">OVER</span>':''}</td><td class="num">${gbp(r.cost)}</td><td class="num">${gbp(r.dx)}</td><td class="num" style="color:${r.saving<0?'var(--danger)':'var(--cal)'}">${gbp(r.saving)}</td></tr>`;
+    r.stops.forEach((s,i)=>{
+      rows+=`<tr><td></td><td class="stopcell">${i+1}. ${disp(s.postcode)}</td><td class="num">${s.parcels}</td><td colspan="6">${moveSelect(s.idx,r.n,routes)}</td></tr>`;
+    });
+  });
+  const t=routes.reduce((a,r)=>({d:a.d+r.drops,pc:a.pc+r.parcels,mi:a.mi+r.miles,tm:a.tm+r.time,c:a.c+r.cost,dx:a.dx+r.dx,s:a.s+r.saving}),{d:0,pc:0,mi:0,tm:0,c:0,dx:0,s:0});
+  rows+=`<tr class="grp"><td colspan="2">Totals</td><td class="num">${t.pc}</td><td class="num">${t.d}</td><td class="num">${Math.round(t.mi)}</td><td class="num">${fmtHM(t.tm)}</td><td class="num">${gbp(t.c)}</td><td class="num">${gbp(t.dx)}</td><td class="num" style="color:${t.s<0?'var(--danger)':'var(--cal)'}">${gbp(t.s)}</td></tr>`;
+  return `<table><thead><tr><th>Vehicle</th><th>Stop</th><th class="num">Parcels</th><th class="num">Drops</th><th class="num">Miles</th><th class="num">Day</th><th class="num">Cal cost</th><th class="num">DX cost</th><th class="num">Saving</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="hint">Use the drop-downs to move a stop to another vehicle, a new vehicle, or DX — costs, mileage and the day recalculate instantly. "Maps" opens the route in Google Maps.</p>`;
+}
+function dxTable(pile,p){
+  const routes=lastResult?lastResult.routes:[];
+  const rows=pile.slice().sort((a,b)=>a.postcode.localeCompare(b.postcode)).map(d=>`<tr><td>${disp(d.postcode)}</td><td class="num">${d.parcels||0}</td><td class="num">${d.parcels?gbp(d.parcels*p.dxRate):'—'}</td><td><span class="pill ${d.bad?'err':'dx'}">${d.reason||'DX'}</span></td><td>${d.bad?'<span class="faint" style="font-size:11px">no location</span>':addSelect(d.idx,routes)}</td></tr>`).join('');
+  return `<table><thead><tr><th>Postcode</th><th class="num">Parcels</th><th class="num">DX cost</th><th>Reason</th><th>Give to Cal</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+/* ---------- map ---------- */
+function drawMap(res){
+  if(!map){ map=L.map('map',{scrollWheelZoom:false}); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap'}).addTo(map); }
+  if(layer) layer.remove(); layer=L.layerGroup().addTo(map);
+  const {depot,routes,dxPile}=res, pts=[];
+  L.circleMarker([depot.lat,depot.lng],{radius:7,color:'#fff',weight:2,fillColor:'#5E6B62',fillOpacity:1}).bindTooltip('Depot').addTo(layer); pts.push([depot.lat,depot.lng]);
+  const pal=['#0B7A47','#1D5FBF','#7C3AED','#0E7490','#4D7C0F','#9D174D','#365314','#92400E'];
+  routes.forEach((r,i)=>{ const col=pal[i%pal.length];
+    L.polyline([[depot.lat,depot.lng],...r.stops.map(s=>[s.c.lat,s.c.lng])],{color:col,weight:2.5,opacity:.65}).addTo(layer);
+    r.stops.forEach(s=>{ L.circleMarker([s.c.lat,s.c.lng],{radius:6,color:'#fff',weight:1.5,fillColor:col,fillOpacity:1}).bindTooltip(`${disp(s.postcode)} · ${s.parcels} parcels · Cal route ${r.n}`).addTo(layer); pts.push([s.c.lat,s.c.lng]); }); });
+  dxPile.forEach(d=>{ if(!d.c) return; L.circleMarker([d.c.lat,d.c.lng],{radius:6,color:'#fff',weight:1.5,fillColor:'#A85F09',fillOpacity:1}).bindTooltip(`${disp(d.postcode)} · ${d.parcels||0} parcels · DX`).addTo(layer); pts.push([d.c.lat,d.c.lng]); });
+  if(pts.length) map.fitBounds(pts,{padding:[30,30]});
+  setTimeout(()=>map.invalidateSize(),80);
+}
+
+/* ---------- export ---------- */
+function toCSV(rows){ return rows.map(r=>r.map(c=>{c=String(c==null?'':c); return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c;}).join(',')).join('\n'); }
+$('exportBtn').onclick=()=>{ if(!lastResult) return; const {routes,dxPile,p}=lastResult;
+  const rows=[['Vehicle','Stops','Drops','Parcels','Miles','Day (h:m)','Cal cost','DX cost','Saving']];
+  routes.forEach(r=>rows.push([r.n,r.stops.map(s=>disp(s.postcode)).join(' > '),r.drops,r.parcels,Math.round(r.miles),fmtHM(r.time),r.cost.toFixed(2),r.dx.toFixed(2),r.saving.toFixed(2)]));
+  rows.push([]); rows.push(['Send via DX']); rows.push(['Postcode','Parcels','DX cost','Reason']);
+  dxPile.forEach(d=>rows.push([disp(d.postcode),d.parcels||0,d.parcels?(d.parcels*p.dxRate).toFixed(2):'',d.reason||'']));
+  const b=new Blob([toCSV(rows)],{type:'text/csv'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='cal-vs-dx.csv'; a.click(); URL.revokeObjectURL(u); };
+
+$('exportOverview').onclick=()=>{ if(!lastOverview) return;
+  const rows=[['Date','Total parcels','With Cal','Via DX','Vehicles','Cal cost','DX cost','Saving']];
+  lastOverview.forEach(r=>rows.push([r.day,r.totParcels,r.calParcels,r.totParcels-r.calParcels,r.routes,r.calCost.toFixed(2),r.dxForCal.toFixed(2),r.saving.toFixed(2)]));
+  const b=new Blob([toCSV(rows)],{type:'text/csv'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='cal-vs-dx-overview.csv'; a.click(); URL.revokeObjectURL(u); };
+
+/* ---------- start on the Overview ---------- */
+populateSample();
+runOverview();
+</script>
+</body>
+</html>
