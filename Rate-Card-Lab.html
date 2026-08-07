@@ -139,6 +139,22 @@ input[type="range"]:focus-visible{outline:2px solid var(--accent); outline-offse
 .sw.dot{width:8px; height:8px; border:0; border-radius:50%; background:var(--cost); opacity:.55;}
 .sw.hist{width:12px; height:10px; border:0; background:var(--hist); border-radius:2px;}
 
+/* zone surcharges */
+.zones{margin:4px 0 16px; border:1px solid var(--line); border-radius:12px; padding:14px 16px; background:var(--surface2);}
+.zones h4{font-size:13.5px; font-weight:700; margin-bottom:2px;}
+.zones .zsub{font-size:12px; color:var(--muted); margin-bottom:10px;}
+.zgrid{display:grid; grid-template-columns:1fr 1fr; gap:6px 22px;}
+@media (max-width:860px){ .zgrid{grid-template-columns:1fr;} }
+.zrow{display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center; padding:5px 0; border-bottom:1px solid var(--line2);}
+.zrow:last-child,.zrow:nth-last-child(2){border-bottom:0;}
+.zrow .zn{font-size:13px; font-weight:600;}
+.zrow .zi{font-size:11px; color:var(--faint);}
+.zrow input{width:72px; font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-weight:600;
+  color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:4px 7px;}
+.zrow input:focus-visible{outline:2px solid var(--accent); outline-offset:-1px;}
+.zrow .zm{font-size:12.5px; min-width:52px; text-align:right;}
+.zm.lo{color:var(--bad);} .zm.ok{color:var(--good);}
+
 /* summary table */
 .summary{max-width:1240px; margin:18px auto 0; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:clamp(16px,2.4vw,24px); overflow-x:auto;}
 .summary h3{font-size:15px; font-weight:700; margin-bottom:12px;}
@@ -167,11 +183,12 @@ tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
 <header>
   <div>
     <h1>Rate Card Lab</h1>
-    <p class="sub">Tune the minimum charge, included miles and rate per mile, and watch the blended margin move against real driver costs. Built from 89,932 jobs, Feb 2025 to May 2026.</p>
+    <p class="sub">Tune the minimum charge, included miles, rate per mile and zone surcharges, and watch the blended margin move against real driver costs. Built from 89,932 jobs, Feb 2025 to May 2026.</p>
   </div>
   <div class="regions" role="group" aria-label="Region">
     <button type="button" data-region="mid" aria-pressed="true">Midlands</button>
     <button type="button" data-region="sw" aria-pressed="false">South West</button>
+    <button type="button" data-region="nw" aria-pressed="false">North West</button>
     <button type="button" data-region="north" aria-pressed="false">North <span style="font-weight:400">(ref)</span></button>
   </div>
 </header>
@@ -213,6 +230,8 @@ tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
       <div class="spots" id="spots"></div>
     </div>
 
+    <div class="zones" id="zonePanel" hidden></div>
+
     <div class="chartwrap" id="chartwrap">
       <div class="tip" id="tip"></div>
     </div>
@@ -236,7 +255,7 @@ tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
 </div>
 
 <p class="method">
-  <b>How the maths works.</b> Each vehicle class has a driver cost model fitted from job history: a flat driver minimum for short work, then a linear cost per mile (weighted fit on 5 to 10 mile band medians, +3% recency uplift). Blended margin weighs your card against the region's own mileage mix, with any single lane capped at 60 jobs so contract shuttles cannot steer the result. Central London collections, multi-drop contract tariffs, temp-controlled and 2-man work are excluded. Classes marked <b>thin data</b> borrow shape from the North fit where their own volume is not enough.
+  <b>How the maths works.</b> Each vehicle class has a driver cost model fitted from job history: a flat driver minimum for short work, then a linear cost per mile (weighted fit on 5 to 10 mile band medians, +3% recency uplift). Blended margin weighs your card against the region's own mileage mix, with any single lane capped at 60 jobs so contract shuttles cannot steer the result. Central London collections, multi-drop contract tariffs, temp-controlled and 2-man work are excluded. Classes marked <b>thin data</b> borrow shape from the North fit where their own volume is not enough. <b>North West</b> works differently: the headline card is fitted to jobs delivered inside the NW patch only (which keeps the per-mile rate low), every destination region outside the patch carries a zone surcharge priced from that zone's real driver costs, and the target is 35% rather than 30%. The chart shows internal jobs; zone economics live in the surcharge table.
 </p>
 
 <script>
@@ -275,6 +294,40 @@ const DATA = {
     rows:[[0,3,60],[5,3,80],[10,6,85],[20,2,117.5],[25,9,120],[30,2,120],[35,5,95],[40,5,80],[45,31,90],[50,4,100],[60,8,125],[70,14,122.5],[80,28,125],[90,34,145],[100,18,167],[110,6,197.5],[120,11,195],[130,9,135],[140,18,180],[150,11,235],[160,4,182.5],[170,5,280],[180,13,240],[190,6,242.5],[200,14,270],[250,4,385],[300,1,420],[350,1,350],[450,1,400]]}
   }
  },
+ nw: {
+  label: "North West",
+  target: 35,
+  chartMax: 160,
+  spots: [10,30,60,100],
+  note: "Collections from WA WN M BB PR L CH OL BL SK FY LA CW. Headline card covers deliveries inside the patch; every destination outside it carries a zone surcharge.",
+  zoneMeta: [
+   ["yorks_ne","Yorkshire & North East"],["midlands","Midlands"],["wales","Wales"],["cumbria","Cumbria"],
+   ["london","London & M25"],["south_east","South East"],["east_anglia","East Anglia"],["south_west","South West"],
+   ["scot_central","Scotland Central Belt"],["scot_north","Scotland Highlands & NE"]
+  ],
+  classes: {
+   "Small Van": {cost:[25.8,4.6,0.820], rec:[40,25,1.00], n:8181, vol:"8,181 jobs (3,586 internal)", warn:null,
+    rows:[[0,238,25],[5,263,25],[10,341,25],[15,352,30],[20,683,30],[25,323,30],[30,390,35],[35,329,35],[40,159,40],[45,113,45],[50,82,45],[55,41,50],[60,169,45],[70,35,60],[80,9,80],[90,10,74.5],[100,18,90],[110,3,110],[120,3,110]],
+    zones:{yorks_ne:[1201,72,61.8], midlands:[1330,103,80.8], wales:[296,90,74.8], cumbria:[39,117,103.0], london:[586,222,164.8], south_east:[567,216,157.6], east_anglia:[151,192,154.5], south_west:[235,187,144.2], scot_central:[148,209,160.7], scot_north:[42,253,197.2]},
+    recS:{yorks_ne:10, midlands:7.5, wales:12.5, cumbria:30, london:20, south_east:15, east_anglia:35, south_west:22.5, scot_central:27.5, scot_north:40}},
+   "SWB": {cost:[36.1,4.8,1.015], rec:[47.5,25,1.25], n:2135, vol:"2,135 jobs (1,103 internal)", warn:null,
+    rows:[[0,54,30],[5,123,35],[10,104,35],[15,112,35],[20,116,35],[25,116,36.3],[30,128,40],[35,84,40],[40,75,45],[45,68,50],[50,34,60],[55,17,55],[60,24,70],[70,12,77.5],[80,14,89.5],[90,6,109],[100,5,100]],
+    zones:{yorks_ne:[305,68,70.0], midlands:[307,103,92.7], wales:[67,98,123.6], cumbria:[10,125,116.9], london:[134,222,185.4], south_east:[108,216,175.1], east_anglia:[24,202,169.5], south_west:[36,190,175.1], scot_central:[30,218,187.5], scot_north:[11,337,300.8]},
+    recS:{yorks_ne:10, midlands:2.5, wales:57.5, cumbria:12.5, london:2.5, south_east:0, east_anglia:2.5, south_west:25, scot_central:10, scot_north:42.5}},
+   "LWB": {cost:[41.2,4.2,1.282], rec:[55,20,1.60], n:4680, vol:"4,680 jobs (2,505 internal)", warn:null,
+    rows:[[0,92,35],[5,202,40],[10,162,40],[15,205,40],[20,188,40],[25,228,45],[30,348,50],[35,230,50],[40,209,50],[45,122,60],[50,121,75],[55,52,75],[60,74,83],[70,49,95],[80,37,110],[90,15,120],[100,32,130],[110,45,160],[120,24,172.5],[130,18,175],[140,22,165]],
+    zones:{yorks_ne:[662,74,92.7], midlands:[853,113,139.1], wales:[100,90,113.3], cumbria:[15,118,124.6], london:[201,219,222.5], south_east:[195,216,215.3], east_anglia:[46,222,207.5], south_west:[65,182,191.6], scot_central:[29,215,226.6], scot_north:[9,223,267.8]},
+    recS:{yorks_ne:2.5, midlands:10, wales:7.5, cumbria:0, london:0, south_east:0, east_anglia:0, south_west:0, scot_central:0, scot_north:35}},
+   "XLWB": {cost:[46.4,8.6,1.244], rec:[57.5,20,1.65], n:756, vol:"756 jobs (288 internal)", chip:"thin data", warn:"thin volume in several zones",
+    rows:[[0,8,40],[5,28,42.5],[10,37,45],[15,22,50],[20,25,50],[25,16,49.5],[30,45,55],[35,25,55],[40,25,60],[45,7,60],[50,14,70],[55,8,70],[60,12,82.5],[70,5,80],[80,3,120],[100,1,150],[110,5,160]],
+    zones:{yorks_ne:[170,71,97.9], midlands:[90,118,138.5], wales:[30,96,128.8], cumbria:[12,121,134.4], london:[45,224,246.2], south_east:[70,239,253.8], east_anglia:[14,211,241.1], south_west:[27,193,224.3], scot_central:[8,217,248.2], scot_north:[2,369,409.9]},
+    recS:{yorks_ne:0, midlands:0, wales:5, cumbria:0, london:0, south_east:0, east_anglia:0, south_west:0, scot_central:0, scot_north:0}},
+   "Luton": {cost:[67.0,18.2,1.611], rec:[85,15,1.75], n:1701, vol:"1,701 jobs (776 internal)", warn:null,
+    rows:[[0,39,60],[5,60,65],[10,66,62.5],[15,65,65],[20,60,70],[25,107,75],[30,67,75],[35,64,80],[40,74,77.5],[45,33,100],[50,33,90],[55,15,100],[60,54,120],[70,21,130],[80,3,150],[90,6,155],[100,4,210]],
+    zones:{yorks_ne:[228,82,123.6], midlands:[254,105,154.5], wales:[55,161,200.9], cumbria:[6,122,200.9], london:[135,215,276.8], south_east:[134,220,275.5], east_anglia:[29,224,293.6], south_west:[42,187,256.5], scot_central:[33,236,319.3], scot_north:[9,362,442.9]},
+    recS:{yorks_ne:0, midlands:0, wales:0, cumbria:15, london:0, south_east:0, east_anglia:0, south_west:0, scot_central:0, scot_north:0}}
+  }
+ },
  north: {
   label: "North",
   note: "Reference region. Live card: small van about GBP 40 minimum then GBP 1.16 per mile.",
@@ -298,16 +351,30 @@ const fmtGBP = v => "£" + (Math.round(v*100)/100).toLocaleString("en-GB",{minim
 const midOf = b => b < 60 ? b+2.5 : b < 200 ? b+5 : b+25;
 const widthOf = b => b < 60 ? 5 : b < 200 ? 10 : 50;
 
-/* state: current card per region/class, seeded from recommendations */
-const state = {region:"mid", vclass:"Small Van", cards:{}};
-for (const r in DATA) { state.cards[r] = {}; for (const c in DATA[r].classes) state.cards[r][c] = [...DATA[r].classes[c].rec]; }
+/* state: current card + zone surcharges per region/class, seeded from recommendations */
+const state = {region:"mid", vclass:"Small Van", cards:{}, zoneS:{}};
+for (const r in DATA) {
+  state.cards[r] = {}; state.zoneS[r] = {};
+  for (const c in DATA[r].classes){
+    state.cards[r][c] = [...DATA[r].classes[c].rec];
+    if (DATA[r].classes[c].recS) state.zoneS[r][c] = {...DATA[r].classes[c].recS};
+  }
+}
+const targetOf = () => DATA[state.region].target || TARGET;
 
 function costFn(cd){ const [mn,a,b] = cd.cost; return m => Math.max(mn, a + b*m); }
 function sellFn(card){ const [M,inc,r] = card; return m => M + Math.max(0, m-inc)*r; }
-function blended(cd, card){
+function blended(cd, card, zs){
   const cost = costFn(cd), sell = sellFn(card);
-  let rev = 0, cst = 0;
-  for (const [b,n] of cd.rows){ const w = Math.min(n, WEIGHT_CAP), m = midOf(b); rev += w*sell(m); cst += w*cost(m); }
+  let rev = 0, cst = 0, capped = 0, raw = 0;
+  for (const [b,n] of cd.rows){ const w = Math.min(n, WEIGHT_CAP), m = midOf(b); rev += w*sell(m); cst += w*cost(m); capped += w; raw += n; }
+  if (cd.zones && zs){
+    const scale = capped/raw;
+    for (const k in cd.zones){
+      const [n,mi,c] = cd.zones[k], w = n*scale;
+      rev += w*(sell(mi) + (zs[k]||0)); cst += w*c;
+    }
+  }
   return (rev-cst)/rev*100;
 }
 
@@ -320,7 +387,7 @@ function renderRail(){
   railEl.innerHTML = "";
   for (const c of CLASS_ORDER){
     const cd = reg.classes[c]; if (!cd) continue;
-    const bl = blended(cd, state.cards[state.region][c]);
+    const bl = blended(cd, state.cards[state.region][c], state.zoneS[state.region][c]);
     const btn = document.createElement("button");
     btn.className = "vrow"; btn.type = "button";
     btn.setAttribute("aria-pressed", String(c === state.vclass));
@@ -344,11 +411,12 @@ function syncControls(){
 function renderStats(){
   const cd = DATA[state.region].classes[state.vclass];
   const card = state.cards[state.region][state.vclass];
-  const bl = blended(cd, card);
+  const target = targetOf();
+  const bl = blended(cd, card, state.zoneS[state.region][state.vclass]);
   $("blendVal").textContent = bl.toFixed(1) + "%";
-  const d = bl - TARGET;
+  const d = bl - target;
   const de = $("blendDelta");
-  de.textContent = (d >= 0 ? "+" : "") + d.toFixed(1) + " pts vs 30% target";
+  de.textContent = (d >= 0 ? "+" : "") + d.toFixed(1) + " pts vs " + target + "% target" + (cd.zones ? " (incl. zone surcharges)" : "");
   de.className = "delta mono " + (d >= -0.5 ? "up" : "down");
   /* meter 15..45 */
   const lo = 15, hi = 45, W = 230, H = 34;
@@ -357,15 +425,15 @@ function renderStats(){
   for (let t = lo; t <= hi; t += 5)
     ticks += `<line x1="${x(t)}" y1="18" x2="${x(t)}" y2="${t % 10 === 0 ? 26 : 23}" stroke="var(--line)" stroke-width="1.5"/>` +
              (t % 10 === 0 ? `<text x="${x(t)}" y="34" font-size="9" fill="var(--faint)" text-anchor="middle" font-family="IBM Plex Mono">${t}</text>` : "");
-  $("meter").innerHTML = `<svg viewBox="0 0 ${W} ${H+4}" role="img" aria-label="Blended margin ${bl.toFixed(1)} percent against a 30 percent target">
+  $("meter").innerHTML = `<svg viewBox="0 0 ${W} ${H+4}" role="img" aria-label="Blended margin ${bl.toFixed(1)} percent against a ${target} percent target">
     <line x1="5" y1="18" x2="${W-5}" y2="18" stroke="var(--line)" stroke-width="2"/>
     ${ticks}
-    <line x1="${x(TARGET)}" y1="6" x2="${x(TARGET)}" y2="26" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <line x1="${x(target)}" y1="6" x2="${x(target)}" y2="26" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 2"/>
     <circle cx="${x(bl)}" cy="18" r="6" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>
   </svg>`;
   /* spot margins */
   const cost = costFn(cd), sell = sellFn(card);
-  $("spots").innerHTML = [10,50,100,200].map(m => {
+  $("spots").innerHTML = (DATA[state.region].spots || [10,50,100,200]).map(m => {
     const s = sell(m), c = cost(m), mg = (s-c)/s*100;
     return `<div class="spot"><div class="d">${m} miles</div>
       <div class="m mono">${mg.toFixed(1)}%</div>
@@ -381,7 +449,8 @@ function renderChart(){
   const cd = DATA[state.region].classes[state.vclass];
   const card = state.cards[state.region][state.vclass];
   const cost = costFn(cd), sell = sellFn(card);
-  const {W,H,MH,padL,padR,padT,gap,maxMi} = CH;
+  const {W,H,MH,padL,padR,padT,gap} = CH;
+  const maxMi = DATA[state.region].chartMax || CH.maxMi;
   const plotW = W - padL - padR, plotH = H - padT - 30;
   const rows = cd.rows.filter(rw => midOf(rw[0]) <= maxMi);
   const maxN = Math.max(...rows.map(rw => Math.min(rw[1], WEIGHT_CAP)));
@@ -459,7 +528,8 @@ function attachHover(cd, card){
   const move = ev => {
     const r = svgEl.getBoundingClientRect();
     const sx = (ev.clientX - r.left) / r.width * CH.W;
-    const mi = Math.round(Math.min(CH.maxMi, Math.max(0, (sx - CH.padL)/chartGeom.plotW*CH.maxMi)));
+    const mm = chartGeom.maxMi;
+    const mi = Math.round(Math.min(mm, Math.max(0, (sx - CH.padL)/chartGeom.plotW*mm)));
     const s = sell(mi), c = cost(mi), mg = (s-c)/s*100;
     /* nearest band with data */
     let near = null, best = 1e9;
@@ -475,6 +545,50 @@ function attachHover(cd, card){
   hit.addEventListener("mouseleave", () => tipEl.style.opacity = 0);
 }
 
+/* ---------- zone surcharges ---------- */
+function renderZones(){
+  const cd = DATA[state.region].classes[state.vclass];
+  const panel = $("zonePanel");
+  if (!cd.zones){ panel.hidden = true; panel.innerHTML = ""; return; }
+  panel.hidden = false;
+  const zs = state.zoneS[state.region][state.vclass];
+  let html = `<h4>Zone surcharges</h4>
+    <p class="zsub">Added on top of the headline card for deliveries into each zone. Margin shown is for that zone's jobs at their typical distance.</p>
+    <div class="zgrid">`;
+  for (const [k,label] of DATA[state.region].zoneMeta){
+    const z = cd.zones[k]; if (!z) continue;
+    const [n,mi,c] = z;
+    html += `<div class="zrow"><div><div class="zn">${label}</div>
+      <div class="zi mono">${n.toLocaleString("en-GB")} jobs · ${mi} mi typical · driver cost ${fmtGBP(c)}</div></div>
+      <input type="number" step="2.5" min="0" max="150" value="${zs[k]}" data-zone="${k}" aria-label="Surcharge in pounds for ${label}">
+      <span class="zm mono" data-zmargin="${k}"></span></div>`;
+  }
+  panel.innerHTML = html + `</div>`;
+  panel.querySelectorAll("input[data-zone]").forEach(inp => {
+    inp.addEventListener("input", () => {
+      const v = parseFloat(inp.value);
+      if (isNaN(v) || v < 0) return;
+      zs[inp.dataset.zone] = v;
+      updateZoneMargins(); renderRail(); renderStats(); renderSummary();
+    });
+  });
+  updateZoneMargins();
+}
+function updateZoneMargins(){
+  const cd = DATA[state.region].classes[state.vclass];
+  if (!cd.zones) return;
+  const sell = sellFn(state.cards[state.region][state.vclass]);
+  const zs = state.zoneS[state.region][state.vclass];
+  const target = targetOf();
+  document.querySelectorAll("[data-zmargin]").forEach(el => {
+    const [n,mi,c] = cd.zones[el.dataset.zmargin];
+    const s = sell(mi) + (zs[el.dataset.zmargin]||0);
+    const mg = (s-c)/s*100;
+    el.textContent = mg.toFixed(1) + "%";
+    el.className = "zm mono " + (mg >= target-1 ? "ok" : "lo");
+  });
+}
+
 /* ---------- summary table ---------- */
 function renderSummary(){
   const reg = DATA[state.region];
@@ -484,15 +598,15 @@ function renderSummary(){
   for (const c of CLASS_ORDER){
     const cd = reg.classes[c]; if (!cd) continue;
     const cur = state.cards[state.region][c];
-    const bl = blended(cd, cur);
+    const bl = blended(cd, cur, state.zoneS[state.region][c]);
     const [rM,rI,rR] = cd.rec;
     const changed = cur[0]!==rM || cur[1]!==rI || cur[2]!==rR;
     const tr = document.createElement("tr");
     tr.className = "rowbtn" + (c===state.vclass ? " sel" : "");
     tr.innerHTML = `<td>${c}${cd.chip ? `<span class="chip warn">${cd.chip}</span>` : ""}</td>
       <td class="mono">${fmtGBP(cur[0])}</td><td class="mono">${cur[1]} mi</td>
-      <td class="mono">${fmtGBP(cur[2])}/mi</td>
-      <td class="mono" style="color:${bl >= 29.5 ? "var(--good)" : "var(--bad)"}">${bl.toFixed(1)}%</td>
+      <td class="mono">£${cur[2].toFixed(2)}/mi</td>
+      <td class="mono" style="color:${bl >= targetOf()-0.5 ? "var(--good)" : "var(--bad)"}">${bl.toFixed(1)}%</td>
       <td class="mono" style="color:var(--faint)">${changed ? fmtGBP(rM)+" / "+rI+"mi / "+fmtGBP(rR) : "as set"}</td>`;
     tr.addEventListener("click", () => { state.vclass = c; renderAll(); });
     tb.appendChild(tr);
@@ -503,7 +617,7 @@ function renderAll(){
   const cd = DATA[state.region].classes[state.vclass];
   $("panelTitle").textContent = state.vclass + " - " + DATA[state.region].label;
   $("dataSrc").textContent = cd.vol + (cd.warn ? " · " + cd.warn : "");
-  renderRail(); syncControls(); renderStats(); renderChart(); renderSummary();
+  renderRail(); syncControls(); renderStats(); renderZones(); renderChart(); renderSummary();
 }
 
 /* ---------- events ---------- */
@@ -521,7 +635,7 @@ function bindPair(numId, rangeId, idx, parse){
   const apply = v => {
     if (isNaN(v)) return;
     state.cards[state.region][state.vclass][idx] = v;
-    syncControls(); renderRail(); renderStats(); renderChart(); renderSummary();
+    syncControls(); renderRail(); renderStats(); updateZoneMargins(); renderChart(); renderSummary();
   };
   num.addEventListener("input", () => apply(parse(num.value)));
   rg.addEventListener("input", () => apply(parse(rg.value)));
@@ -530,7 +644,9 @@ bindPair("inMin","rgMin",0, v => parseFloat(v));
 bindPair("inInc","rgInc",1, v => parseInt(v,10));
 bindPair("inRate","rgRate",2, v => Math.round(parseFloat(v)*100)/100);
 $("btnReset").addEventListener("click", () => {
-  state.cards[state.region][state.vclass] = [...DATA[state.region].classes[state.vclass].rec];
+  const cd = DATA[state.region].classes[state.vclass];
+  state.cards[state.region][state.vclass] = [...cd.rec];
+  if (cd.recS) state.zoneS[state.region][state.vclass] = {...cd.recS};
   renderAll();
 });
 
