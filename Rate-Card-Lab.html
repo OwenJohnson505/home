@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Card Lab - Midlands &amp; South West</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F3; --surface:#FFFFFF; --surface2:#F7F9F8;
+  --ink:#182420; --muted:#5D6B66; --faint:#8A968F;
+  --line:#DFE5E2; --line2:#EBEFED;
+  --accent:#D9641E; --accent-ink:#B14E12; --accent-soft:#FBEDE3;
+  --cost:#31413B; --hist:#D5DDD9;
+  --good:#23744F; --bad:#B3402E;
+  --radius:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#131917; --surface:#1B2320; --surface2:#20292624;
+    --ink:#E8EDEA; --muted:#93A19B; --faint:#6C7A74;
+    --line:#2A3531; --line2:#232D29;
+    --accent:#F08A48; --accent-ink:#F49E66; --accent-soft:#3A281C;
+    --cost:#B7C4BE; --hist:#2E3935;
+    --good:#58B98B; --bad:#E07A63;
+  }
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Space Grotesk",system-ui,sans-serif;
+  font-size:15px; line-height:1.45;
+  padding:clamp(14px,3vw,36px);
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+
+/* ---------- header ---------- */
+header{max-width:1240px; margin:0 auto 22px; display:flex; flex-wrap:wrap; gap:16px; align-items:flex-end; justify-content:space-between;}
+h1{font-size:clamp(22px,3vw,30px); font-weight:700; letter-spacing:-0.02em; line-height:1.1;}
+.sub{color:var(--muted); font-size:13.5px; margin-top:6px; max-width:60ch;}
+.regions{display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; background:var(--surface);}
+.regions button{
+  border:0; background:transparent; color:var(--muted); cursor:pointer;
+  font:inherit; font-weight:600; font-size:13.5px; padding:9px 18px;
+  transition:background .15s ease, color .15s ease;
+}
+.regions button[aria-pressed="true"]{background:var(--ink); color:var(--bg);}
+.regions button:not([aria-pressed="true"]):hover{color:var(--ink);}
+.regions button:focus-visible{outline:2px solid var(--accent); outline-offset:-2px;}
+
+/* ---------- layout ---------- */
+.lab{max-width:1240px; margin:0 auto; display:grid; grid-template-columns:250px 1fr; gap:18px;}
+@media (max-width:900px){ .lab{grid-template-columns:1fr;} }
+
+/* class rail */
+.rail{display:flex; flex-direction:column; gap:8px;}
+.vrow{
+  display:grid; grid-template-columns:1fr auto; gap:2px 10px; align-items:center;
+  text-align:left; width:100%; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 14px; font:inherit; color:inherit;
+  transition:border-color .15s ease, transform .1s ease;
+}
+.vrow:hover{border-color:var(--faint);}
+.vrow:active{transform:scale(.99);}
+.vrow:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+.vrow[aria-pressed="true"]{border-color:var(--accent); box-shadow:inset 3px 0 0 var(--accent);}
+.vrow .nm{font-weight:600; font-size:14.5px;}
+.vrow .bl{grid-row:span 2; font-size:17px; font-weight:600; text-align:right;}
+.vrow .vol{color:var(--muted); font-size:12px;}
+.vrow .vol.warn{color:var(--accent-ink);}
+.rail-note{color:var(--muted); font-size:12px; padding:2px 4px; line-height:1.5;}
+
+/* main panel */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:clamp(16px,2.4vw,26px); min-width:0;}
+.panel-head{display:flex; flex-wrap:wrap; gap:12px 20px; align-items:baseline; justify-content:space-between; margin-bottom:14px;}
+.panel-head h2{font-size:19px; font-weight:700; letter-spacing:-0.01em;}
+.datasrc{color:var(--muted); font-size:12.5px;}
+
+/* controls */
+.controls{display:grid; grid-template-columns:repeat(3,1fr) auto; gap:14px; align-items:end; margin-bottom:18px;}
+@media (max-width:760px){ .controls{grid-template-columns:1fr 1fr;} }
+.ctl label{display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:6px;}
+.ctl .val-line{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.ctl input[type="number"]{
+  width:86px; font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600;
+  color:var(--ink); background:var(--surface2); border:1px solid var(--line);
+  border-radius:7px; padding:6px 8px;
+}
+.ctl input[type="number"]:focus-visible{outline:2px solid var(--accent); outline-offset:-1px;}
+.ctl .unit{color:var(--faint); font-size:12.5px;}
+input[type="range"]{width:100%; accent-color:var(--accent); height:22px;}
+input[type="range"]:focus-visible{outline:2px solid var(--accent); outline-offset:4px; border-radius:4px;}
+.reset{
+  border:1px solid var(--line); background:var(--surface2); color:var(--muted);
+  font:inherit; font-size:13px; font-weight:600; border-radius:8px; padding:9px 14px; cursor:pointer;
+  transition:color .15s ease, border-color .15s ease;
+  align-self:end;
+}
+.reset:hover{color:var(--ink); border-color:var(--faint);}
+.reset:active{transform:translateY(1px);}
+.reset:focus-visible{outline:2px solid var(--accent);}
+
+/* stat row */
+.stats{display:grid; grid-template-columns:auto 1fr; gap:20px 34px; align-items:center; margin-bottom:8px;}
+@media (max-width:760px){ .stats{grid-template-columns:1fr;} }
+.blend .lab-l{font-size:12.5px; font-weight:600; color:var(--muted);}
+.blend .big{font-size:46px; font-weight:600; letter-spacing:-0.02em; line-height:1.05;}
+.blend .delta{font-size:13px; font-weight:500;}
+.delta.up{color:var(--good);} .delta.down{color:var(--bad);}
+.meter{margin-top:8px;}
+.meter svg{display:block; width:230px; max-width:100%;}
+.spots{display:flex; flex-wrap:wrap; gap:10px;}
+.spot{
+  background:var(--surface2); border:1px solid var(--line2); border-radius:9px;
+  padding:8px 12px; min-width:86px;
+}
+.spot .d{font-size:11.5px; color:var(--muted); font-weight:600;}
+.spot .m{font-size:17px; font-weight:600;}
+.spot .p{font-size:11.5px; color:var(--faint);}
+
+/* chart */
+.chartwrap{position:relative; margin-top:6px;}
+.chartwrap svg{display:block; width:100%; height:auto;}
+.tip{
+  position:absolute; pointer-events:none; opacity:0;
+  background:var(--ink); color:var(--bg); border-radius:8px;
+  padding:8px 11px; font-size:12px; line-height:1.5; white-space:nowrap;
+  transform:translate(-50%,-100%); transition:opacity .12s ease; z-index:5;
+}
+.tip .tt-mi{font-weight:700;}
+.legend{display:flex; flex-wrap:wrap; gap:16px; margin:10px 2px 0; font-size:12.5px; color:var(--muted);}
+.legend span{display:inline-flex; align-items:center; gap:7px;}
+.sw{width:16px; height:0; border-top:2.5px solid var(--accent); border-radius:2px;}
+.sw.cost{border-top:2.5px dashed var(--cost);}
+.sw.dot{width:8px; height:8px; border:0; border-radius:50%; background:var(--cost); opacity:.55;}
+.sw.hist{width:12px; height:10px; border:0; background:var(--hist); border-radius:2px;}
+
+/* summary table */
+.summary{max-width:1240px; margin:18px auto 0; background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:clamp(16px,2.4vw,24px); overflow-x:auto;}
+.summary h3{font-size:15px; font-weight:700; margin-bottom:12px;}
+table{border-collapse:collapse; width:100%; min-width:640px; font-size:14px;}
+th{font-size:12px; text-transform:none; color:var(--muted); font-weight:600; text-align:right; padding:7px 12px; border-bottom:1px solid var(--line);}
+th:first-child{text-align:left;}
+td{padding:9px 12px; text-align:right; border-bottom:1px solid var(--line2);}
+tr:last-child td{border-bottom:0;}
+td:first-child{text-align:left; font-weight:600;}
+tr.rowbtn{cursor:pointer;}
+tr.rowbtn:hover td{background:var(--surface2);}
+tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
+.chip{font-size:11px; font-weight:600; border-radius:999px; padding:2px 9px; margin-left:8px; vertical-align:1px;}
+.chip.ok{background:var(--surface2); color:var(--muted); border:1px solid var(--line);}
+.chip.warn{background:var(--accent-soft); color:var(--accent-ink);}
+.method{max-width:1240px; margin:16px auto 6px; color:var(--muted); font-size:12.5px; line-height:1.65; max-width:1240px;}
+.method b{color:var(--ink); font-weight:600;}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Rate Card Lab</h1>
+    <p class="sub">Tune the minimum charge, included miles and rate per mile, and watch the blended margin move against real driver costs. Built from 89,932 jobs, Feb 2025 to May 2026.</p>
+  </div>
+  <div class="regions" role="group" aria-label="Region">
+    <button type="button" data-region="mid" aria-pressed="true">Midlands</button>
+    <button type="button" data-region="sw" aria-pressed="false">South West</button>
+    <button type="button" data-region="north" aria-pressed="false">North <span style="font-weight:400">(ref)</span></button>
+  </div>
+</header>
+
+<div class="lab">
+  <nav class="rail" id="rail" aria-label="Vehicle class"></nav>
+  <section class="panel">
+    <div class="panel-head">
+      <h2 id="panelTitle">Small Van</h2>
+      <span class="datasrc mono" id="dataSrc"></span>
+    </div>
+
+    <div class="controls">
+      <div class="ctl">
+        <label for="inMin">Minimum charge</label>
+        <div class="val-line"><input id="inMin" type="number" step="0.5" min="15" max="160" aria-label="Minimum charge in pounds"><span class="unit">&pound;</span></div>
+        <input id="rgMin" type="range" min="15" max="160" step="0.5" aria-label="Minimum charge slider">
+      </div>
+      <div class="ctl">
+        <label for="inInc">Miles included in minimum</label>
+        <div class="val-line"><input id="inInc" type="number" step="1" min="0" max="60" aria-label="Included miles"><span class="unit">mi</span></div>
+        <input id="rgInc" type="range" min="0" max="60" step="1" aria-label="Included miles slider">
+      </div>
+      <div class="ctl">
+        <label for="inRate">Rate per mile after</label>
+        <div class="val-line"><input id="inRate" type="number" step="0.01" min="0.40" max="3.00" aria-label="Rate per mile in pounds"><span class="unit">&pound;/mi</span></div>
+        <input id="rgRate" type="range" min="0.40" max="3.00" step="0.01" aria-label="Rate per mile slider">
+      </div>
+      <button class="reset" id="btnReset" type="button">Reset to recommended</button>
+    </div>
+
+    <div class="stats">
+      <div class="blend">
+        <div class="lab-l">Blended margin on this mix</div>
+        <div class="big mono" id="blendVal">31.1%</div>
+        <div class="delta mono" id="blendDelta"></div>
+        <div class="meter" id="meter"></div>
+      </div>
+      <div class="spots" id="spots"></div>
+    </div>
+
+    <div class="chartwrap" id="chartwrap">
+      <div class="tip" id="tip"></div>
+    </div>
+    <div class="legend">
+      <span><i class="sw"></i>Quoted price (this card)</span>
+      <span><i class="sw cost"></i>Driver cost model</span>
+      <span><i class="sw dot"></i>Median driver cost, actual jobs</span>
+      <span><i class="sw hist"></i>Job volume</span>
+    </div>
+  </section>
+</div>
+
+<div class="summary">
+  <h3 id="sumTitle">Midlands card - current settings</h3>
+  <table id="sumTable" aria-live="polite">
+    <thead>
+      <tr><th>Vehicle</th><th>Minimum</th><th>Included</th><th>Per mile after</th><th>Blended margin</th><th>Recommended</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<p class="method">
+  <b>How the maths works.</b> Each vehicle class has a driver cost model fitted from job history: a flat driver minimum for short work, then a linear cost per mile (weighted fit on 5 to 10 mile band medians, +3% recency uplift). Blended margin weighs your card against the region's own mileage mix, with any single lane capped at 60 jobs so contract shuttles cannot steer the result. Central London collections, multi-drop contract tariffs, temp-controlled and 2-man work are excluded. Classes marked <b>thin data</b> borrow shape from the North fit where their own volume is not enough.
+</p>
+
+<script>
+"use strict";
+/* band rows: [bandFloor, jobs, medianDriverCost]. cost model: max(min, a + b*miles), already uplifted. */
+const DATA = {
+ mid: {
+  label: "Midlands",
+  note: "Collections from B CV DY WS WV ST TF WR HR LE NG DE NN LN",
+  classes: {
+   "Small Van": {cost:[30.9,13.1,0.721], rec:[40,25,1.12], n:2827, vol:"2,827 jobs", warn:null,
+    rows:[[0,86,30],[5,189,25],[10,199,30],[15,145,35],[20,86,35],[25,128,39],[30,82,40],[35,77,45],[40,159,45],[45,123,45],[50,93,50],[55,86,50],[60,150,60],[70,127,65],[80,156,70],[90,102,75],[100,178,80],[110,130,90],[120,115,99],[130,80,105],[140,54,111.3],[150,76,120],[160,54,124],[170,38,140],[180,11,150],[190,18,155],[200,37,169],[250,23,220],[300,15,240],[350,5,280],[400,5,295]]},
+   "SWB": {cost:[38.1,15.3,0.813], rec:[48,25,1.30], n:836, vol:"836 jobs", warn:null,
+    rows:[[0,24,35],[5,54,37],[10,46,35],[15,40,40],[20,31,40],[25,16,40],[30,85,55],[35,31,50],[40,25,50],[45,32,55],[50,69,54.5],[55,16,62.5],[60,32,67],[70,48,70.6],[80,25,82],[90,28,80],[100,39,100],[110,45,100],[120,36,110],[130,32,112.5],[140,9,117.6],[150,9,133],[160,19,140],[170,4,150],[180,10,170],[190,9,175],[200,13,190],[250,3,210],[300,4,298.2],[350,2,332]]},
+   "LWB": {cost:[43.8,6.0,1.030], rec:[55,35,1.65], n:1198, vol:"1,198 jobs", warn:null,
+    rows:[[0,77,40],[5,40,42.5],[10,16,47.5],[15,42,47.5],[20,38,50],[25,43,55],[30,73,60],[35,90,50],[40,32,60],[45,46,60],[50,111,60],[55,36,67],[60,52,70],[70,41,80],[80,94,81.5],[90,52,95.5],[100,50,100],[110,40,114.5],[120,69,125],[130,30,132.5],[140,29,140],[150,12,157.5],[160,41,145],[170,7,190],[180,8,180],[190,2,178],[200,17,239],[250,5,360],[300,4,336],[400,1,445]]},
+   "XLWB": {cost:[41.2,17.3,1.012], rec:[57.5,30,1.70], n:194, vol:"194 jobs", chip:"pegged", warn:"thin data, pegged to LWB + North shape",
+    rows:[[0,5,45],[5,4,42.5],[10,2,42.5],[15,7,49],[20,2,67.5],[25,10,52.5],[30,11,50],[40,3,55],[45,5,85],[50,17,70],[55,4,62.5],[60,10,82.5],[70,10,90],[80,9,100],[90,19,110],[100,14,122.5],[110,7,119],[120,13,133],[130,7,140],[140,6,162.5],[150,2,152.5],[160,11,140],[170,2,227.5],[190,7,190],[200,4,182.5],[250,1,250],[300,1,380],[400,1,549]]},
+   "Luton": {cost:[72.1,44.7,1.051], rec:[90,25,1.75], n:946, vol:"946 jobs", chip:"lane capped", warn:"RXO Birmingham to West London lane capped",
+    rows:[[0,18,55],[5,18,57.5],[10,13,70],[15,33,70],[20,17,75],[25,16,90],[30,48,80],[35,40,100],[40,28,87.5],[45,14,90],[50,32,90],[55,11,100],[60,65,110],[70,29,111.5],[80,36,130],[90,40,145],[100,37,140],[110,243,150],[120,72,160],[130,30,175],[140,19,200],[150,15,200],[160,16,216],[170,1,220],[180,4,285],[190,7,240],[200,24,260],[250,10,357.5],[300,3,435],[350,4,427.5],[400,3,415]]}
+  }
+ },
+ sw: {
+  label: "South West",
+  note: "Collections from BS BA GL SN TA EX PL TQ TR DT BH SP",
+  classes: {
+   "Small Van": {cost:[36.0,17.9,0.754], rec:[45,25,1.16], n:1214, vol:"1,214 jobs", warn:null,
+    rows:[[0,33,30],[5,101,35],[10,44,35],[15,30,40],[20,52,40],[25,50,45],[30,52,40],[35,35,50],[40,20,50],[45,46,55],[50,18,60],[55,15,60],[60,32,65],[70,39,70],[80,98,85],[90,85,80],[100,41,85],[110,33,110],[120,48,100],[130,51,120],[140,37,120],[150,24,150],[160,16,137.5],[170,25,149],[180,27,145],[190,14,162.5],[200,73,180],[250,58,200],[300,9,270],[350,5,300],[400,1,370],[450,2,364.5]]},
+   "SWB": {cost:[42.1,25.5,0.719], rec:[52.5,25,1.30], n:146, vol:"146 jobs", chip:"provisional", warn:"thin data, provisional card",
+    rows:[[5,6,52.5],[10,1,75],[15,4,54.5],[20,4,55],[25,1,35],[30,5,49],[35,2,50],[40,1,50],[45,5,50],[50,1,80],[55,4,57.5],[60,4,67.5],[70,6,87.5],[80,9,86],[90,8,100],[100,7,99],[110,8,112.5],[120,11,125],[130,2,192.5],[140,4,130],[150,8,126.3],[160,1,205],[170,5,180],[180,7,135],[190,4,172.5],[200,14,177.5],[250,9,180],[300,1,279],[350,3,300],[400,1,250]]},
+   "LWB": {cost:[48.1,31.6,0.818], rec:[60,22,1.40], n:217, vol:"217 jobs", chip:"lane removed", warn:"Four Anjels GL52 to BS contract shuttle removed",
+    rows:[[0,7,50],[5,8,45],[15,3,45],[20,1,50],[25,6,60],[30,9,50],[35,6,62.5],[40,2,60],[50,1,63],[55,7,60],[60,5,85],[70,10,95],[80,17,90],[90,23,99],[100,17,120],[110,5,115],[120,14,130],[130,7,130],[140,6,125],[150,6,152.5],[160,12,170.5],[170,3,149],[180,10,165],[190,3,200],[200,19,200],[250,7,285],[300,1,290],[400,1,350],[450,1,262.5]]},
+   "XLWB": {cost:[48.1,31.6,0.906], rec:[60,22,1.50], n:50, vol:"~50 jobs", chip:"pegged", warn:"not enough volume, pegged to LWB",
+    rows:[[0,7,50],[5,8,45],[15,3,45],[20,1,50],[25,6,60],[30,9,50],[35,6,62.5],[40,2,60],[50,1,63],[55,7,60],[60,5,85],[70,10,95],[80,17,90],[90,23,99],[100,17,120],[110,5,115],[120,14,130],[130,7,130],[140,6,125],[150,6,152.5],[160,12,170.5],[170,3,149],[180,10,165],[190,3,200],[200,19,200],[250,7,285],[300,1,290],[400,1,350],[450,1,262.5]]},
+   "Luton": {cost:[78.1,55.6,0.993], rec:[97.5,22,1.60], n:276, vol:"276 jobs", chip:"thin data", warn:"thin data, shape borrowed from North",
+    rows:[[0,3,60],[5,3,80],[10,6,85],[20,2,117.5],[25,9,120],[30,2,120],[35,5,95],[40,5,80],[45,31,90],[50,4,100],[60,8,125],[70,14,122.5],[80,28,125],[90,34,145],[100,18,167],[110,6,197.5],[120,11,195],[130,9,135],[140,18,180],[150,11,235],[160,4,182.5],[170,5,280],[180,13,240],[190,6,242.5],[200,14,270],[250,4,385],[300,1,420],[350,1,350],[450,1,400]]}
+  }
+ },
+ north: {
+  label: "North",
+  note: "Reference region. Live card: small van about GBP 40 minimum then GBP 1.16 per mile.",
+  classes: {
+   "Small Van": {cost:[30.9,12.7,0.681], rec:[38.5,27,1.04], n:11108, vol:"11,108 jobs", warn:null,
+    rows:[[0,395,25],[5,466,30],[10,564,30],[15,509,30],[20,779,35],[25,395,35],[30,597,35],[35,456,40],[40,363,40],[45,292,45],[50,280,50],[55,309,50],[60,689,50],[70,498,60],[80,394,70],[90,301,75],[100,347,80],[110,315,90],[120,278,95],[130,211,99],[140,218,104.6],[150,173,119],[160,142,120],[170,175,125],[180,233,135],[190,220,140],[200,1160,160],[250,270,198],[300,47,239.4],[350,17,255],[400,6,262.1],[450,9,337]]},
+   "SWB": {cost:[36.0,19.2,0.752], rec:[45,22,1.16], n:2616, vol:"2,616 jobs", warn:null,
+    rows:[[0,58,30],[5,164,35],[10,117,35],[15,148,35],[20,134,39],[25,128,39.5],[30,161,40],[35,113,45],[40,116,45],[45,111,50],[50,87,55],[55,71,60],[60,137,65],[70,110,72.5],[80,98,80],[90,79,90],[100,84,99],[110,67,105],[120,52,100],[130,56,120],[140,43,125],[150,29,140],[160,25,150],[170,24,150],[180,44,150],[190,62,170],[200,227,180],[250,48,221.4],[300,9,250],[350,7,317.2],[400,3,265],[450,4,370]]},
+   "LWB": {cost:[41.2,26.9,0.881], rec:[51.5,16,1.35], n:5740, vol:"5,740 jobs", warn:null,
+    rows:[[0,129,40],[5,262,40],[10,209,40],[15,256,40],[20,243,45],[25,270,45],[30,431,50],[35,296,50],[40,280,55],[45,205,60],[50,237,70],[55,174,70],[60,251,80],[70,223,85],[80,208,95],[90,168,112.5],[100,291,125],[110,381,150],[120,182,148],[130,159,145],[140,89,150],[150,53,156],[160,51,165],[170,51,177],[180,68,180],[190,95,193],[200,362,220],[250,88,260],[300,7,300],[350,6,315],[400,8,432.5],[450,7,398]]},
+   "XLWB": {cost:[41.2,23.4,0.976], rec:[51.5,18,1.49], n:1080, vol:"1,080 jobs", warn:null,
+    rows:[[0,15,40],[5,46,40],[10,89,40],[15,42,49.5],[20,42,47.5],[25,29,50],[30,73,55],[35,42,60],[40,61,60],[45,27,70],[50,34,70],[55,24,77.5],[60,48,85],[70,39,90],[80,32,106.5],[90,36,110],[100,36,125],[110,35,130],[120,26,140],[130,25,150],[140,24,160],[150,12,172.2],[160,22,176.5],[170,9,189.3],[180,21,198],[190,21,214],[200,107,233.2],[250,43,294.8],[300,5,308],[350,14,370],[400,1,447.7]]},
+   "Luton": {cost:[67.0,48.9,1.033], rec:[83.5,17,1.61], n:2595, vol:"2,595 jobs", warn:null,
+    rows:[[0,48,65],[5,72,65],[10,82,65],[15,81,70],[20,78,70],[25,115,75],[30,85,75],[35,94,80],[40,104,80],[45,61,100],[50,67,95],[55,56,100],[60,145,120],[70,94,120],[80,95,120],[90,74,150],[100,109,150],[110,52,157.3],[120,63,199],[130,56,180],[140,137,190],[150,33,210],[160,214,210],[170,28,225],[180,51,245],[190,70,259.6],[200,236,280],[250,87,320],[300,85,350],[350,10,415],[400,9,501],[450,4,502.5]]}
+  }
+ }
+};
+const WEIGHT_CAP = 60, TARGET = 30;
+const CLASS_ORDER = ["Small Van","SWB","LWB","XLWB","Luton"];
+const fmtGBP = v => "£" + (Math.round(v*100)/100).toLocaleString("en-GB",{minimumFractionDigits: v%1?2:0});
+const midOf = b => b < 60 ? b+2.5 : b < 200 ? b+5 : b+25;
+const widthOf = b => b < 60 ? 5 : b < 200 ? 10 : 50;
+
+/* state: current card per region/class, seeded from recommendations */
+const state = {region:"mid", vclass:"Small Van", cards:{}};
+for (const r in DATA) { state.cards[r] = {}; for (const c in DATA[r].classes) state.cards[r][c] = [...DATA[r].classes[c].rec]; }
+
+function costFn(cd){ const [mn,a,b] = cd.cost; return m => Math.max(mn, a + b*m); }
+function sellFn(card){ const [M,inc,r] = card; return m => M + Math.max(0, m-inc)*r; }
+function blended(cd, card){
+  const cost = costFn(cd), sell = sellFn(card);
+  let rev = 0, cst = 0;
+  for (const [b,n] of cd.rows){ const w = Math.min(n, WEIGHT_CAP), m = midOf(b); rev += w*sell(m); cst += w*cost(m); }
+  return (rev-cst)/rev*100;
+}
+
+/* ---------- rendering ---------- */
+const $ = id => document.getElementById(id);
+const railEl = $("rail"), tipEl = $("tip");
+
+function renderRail(){
+  const reg = DATA[state.region];
+  railEl.innerHTML = "";
+  for (const c of CLASS_ORDER){
+    const cd = reg.classes[c]; if (!cd) continue;
+    const bl = blended(cd, state.cards[state.region][c]);
+    const btn = document.createElement("button");
+    btn.className = "vrow"; btn.type = "button";
+    btn.setAttribute("aria-pressed", String(c === state.vclass));
+    btn.innerHTML = `<span class="nm">${c}</span><span class="bl mono">${bl.toFixed(1)}%</span>
+      <span class="vol${cd.warn ? " warn" : ""}">${cd.warn ? "⚠ " + cd.vol : cd.vol}</span>`;
+    btn.addEventListener("click", () => { state.vclass = c; renderAll(); });
+    railEl.appendChild(btn);
+  }
+  const note = document.createElement("p");
+  note.className = "rail-note"; note.textContent = reg.note;
+  railEl.appendChild(note);
+}
+
+function syncControls(){
+  const [M,inc,r] = state.cards[state.region][state.vclass];
+  $("inMin").value = M; $("rgMin").value = M;
+  $("inInc").value = inc; $("rgInc").value = inc;
+  $("inRate").value = r.toFixed(2); $("rgRate").value = r;
+}
+
+function renderStats(){
+  const cd = DATA[state.region].classes[state.vclass];
+  const card = state.cards[state.region][state.vclass];
+  const bl = blended(cd, card);
+  $("blendVal").textContent = bl.toFixed(1) + "%";
+  const d = bl - TARGET;
+  const de = $("blendDelta");
+  de.textContent = (d >= 0 ? "+" : "") + d.toFixed(1) + " pts vs 30% target";
+  de.className = "delta mono " + (d >= -0.5 ? "up" : "down");
+  /* meter 15..45 */
+  const lo = 15, hi = 45, W = 230, H = 34;
+  const x = v => (Math.min(hi, Math.max(lo, v)) - lo) / (hi - lo) * (W - 10) + 5;
+  let ticks = "";
+  for (let t = lo; t <= hi; t += 5)
+    ticks += `<line x1="${x(t)}" y1="18" x2="${x(t)}" y2="${t % 10 === 0 ? 26 : 23}" stroke="var(--line)" stroke-width="1.5"/>` +
+             (t % 10 === 0 ? `<text x="${x(t)}" y="34" font-size="9" fill="var(--faint)" text-anchor="middle" font-family="IBM Plex Mono">${t}</text>` : "");
+  $("meter").innerHTML = `<svg viewBox="0 0 ${W} ${H+4}" role="img" aria-label="Blended margin ${bl.toFixed(1)} percent against a 30 percent target">
+    <line x1="5" y1="18" x2="${W-5}" y2="18" stroke="var(--line)" stroke-width="2"/>
+    ${ticks}
+    <line x1="${x(TARGET)}" y1="6" x2="${x(TARGET)}" y2="26" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <circle cx="${x(bl)}" cy="18" r="6" fill="var(--accent)" stroke="var(--surface)" stroke-width="2"/>
+  </svg>`;
+  /* spot margins */
+  const cost = costFn(cd), sell = sellFn(card);
+  $("spots").innerHTML = [10,50,100,200].map(m => {
+    const s = sell(m), c = cost(m), mg = (s-c)/s*100;
+    return `<div class="spot"><div class="d">${m} miles</div>
+      <div class="m mono">${mg.toFixed(1)}%</div>
+      <div class="p mono">${fmtGBP(s)} / cost ${fmtGBP(c)}</div></div>`;
+  }).join("");
+}
+
+/* ---------- chart ---------- */
+const CH = {W:940, H:330, MH:96, padL:56, padR:16, padT:14, gap:34, maxMi:320};
+let chartGeom = null;
+
+function renderChart(){
+  const cd = DATA[state.region].classes[state.vclass];
+  const card = state.cards[state.region][state.vclass];
+  const cost = costFn(cd), sell = sellFn(card);
+  const {W,H,MH,padL,padR,padT,gap,maxMi} = CH;
+  const plotW = W - padL - padR, plotH = H - padT - 30;
+  const rows = cd.rows.filter(rw => midOf(rw[0]) <= maxMi);
+  const maxN = Math.max(...rows.map(rw => Math.min(rw[1], WEIGHT_CAP)));
+  let maxY = 0;
+  for (const rw of rows) maxY = Math.max(maxY, rw[2]);
+  maxY = Math.max(maxY, sell(maxMi), cost(maxMi)) * 1.08;
+  const X = m => padL + m/maxMi*plotW;
+  const Y = v => padT + plotH - v/maxY*plotH;
+  chartGeom = {X, Y, maxMi, plotW, padL};
+
+  /* gridlines + y labels */
+  const step = maxY > 400 ? 100 : 50;
+  let grid = "";
+  for (let v = 0; v <= maxY; v += step)
+    grid += `<line x1="${padL}" y1="${Y(v)}" x2="${W-padR}" y2="${Y(v)}" stroke="var(--line2)" stroke-width="1"/>
+      <text x="${padL-8}" y="${Y(v)+3.5}" font-size="10.5" fill="var(--faint)" text-anchor="end" font-family="IBM Plex Mono">£${v}</text>`;
+  let xlab = "";
+  for (let m = 0; m <= maxMi; m += 40)
+    xlab += `<text x="${X(m)}" y="${padT+plotH+18}" font-size="10.5" fill="var(--faint)" text-anchor="middle" font-family="IBM Plex Mono">${m}</text>`;
+
+  /* histogram (volume) in main chart bottom */
+  let hist = "";
+  for (const [b,n] of rows){
+    const w = Math.min(n, WEIGHT_CAP);
+    const bw = widthOf(b)/maxMi*plotW;
+    const bh = w/maxN*46;
+    hist += `<rect x="${X(b)+1}" y="${padT+plotH-bh}" width="${Math.max(1,bw-2)}" height="${bh}" fill="var(--hist)" rx="1.5"/>`;
+  }
+
+  /* cost dots */
+  let dots = "";
+  for (const [b,n,med] of rows)
+    dots += `<circle cx="${X(midOf(b))}" cy="${Y(med)}" r="3.2" fill="var(--cost)" opacity="0.5"/>`;
+
+  /* lines */
+  const pts = n => Array.from({length:n+1}, (_,i) => i*maxMi/n);
+  const costPath = pts(160).map((m,i) => `${i?"L":"M"}${X(m).toFixed(1)},${Y(cost(m)).toFixed(1)}`).join("");
+  const sellPath = pts(160).map((m,i) => `${i?"L":"M"}${X(m).toFixed(1)},${Y(sell(m)).toFixed(1)}`).join("");
+
+  /* margin strip */
+  const mTop = H + gap, mPlotH = MH - 26;
+  const mLo = -10, mHi = 50;
+  const MYs = v => mTop + mPlotH - (Math.min(mHi,Math.max(mLo,v))-mLo)/(mHi-mLo)*mPlotH;
+  const marginPath = pts(160).map((m,i) => {
+    const s = sell(m); const mg = (s - cost(m))/s*100;
+    return `${i?"L":"M"}${X(m).toFixed(1)},${MYs(mg).toFixed(1)}`;
+  }).join("");
+  let mgrid = "";
+  for (const v of [0, 30]) {
+    mgrid += `<line x1="${padL}" y1="${MYs(v)}" x2="${W-padR}" y2="${MYs(v)}" stroke="${v===30?"var(--muted)":"var(--line)"}" stroke-width="1" ${v===30?'stroke-dasharray="4 3"':""}/>
+      <text x="${padL-8}" y="${MYs(v)+3.5}" font-size="10.5" fill="var(--faint)" text-anchor="end" font-family="IBM Plex Mono">${v}%</text>`;
+  }
+
+  const totalH = H + gap + MH;
+  const svg = `<svg viewBox="0 0 ${W} ${totalH}" role="img" aria-label="Price and driver cost against distance, with margin strip below" id="chartSvg">
+    ${grid}${hist}${xlab}
+    <path d="${costPath}" fill="none" stroke="var(--cost)" stroke-width="2" stroke-dasharray="6 4"/>
+    ${dots}
+    <path d="${sellPath}" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <text x="${W-padR}" y="${padT+plotH+34}" font-size="11" fill="var(--muted)" text-anchor="end">miles (loaded)</text>
+    <text x="${padL}" y="${mTop-8}" font-size="11.5" font-weight="600" fill="var(--muted)">Margin by distance</text>
+    ${mgrid}
+    <path d="${marginPath}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <rect id="hitRect" x="${padL}" y="0" width="${plotW}" height="${totalH}" fill="transparent"/>
+  </svg>`;
+  const wrap = $("chartwrap");
+  wrap.querySelectorAll("svg").forEach(s => s.remove());
+  wrap.insertAdjacentHTML("beforeend", svg);
+  attachHover(cd, card);
+}
+
+function attachHover(cd, card){
+  const svgEl = $("chartSvg"), hit = $("hitRect");
+  const cost = costFn(cd), sell = sellFn(card);
+  const move = ev => {
+    const r = svgEl.getBoundingClientRect();
+    const sx = (ev.clientX - r.left) / r.width * CH.W;
+    const mi = Math.round(Math.min(CH.maxMi, Math.max(0, (sx - CH.padL)/chartGeom.plotW*CH.maxMi)));
+    const s = sell(mi), c = cost(mi), mg = (s-c)/s*100;
+    /* nearest band with data */
+    let near = null, best = 1e9;
+    for (const rw of cd.rows){ const d = Math.abs(midOf(rw[0]) - mi); if (d < best){ best = d; near = rw; } }
+    const bandTxt = (near && best <= widthOf(near[0])) ? `<br>band ${near[0]}-${near[0]+widthOf(near[0])} mi: ${near[1]} jobs, median cost ${fmtGBP(near[2])}` : "";
+    tipEl.innerHTML = `<span class="tt-mi">${mi} miles</span><br>price ${fmtGBP(s)} · cost ${fmtGBP(c)}<br>margin ${mg.toFixed(1)}%${bandTxt}`;
+    const wrapR = $("chartwrap").getBoundingClientRect();
+    let px = ev.clientX - wrapR.left, py = ev.clientY - wrapR.top - 14;
+    px = Math.min(wrapR.width - 90, Math.max(90, px));
+    tipEl.style.left = px + "px"; tipEl.style.top = py + "px"; tipEl.style.opacity = 1;
+  };
+  hit.addEventListener("mousemove", move);
+  hit.addEventListener("mouseleave", () => tipEl.style.opacity = 0);
+}
+
+/* ---------- summary table ---------- */
+function renderSummary(){
+  const reg = DATA[state.region];
+  $("sumTitle").textContent = reg.label + " card - current settings";
+  const tb = $("sumTable").querySelector("tbody");
+  tb.innerHTML = "";
+  for (const c of CLASS_ORDER){
+    const cd = reg.classes[c]; if (!cd) continue;
+    const cur = state.cards[state.region][c];
+    const bl = blended(cd, cur);
+    const [rM,rI,rR] = cd.rec;
+    const changed = cur[0]!==rM || cur[1]!==rI || cur[2]!==rR;
+    const tr = document.createElement("tr");
+    tr.className = "rowbtn" + (c===state.vclass ? " sel" : "");
+    tr.innerHTML = `<td>${c}${cd.chip ? `<span class="chip warn">${cd.chip}</span>` : ""}</td>
+      <td class="mono">${fmtGBP(cur[0])}</td><td class="mono">${cur[1]} mi</td>
+      <td class="mono">${fmtGBP(cur[2])}/mi</td>
+      <td class="mono" style="color:${bl >= 29.5 ? "var(--good)" : "var(--bad)"}">${bl.toFixed(1)}%</td>
+      <td class="mono" style="color:var(--faint)">${changed ? fmtGBP(rM)+" / "+rI+"mi / "+fmtGBP(rR) : "as set"}</td>`;
+    tr.addEventListener("click", () => { state.vclass = c; renderAll(); });
+    tb.appendChild(tr);
+  }
+}
+
+function renderAll(){
+  const cd = DATA[state.region].classes[state.vclass];
+  $("panelTitle").textContent = state.vclass + " - " + DATA[state.region].label;
+  $("dataSrc").textContent = cd.vol + (cd.warn ? " · " + cd.warn : "");
+  renderRail(); syncControls(); renderStats(); renderChart(); renderSummary();
+}
+
+/* ---------- events ---------- */
+document.querySelectorAll(".regions button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".regions button").forEach(x => x.setAttribute("aria-pressed","false"));
+    b.setAttribute("aria-pressed","true");
+    state.region = b.dataset.region;
+    if (!DATA[state.region].classes[state.vclass]) state.vclass = "Small Van";
+    renderAll();
+  });
+});
+function bindPair(numId, rangeId, idx, parse){
+  const num = $(numId), rg = $(rangeId);
+  const apply = v => {
+    if (isNaN(v)) return;
+    state.cards[state.region][state.vclass][idx] = v;
+    syncControls(); renderRail(); renderStats(); renderChart(); renderSummary();
+  };
+  num.addEventListener("input", () => apply(parse(num.value)));
+  rg.addEventListener("input", () => apply(parse(rg.value)));
+}
+bindPair("inMin","rgMin",0, v => parseFloat(v));
+bindPair("inInc","rgInc",1, v => parseInt(v,10));
+bindPair("inRate","rgRate",2, v => Math.round(parseFloat(v)*100)/100);
+$("btnReset").addEventListener("click", () => {
+  state.cards[state.region][state.vclass] = [...DATA[state.region].classes[state.vclass].rec];
+  renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
