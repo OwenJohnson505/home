@@ -255,7 +255,7 @@ tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
 </div>
 
 <p class="method">
-  <b>How the maths works.</b> Each vehicle class has a driver cost model fitted from job history: a flat driver minimum for short work, then a linear cost per mile (weighted fit on 5 to 10 mile band medians, +3% recency uplift). Blended margin weighs your card against the region's own mileage mix, with any single lane capped at 60 jobs so contract shuttles cannot steer the result. Central London collections, multi-drop contract tariffs, temp-controlled and 2-man work are excluded. Classes marked <b>thin data</b> borrow shape from the North fit where their own volume is not enough. <b>North West</b> works differently: the headline card is fitted to jobs delivered inside the NW patch only (which keeps the per-mile rate low), every destination region outside the patch carries a zone surcharge priced from that zone's real driver costs, and the target is 35% rather than 30%. The chart shows internal jobs; zone economics live in the surcharge table.
+  <b>How the maths works.</b> Each vehicle class has a driver cost model fitted from job history: a flat driver minimum for short work, then a linear cost per mile (weighted fit on 5 to 10 mile band medians, +3% recency uplift). Blended margin weighs your card against the region's own mileage mix, with any single lane capped at 60 jobs so contract shuttles cannot steer the result. Central London collections, multi-drop contract tariffs, temp-controlled and 2-man work are excluded. Classes marked <b>thin data</b> borrow shape from the North fit where their own volume is not enough. <b>North West</b> targets 35% rather than 30% and adds surcharges only for the odd areas: North Wales, Cumbria and the Scottish Highlands are the three destinations where driver costs genuinely sit above the distance curve (dead legs, slow roads), so the base card is fitted with them excluded and each carries a surcharge that brings it back to target. Everywhere else prices off the standard card.
 </p>
 
 <script>
@@ -297,35 +297,31 @@ const DATA = {
  nw: {
   label: "North West",
   target: 35,
-  chartMax: 160,
-  spots: [10,30,60,100],
-  note: "Collections from WA WN M BB PR L CH OL BL SK FY LA CW. Headline card covers deliveries inside the patch; every destination outside it carries a zone surcharge.",
+  note: "Collections from WA WN M BB PR L CH OL BL SK FY LA CW. One standard card; surcharges only on the three destinations that genuinely cost more than the distance curve says they should.",
   zoneMeta: [
-   ["yorks_ne","Yorkshire & North East"],["midlands","Midlands"],["wales","Wales"],["cumbria","Cumbria"],
-   ["london","London & M25"],["south_east","South East"],["east_anglia","East Anglia"],["south_west","South West"],
-   ["scot_central","Scotland Central Belt"],["scot_north","Scotland Highlands & NE"]
+   ["north_wales","North Wales (LL)"],["cumbria","Cumbria (CA)"],["scot_north","Scottish Highlands & NE Scotland"]
   ],
   classes: {
-   "Small Van": {cost:[25.8,4.6,0.820], rec:[40,25,1.00], n:8181, vol:"8,181 jobs (3,586 internal)", warn:null,
-    rows:[[0,238,25],[5,263,25],[10,341,25],[15,352,30],[20,683,30],[25,323,30],[30,390,35],[35,329,35],[40,159,40],[45,113,45],[50,82,45],[55,41,50],[60,169,45],[70,35,60],[80,9,80],[90,10,74.5],[100,18,90],[110,3,110],[120,3,110]],
-    zones:{yorks_ne:[1201,72,61.8], midlands:[1330,103,80.8], wales:[296,90,74.8], cumbria:[39,117,103.0], london:[586,222,164.8], south_east:[567,216,157.6], east_anglia:[151,192,154.5], south_west:[235,187,144.2], scot_central:[148,209,160.7], scot_north:[42,253,197.2]},
-    recS:{yorks_ne:10, midlands:7.5, wales:12.5, cumbria:30, london:20, south_east:15, east_anglia:35, south_west:22.5, scot_central:27.5, scot_north:40}},
-   "SWB": {cost:[36.1,4.8,1.015], rec:[47.5,25,1.25], n:2135, vol:"2,135 jobs (1,103 internal)", warn:null,
-    rows:[[0,54,30],[5,123,35],[10,104,35],[15,112,35],[20,116,35],[25,116,36.3],[30,128,40],[35,84,40],[40,75,45],[45,68,50],[50,34,60],[55,17,55],[60,24,70],[70,12,77.5],[80,14,89.5],[90,6,109],[100,5,100]],
-    zones:{yorks_ne:[305,68,70.0], midlands:[307,103,92.7], wales:[67,98,123.6], cumbria:[10,125,116.9], london:[134,222,185.4], south_east:[108,216,175.1], east_anglia:[24,202,169.5], south_west:[36,190,175.1], scot_central:[30,218,187.5], scot_north:[11,337,300.8]},
-    recS:{yorks_ne:10, midlands:2.5, wales:57.5, cumbria:12.5, london:2.5, south_east:0, east_anglia:2.5, south_west:25, scot_central:10, scot_north:42.5}},
-   "LWB": {cost:[41.2,4.2,1.282], rec:[55,20,1.60], n:4680, vol:"4,680 jobs (2,505 internal)", warn:null,
-    rows:[[0,92,35],[5,202,40],[10,162,40],[15,205,40],[20,188,40],[25,228,45],[30,348,50],[35,230,50],[40,209,50],[45,122,60],[50,121,75],[55,52,75],[60,74,83],[70,49,95],[80,37,110],[90,15,120],[100,32,130],[110,45,160],[120,24,172.5],[130,18,175],[140,22,165]],
-    zones:{yorks_ne:[662,74,92.7], midlands:[853,113,139.1], wales:[100,90,113.3], cumbria:[15,118,124.6], london:[201,219,222.5], south_east:[195,216,215.3], east_anglia:[46,222,207.5], south_west:[65,182,191.6], scot_central:[29,215,226.6], scot_north:[9,223,267.8]},
-    recS:{yorks_ne:2.5, midlands:10, wales:7.5, cumbria:0, london:0, south_east:0, east_anglia:0, south_west:0, scot_central:0, scot_north:35}},
-   "XLWB": {cost:[46.4,8.6,1.244], rec:[57.5,20,1.65], n:756, vol:"756 jobs (288 internal)", chip:"thin data", warn:"thin volume in several zones",
-    rows:[[0,8,40],[5,28,42.5],[10,37,45],[15,22,50],[20,25,50],[25,16,49.5],[30,45,55],[35,25,55],[40,25,60],[45,7,60],[50,14,70],[55,8,70],[60,12,82.5],[70,5,80],[80,3,120],[100,1,150],[110,5,160]],
-    zones:{yorks_ne:[170,71,97.9], midlands:[90,118,138.5], wales:[30,96,128.8], cumbria:[12,121,134.4], london:[45,224,246.2], south_east:[70,239,253.8], east_anglia:[14,211,241.1], south_west:[27,193,224.3], scot_central:[8,217,248.2], scot_north:[2,369,409.9]},
-    recS:{yorks_ne:0, midlands:0, wales:5, cumbria:0, london:0, south_east:0, east_anglia:0, south_west:0, scot_central:0, scot_north:0}},
-   "Luton": {cost:[67.0,18.2,1.611], rec:[85,15,1.75], n:1701, vol:"1,701 jobs (776 internal)", warn:null,
-    rows:[[0,39,60],[5,60,65],[10,66,62.5],[15,65,65],[20,60,70],[25,107,75],[30,67,75],[35,64,80],[40,74,77.5],[45,33,100],[50,33,90],[55,15,100],[60,54,120],[70,21,130],[80,3,150],[90,6,155],[100,4,210]],
-    zones:{yorks_ne:[228,82,123.6], midlands:[254,105,154.5], wales:[55,161,200.9], cumbria:[6,122,200.9], london:[135,215,276.8], south_east:[134,220,275.5], east_anglia:[29,224,293.6], south_west:[42,187,256.5], scot_central:[33,236,319.3], scot_north:[9,362,442.9]},
-    recS:{yorks_ne:0, midlands:0, wales:0, cumbria:15, london:0, south_east:0, east_anglia:0, south_west:0, scot_central:0, scot_north:0}}
+   "Small Van": {cost:[25.8,14.5,0.644], rec:[32.5,18,1.08], n:8187, vol:"8,187 jobs", warn:null,
+    rows:[[0,238,25],[5,263,25],[10,341,25],[15,356,30],[20,685,30],[25,334,30],[30,446,35],[35,355,35],[40,253,40],[45,169,45],[50,169,45],[55,178,50],[60,484,50],[70,338,60],[80,268,70],[90,185,74],[100,232,79],[110,186,85],[120,218,91.5],[130,158,97.2],[140,166,100],[150,106,110],[160,108,120],[170,134,123],[180,175,133.4],[190,180,139],[200,978,160],[250,208,191.1],[300,27,217.7],[350,10,261.5],[400,5,262.1],[450,4,287.8]],
+    zones:{north_wales:[149,59,56.7], cumbria:[39,117,103.0], scot_north:[42,253,197.2]},
+    recS:{north_wales:10, cumbria:20, scot_north:17.5}},
+   "SWB": {cost:[36.1,20.6,0.722], rec:[45,21,1.27], n:2135, vol:"2,135 jobs", warn:null,
+    rows:[[0,54,30],[5,123,35],[10,104,35],[15,115,35],[20,120,35],[25,120,37.8],[30,137,40],[35,97,40],[40,101,45],[45,98,50],[50,55,55],[55,41,59],[60,103,65],[70,76,70],[80,69,80],[90,59,90],[100,69,99],[110,49,100],[120,42,100],[130,48,117.5],[140,29,121.3],[150,23,140],[160,17,150],[170,20,150],[180,33,150],[190,45,160],[200,200,180],[250,36,220],[300,2,244.6],[400,3,265]],
+    zones:{north_wales:[26,80,90.1], cumbria:[10,125,116.9], scot_north:[11,337,300.8]},
+    recS:{north_wales:20, cumbria:2.5, scot_north:17.5}},
+   "LWB": {cost:[41.2,29.1,0.859], rec:[52.5,14,1.46], n:4681, vol:"4,681 jobs", warn:null,
+    rows:[[0,92,35],[5,202,40],[10,162,40],[15,205,40],[20,192,40],[25,239,45],[30,362,50],[35,247,50],[40,242,50],[45,158,60],[50,184,70],[55,102,70],[60,176,80],[70,154,87.5],[80,159,90],[90,141,115],[100,231,130],[110,358,150],[120,156,150],[130,132,146],[140,75,150],[150,34,156.5],[160,37,165],[170,34,175],[180,49,180],[190,78,193],[200,308,220],[250,70,256],[300,5,300],[350,6,315],[400,6,397.5],[450,7,398]],
+    zones:{north_wales:[54,74,97.9], cumbria:[15,118,124.6], scot_north:[9,223,267.8]},
+    recS:{north_wales:12.5, cumbria:0, scot_north:55}},
+   "XLWB": {cost:[46.4,23.9,0.965], rec:[57.5,23,1.66], n:757, vol:"757 jobs", chip:"thin data", warn:"thin volume, surcharge zones nearly empty",
+    rows:[[0,8,40],[5,28,42.5],[10,37,45],[15,23,50],[20,30,50],[25,18,49.5],[30,56,55],[35,30,57.5],[40,53,60],[45,13,70],[50,22,70],[55,12,75],[60,29,85],[70,23,85],[80,20,101.5],[90,30,110],[100,22,122.5],[110,29,130],[120,15,140],[130,16,150.4],[140,15,160],[150,5,188.3],[160,14,179.1],[170,8,190.9],[180,14,198],[190,16,211.6],[200,89,235],[250,38,294.4],[300,5,308],[350,9,347],[400,1,447.7]],
+    zones:{north_wales:[15,95,113.3], cumbria:[12,121,134.4], scot_north:[2,369,409.9]},
+    recS:{north_wales:0, cumbria:0, scot_north:0}},
+   "Luton": {cost:[67.0,45.1,1.065], rec:[85,20,1.90], n:1724, vol:"1,724 jobs", chip:"check LL", warn:"North Wales surcharge rests on only 20 jobs",
+    rows:[[0,39,60],[5,60,65],[10,66,62.5],[15,67,65],[20,62,70],[25,107,75],[30,69,75],[35,72,80],[40,81,80],[45,41,100],[50,40,90],[55,27,100],[60,85,120],[70,75,120],[80,78,120],[90,59,145],[100,75,150],[110,37,155],[120,34,194.5],[130,35,180],[140,20,200],[150,21,202.8],[160,31,218.7],[170,19,220],[180,35,240.5],[190,58,257.1],[200,201,280],[250,76,310],[300,7,435],[350,3,400],[400,8,488],[450,1,480]],
+    zones:{north_wales:[20,65,151.9], cumbria:[6,122,200.9], scot_north:[9,362,442.9]},
+    recS:{north_wales:65, cumbria:32.5, scot_north:0}}
   }
  },
  north: {
